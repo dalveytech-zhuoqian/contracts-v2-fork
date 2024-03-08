@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "./GlobalDataTypes.sol";
 
 library LibGlobalValid {
-    uint256 public constant BASIS_POINTS_DIVISOR = 10000;
+    uint256 public constant BASIS_POINTS_DIVISOR = 10 ** 18;
 
     bytes32 constant STORAGE_POSITION = keccak256("blex.globalvalid.storage");
 
@@ -43,22 +43,22 @@ library LibGlobalValid {
 
     function maxSizeLimit() internal view returns (uint256) {
         uint256 m = Storage().maxSizeLimit;
-        return m == 0 ? 10000 : m;
+        return m == 0 ? BASIS_POINTS_DIVISOR : m;
     }
 
     function maxNetSizeLimit() internal view returns (uint256) {
         uint256 m = Storage().maxNetSizeLimit;
-        return m == 0 ? 10000 : m;
+        return m == 0 ? BASIS_POINTS_DIVISOR : m;
     }
 
     function maxUserNetSizeLimit() internal view returns (uint256) {
         uint256 m = Storage().maxUserNetSizeLimit;
-        return m == 0 ? 10000 : m;
+        return m == 0 ? BASIS_POINTS_DIVISOR : m;
     }
 
     function maxMarketSizeLimit(uint16 market) internal view returns (uint256) {
         uint256 m = Storage().maxMarketSizeLimit[market];
-        return m == 0 ? 10000 : m;
+        return m == 0 ? BASIS_POINTS_DIVISOR : m;
     }
 
     /**

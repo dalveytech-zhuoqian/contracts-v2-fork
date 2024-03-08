@@ -1,22 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {LibDiamond} from "../diamond-2/contracts/libraries/LibDiamond.sol";
 import {FeeType} from "./FeeType.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {MarketDataTypes} from "../../market/MarketDataTypes.sol";
-import {Precision} from "../../utils/TransferHelper.sol";
 
 library LibFee {
     using SafeCast for int256;
 
     bytes32 constant FEE_STORAGE_POSITION = keccak256("blex.fee.storage");
-    uint256 constant PRECISION = 10 ** 8;
-
-    uint256 public constant FEE_RATE_PRECISION = Precision.FEE_RATE_PRECISION;
+    uint256 constant PRECISION = 10 ** 18;
 
     struct FeeStorage {
-        bool initialized;
         // =========================================================================
         //                            FundFeeStore & FundFee
         // =========================================================================
@@ -26,21 +21,19 @@ library LibFee {
         mapping(uint16 market => uint256 lastCalTime) lastCalTimes;
         mapping(uint16 market => mapping(bool isLong => int256 calFundingRate)) calFundingRates;
         mapping(uint16 market => uint256 loss) fundFeeLoss;
+        mapping(uint16 market => uint256 balance) balances;
         // =========================================================================
         //                            FeeRouter
         // =========================================================================
-        // address feeVault; @Deprecated
-        // address fundFee; @Deprecated
-        address factory;
         // market's feeRate and fee
         mapping(uint16 market => mapping(uint8 feeType => uint256 feeAndRate)) feeAndRates;
         // FeeVault-storage
         // cumulativeFundingRates tracks the funding rates based on utilization
-        mapping(address => mapping(bool => int256)) cumulativeFundingRates;
+        mapping(uint16 market => mapping(bool isLong => int256)) cumulativeFundingRates;
         // fundingRates tracks the funding rates based on position size
-        mapping(address => mapping(bool => int256)) fundingRates;
+        mapping(uint16 market => mapping(bool isLong => int256)) fundingRates;
         // lastFundingTimes tracks the last time funding was updated for a token
-        mapping(address => uint256) lastFundingTimes;
+        mapping(uint16 market => uint256) lastFundingTimes;
     }
 
     function initialize(address feeVault_, address factory_) internal {
@@ -158,11 +151,11 @@ library LibFee {
      * @param feeAndRates 费率参数
      */
 
-    function getFees(
-        MarketDataTypes.UpdatePositionInputs memory params,
-        int256 _fundFee,
-        mapping(address => mapping(uint8 => uint256)) storage feeAndRates
-    ) internal view returns (int256[] memory fees) {
+    function getFees(MarketDataTypes.UpdatePositionInputs memory params, int256 _fundFee)
+        internal
+        view
+        returns (int256[] memory fees)
+    {
         fees = new int256[](uint8(FeeType.T.Counter));
         address _market = params._market;
         fees[uint8(FeeType.T.FundFee)] = _fundFee;
@@ -173,22 +166,20 @@ library LibFee {
 
         // open position
         if (params.isOpen) {
-            fees[uint8(FeeType.T.OpenFee)] =
-                int256(getFee(_market, params._sizeDelta, uint8(FeeType.T.OpenFee), feeAndRates));
+            fees[uint8(FeeType.T.OpenFee)] = int256(getFee(_market, params._sizeDelta, uint8(FeeType.T.OpenFee)));
         } else {
             // close position
-            fees[uint8(FeeType.T.CloseFee)] =
-                int256(getFee(_market, params._sizeDelta, uint8(FeeType.T.CloseFee), feeAndRates));
+            fees[uint8(FeeType.T.CloseFee)] = int256(getFee(_market, params._sizeDelta, uint8(FeeType.T.CloseFee)));
 
             // liquidate position
             if (params.liqState == 1) {
-                uint256 _fee = feeAndRates[_market][uint8(FeeType.T.LiqFee)];
+                uint256 _fee = Storage().feeAndRates[_market][uint8(FeeType.T.LiqFee)];
                 fees[uint8(FeeType.T.LiqFee)] = int256(_fee);
             }
         }
         if (params.execNum > 0) {
             // exec fee
-            uint256 _fee = feeAndRates[_market][uint8(FeeType.T.ExecFee)];
+            uint256 _fee = Storage().feeAndRates[_market][uint8(FeeType.T.ExecFee)];
             _fee = _fee * params.execNum;
 
             fees[uint8(FeeType.T.ExecFee)] = int256(_fee);
@@ -203,22 +194,17 @@ library LibFee {
      * @param kind The fee kind.
      * @return The fee amount.
      */
-    function getFee(
-        address market,
-        uint256 sizeDelta,
-        uint8 kind,
-        mapping(address => mapping(uint8 => uint256)) storage feeAndRates
-    ) internal view returns (uint256) {
+    function getFee(address market, uint256 sizeDelta, uint8 kind) internal view returns (uint256) {
         if (sizeDelta == 0) {
             return 0;
         }
 
-        uint256 _point = feeAndRates[market][kind];
+        uint256 _point = Storage().feeAndRates[market][kind];
         if (_point == 0) {
-            _point = 100000;
+            _point = PRECISION;
         }
 
-        uint256 _size = (sizeDelta * (FEE_RATE_PRECISION - _point)) / FEE_RATE_PRECISION;
+        uint256 _size = (sizeDelta * (PRECISION - _point)) / PRECISION;
         return sizeDelta - _size;
     }
 }

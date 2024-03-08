@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-library LibMarketValid { /* is IOrderBook, Ac */
-    bytes32 constant MV_STORAGE_POSITION = keccak256("blex.marketvalid.storage");
-    uint256 private constant DECIMALS = 10000;
+library LibMarket { /* is IOrderBook, Ac */
+    bytes32 constant STORAGE_POSITION = keccak256("blex.market.storage");
 
     struct Props {
-        bool allowClose;
+        bool isSuspended;
         bool allowOpen;
+        bool allowClose;
         bool validDecrease;
         uint16 minSlippage;
         uint16 maxSlippage;
@@ -15,23 +15,35 @@ library LibMarketValid { /* is IOrderBook, Ac */
         uint16 maxLeverage;
         uint16 minPayment;
         uint16 minCollateral;
-        uint16 decreaseNumLimit;
+        uint16 decreaseNumLimit; //default: 10
         uint32 maxTradeAmount;
     }
 
-    struct MarketValidStorage {
+    struct StorageStruct {
+        address oracle;
         mapping(uint16 => Props) config;
+        mapping(uint16 => string) name;
+        mapping(uint16 => address) vaultRouter;
+        mapping(uint16 => uint256) balance;
     }
 
-    function Storage() internal pure returns (MarketValidStorage storage fs) {
-        bytes32 position = MV_STORAGE_POSITION;
+    function Storage() internal pure returns (StorageStruct storage fs) {
+        bytes32 position = STORAGE_POSITION;
         assembly {
             fs.slot := position
         }
     }
 
-    function setConfData(uint16 market, Props calldata data) external {
+    //TODO 查一下当前 market balance
+
+    function setConf(uint16 market, Props calldata data) external {
         Storage().config[market] = data;
+    }
+
+    function initMarket(uint16 market, string calldata name, address oracle, address vaultRouter) external {
+        Storage().name[market] = name;
+        Storage().oracle = oracle;
+        Storage().vaultRouter[market] = vaultRouter;
     }
 
     function config(uint16 market) internal view returns (Props memory _config) {
@@ -81,11 +93,8 @@ library LibMarketValid { /* is IOrderBook, Ac */
 
     function validateLiquidation(
         uint16 market,
-        int256 pnl,
         int256 fees,
         int256 liquidateFee,
-        int256 collateral,
-        uint256 size,
         bool raise
     ) external view returns (uint8) {}
     //================================================================================================
