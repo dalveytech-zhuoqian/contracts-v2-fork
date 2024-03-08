@@ -7,8 +7,9 @@ import {Order} from "../lib/order/Order.sol";
 
 contract OrderFacet { /* is IAccessManaged */
     function updateOrder(bytes calldata data) external {
-        (MarketDataTypes.UpdateOrderInputs memory _inputs, Order.Props memory _order) =
-            abi.decode(data, (MarketDataTypes.UpdateOrderInputs, Order.Props));
+        Order.Props memory _order;
+        // (_order) =
+        //     abi.decode(data, (uint256, bool, uint256));
         if (_inputs.isCreate) {
             // createOrder
         } else {

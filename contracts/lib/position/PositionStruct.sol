@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+import {Order} from "../order/OrderStruct.sol";
+
 library Position {
     struct Props {
         // 1
@@ -16,6 +18,16 @@ library Position {
         uint32 lastTime;
         uint16 market;
         uint72 extra0;
+    }
+
+    function createPositionFromOrder(Order.Props memory order) internal view returns (Props memory result) {
+        result.size = order.size;
+        result.collateral = order.collateral;
+        result.isLong = order.isLong;
+        result.market = order.market;
+        result.averagePrice = order.price;
+        result.lastTime = uint32(block.timestamp);
+        return result;
     }
 
     function calAveragePrice(Props memory position, uint256 sizeDelta, uint256 markPrice, uint256 pnl, bool hasProfit)
@@ -59,6 +71,7 @@ library Position {
         return (position.size > 0);
     }
 
+    // only valid data of position, not include the business logic
     function isValid(Props memory position) internal pure returns (bool) {
         if (position.size == 0) {
             return false;

@@ -2,10 +2,15 @@
 pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
-import {Position} from "./Position.sol";
+import "../../utils/EnumerableValues.sol";
+
+import {Position} from "./PositionStruct.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-library LibPosition {
+library PositionHandler {
+    using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableValues for EnumerableSet.AddressSet;
+
     bytes32 constant POS_STORAGE_POSITION = keccak256("blex.position.storage");
 
     struct PositionStorage {
@@ -31,15 +36,18 @@ library LibPosition {
         return bytes32(abi.encodePacked(isLong, market));
     }
 
-    function increasePosition(
-        uint16 market,
-        address account,
-        int256 collateralDelta,
-        uint256 sizeDelta,
-        uint256 markPrice,
-        int256 fundingRate,
-        bool isLong
-    ) external returns (Position.Props memory result) {}
+    function increasePosition()
+        // TODO 参数是否需要调整
+        // uint16 market,
+        // address account,
+        // int256 collateralDelta,
+        // uint256 sizeDelta,
+        // uint256 markPrice,
+        // int256 fundingRate,
+        // bool isLong
+        external
+        returns (Position.Props memory result)
+    {}
 
     function decreasePosition(
         uint16 market,
@@ -65,4 +73,20 @@ library LibPosition {
     // =====================================================
     //           view only
     // =====================================================
+    function getPNL(Position.Props memory _position, uint256 sizeDelta, uint256 markPrice)
+        public
+        pure
+        returns (int256)
+    {
+        if (_position.size == 0) {
+            return 0;
+        }
+
+        (bool _hasProfit, uint256 _pnl) = Position.getPNL(_position, markPrice);
+        if (sizeDelta != 0) {
+            _pnl = (sizeDelta * _pnl) / _position.size;
+        }
+
+        return _hasProfit ? int256(_pnl) : -int256(_pnl);
+    }
 }

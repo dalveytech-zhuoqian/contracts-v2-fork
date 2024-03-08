@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+
 library LibMarket { /* is IOrderBook, Ac */
     bytes32 constant STORAGE_POSITION = keccak256("blex.market.storage");
+
+    using EnumerableSet for EnumerableSet.UintSet;
 
     struct Props {
         bool isSuspended;
@@ -25,6 +29,7 @@ library LibMarket { /* is IOrderBook, Ac */
         mapping(uint16 => string) name;
         mapping(uint16 => address) vaultRouter;
         mapping(uint16 => uint256) balance;
+        EnumerableSet.UintSet marketIds;
     }
 
     function Storage() internal pure returns (StorageStruct storage fs) {
@@ -44,6 +49,7 @@ library LibMarket { /* is IOrderBook, Ac */
         Storage().name[market] = name;
         Storage().oracle = oracle;
         Storage().vaultRouter[market] = vaultRouter;
+        Storage().marketIds.add(market);
     }
 
     function config(uint16 market) internal view returns (Props memory _config) {
@@ -91,12 +97,11 @@ library LibMarket { /* is IOrderBook, Ac */
 
     function getDecreaseOrderValidation(uint16 market, uint256 decrOrderCount) external view returns (bool isValid) {}
 
-    function validateLiquidation(
-        uint16 market,
-        int256 fees,
-        int256 liquidateFee,
-        bool raise
-    ) external view returns (uint8) {}
+    function validateLiquidation(uint16 market, int256 fees, int256 liquidateFee, bool raise)
+        external
+        view
+        returns (uint8)
+    {}
     //================================================================================================
     // internal
     //================================================================================================
