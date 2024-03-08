@@ -4,9 +4,9 @@ pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {Order} from "./Order.sol";
+import {Order} from "./OrderStruct.sol";
 
-library LibOrderBook { /* is IOrderBook, Ac */
+library OrderHandler { /* is IOrderBook, Ac */
     bytes32 constant OB_STORAGE_POSITION = keccak256("blex.orderbook.storage");
 
     struct OrderStorage {

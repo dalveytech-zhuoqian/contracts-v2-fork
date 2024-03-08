@@ -33,7 +33,10 @@ library Order {
         uint96 extra1;
         //====5
         uint128 sl;
-        uint128 extra2;
+        bool isIncrease;
+        bool isLong;
+        uint16 market;
+        uint96 extra2; //todo
     }
 
     function getPairKey(Props memory order) internal pure returns (bytes32) {
@@ -52,4 +55,17 @@ library Order {
         require(order.account != address(0), "invalid order key");
         require(order.orderID != 0, "invalid order key");
     }
+
+    function validTPSL(Props memory _order, bool _isLong) internal pure {
+        if (_order.tp > 0) {
+            require(_order.tp > _order.price == _isLong, "OrderBook:tp<price");
+        }
+        if (_order.sl > 0) {
+            require(_order.price > _order.sl == _isLong, "OrderBook:sl>price");
+        }
+    }
+    // 精度
+    // 创建结构体
+    // valid
+    // 转换结构体
 }
