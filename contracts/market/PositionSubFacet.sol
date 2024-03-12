@@ -2,22 +2,21 @@
 pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
+import {MarketDataTypes} from "../lib/MarketDataTypes.sol";
+import {Order} from "../lib/order/OrderStruct.sol";
+
 contract PositionSubFacet {
     function decreasePosition(bytes calldata data) external {
-        //MarketDataTypes.UpdatePositionInputs memory _vars
+        MarketDataTypes.Cache memory _vars = MarketDataTypes.decodeCache(data);
     }
 
-    function liquidatePositions(bytes calldata data) external {
-        (address[] memory accounts, bool _isLong) = abi.decode(data, (address[], bool));
-    }
+    function liquidate(uint16 market, address accounts, bool _isLong) external {}
 
-    function execOrderKey(Order.Props memory order, MarketDataTypes.UpdatePositionInputs memory _params) external {
-        // decreasePositionFromOrder
+    function execSubOrderKey(Order.Props memory order, MarketDataTypes.Cache memory _params) external {
+        // decreasePositionFromOrder()
     }
 
     //========================================================================
 
-    function decreasePositionFromOrder(Order.Props memory order, MarketDataTypes.UpdatePositionInputs memory _params)
-        private
-    {}
+    function decreasePositionFromOrder(Order.Props memory order, MarketDataTypes.Cache memory _params) private {}
 }

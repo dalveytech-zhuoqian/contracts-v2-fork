@@ -2,8 +2,13 @@
 pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
-contract PositionAddFacet { /* is MarketStorage, ReentrancyGuard, Ac */
-    function increasePositionWithOrders(MarketDataTypes.UpdatePositionInputs memory _inputs) public {}
+import {MarketDataTypes} from "../lib/MarketDataTypes.sol";
+import {Order} from "../lib/order/OrderStruct.sol";
 
-    function execOrderKey(Order.Props memory exeOrder, MarketDataTypes.UpdatePositionInputs memory _params) external {}
+contract PositionAddFacet { /* is MarketStorage, ReentrancyGuard, Ac */
+    function increasePosition(bytes calldata _data) external {
+        MarketDataTypes.Cache memory _inputs = MarketDataTypes.decodeCache(_data);
+    }
+
+    function execAddOrderKey(Order.Props memory exeOrder, MarketDataTypes.Cache memory _params) external {}
 }

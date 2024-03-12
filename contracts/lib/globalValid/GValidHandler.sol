@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.20;
 
-import "./GlobalDataTypes.sol";
+import "./GDataTypes.sol";
 
 library LibGlobalValid {
     uint256 public constant BASIS_POINTS_DIVISOR = 10 ** 18;

@@ -16,6 +16,7 @@ library MarketDataTypes {
         uint256 collateralDelta;
         uint256 tp;
         uint256 sl;
+        uint256 orderId;
         address account;
         bool isExec;
         uint8 liqState;
@@ -25,7 +26,7 @@ library MarketDataTypes {
         bool keepLev;
     }
 
-    function decodeUpdateOrderInputs(bytes memory data) internal pure returns (Cache memory inputs) {
+    function decodeCache(bytes memory data) internal pure returns (Cache memory inputs) {
         (
             inputs.pay,
             inputs.slippage,
@@ -41,6 +42,7 @@ library MarketDataTypes {
             inputs.account,
             inputs.refCode,
             inputs.keepLev,
+            inputs.orderId,
             inputs.isExec
         ) = abi.decode(
             data,
@@ -59,6 +61,7 @@ library MarketDataTypes {
                 address,
                 bytes32,
                 bool,
+                uint256,
                 bool
             )
         );

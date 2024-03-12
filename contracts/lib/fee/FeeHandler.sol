@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {FeeType} from "./FeeType.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {MarketDataTypes} from "../../market/MarketDataTypes.sol";
+import {MarketDataTypes} from "../MarketDataTypes.sol";
 
 library LibFee {
     using SafeCast for int256;
@@ -148,10 +148,10 @@ library LibFee {
      * 只是获取根据当前仓位获取各种费用应该收取多少, 并不包含收费顺序和是否能收得到
      * @param params 用户传参
      * @param _fundFee 资金费
-     * @param feeAndRates 费率参数
+     * @return feeAndRates 费率参数
      */
 
-    function getFees(MarketDataTypes.UpdatePositionInputs memory params, int256 _fundFee)
+    function getFees(MarketDataTypes.Cache memory params, int256 _fundFee)
         internal
         view
         returns (int256[] memory fees)
