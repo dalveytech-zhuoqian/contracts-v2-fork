@@ -37,19 +37,23 @@ contract ReferralFacet {
         LibReferral.govSetCodeOwner(_code, _newAccount);
     }
 
-    function getTraderReferralInfo(address _account) internal view returns (bytes32, address) {
-        return LibReferral.getTraderReferralInfo(_account);
-    }
-
-    function getCodeOwners(bytes32 _code) external view returns (address) {
-        return LibReferral.codeOwners(_code);
-    }
-
     function updatePositionCallback(MarketPositionCallBackIntl.UpdatePositionEvent memory _event) external {
         LibReferral.updatePositionCallback(_event);
     }
 
     function getHooksCalls() external pure override returns (MarketCallBackIntl.Calls memory) {
         return LibReferral.getHooksCalls();
+    }
+
+    //========================================================================
+    //      view functions
+    //========================================================================
+
+    function getTraderReferralInfo(address _account) internal view returns (bytes32, address) {
+        return LibReferral.getTraderReferralInfo(_account);
+    }
+
+    function getCodeOwners(bytes32 _code) external view returns (address) {
+        return LibReferral.codeOwners(_code);
     }
 }
