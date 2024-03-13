@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// import "./interfaces/IReferral.sol";
-// import "./../ac/AcUpgradable.sol";
-// import {MarketPositionCallBackIntl, MarketCallBackIntl} from "../market/interfaces/IMarketCallBackIntl.sol";
-// import "../fee/lib/FeeRouterLib.sol";
+import {MarketPositionCallBackIntl, MarketCallBackIntl} from "../market/IMarketCallBackIntl.sol";
 
 library LibReferral {
     bytes32 constant STORAGE_POSITION = keccak256("blex.referral.storage");
@@ -53,35 +50,35 @@ library LibReferral {
         require(_totalRebate <= BASIS_POINTS, "Referral: invalid totalRebate");
         require(_discountShare <= BASIS_POINTS, "Referral: invalid discountShare");
 
-        Tier memory tier = tiers[_tierId];
+        Tier memory tier = Storage().tiers[_tierId];
         tier.totalRebate = _totalRebate;
         tier.discountShare = _discountShare;
-        tiers[_tierId] = tier;
+        Storage().tiers[_tierId] = tier;
         emit SetTier(_tierId, _totalRebate, _discountShare);
     }
 
     function setReferrerTier(address _referrer, uint256 _tierId) external {
-        referrerTiers[_referrer] = _tierId;
+        Storage().referrerTiers[_referrer] = _tierId;
         emit SetReferrerTier(_referrer, _tierId);
     }
 
     function setReferrerDiscountShare(address _account, uint256 _discountShare) external {
         require(_discountShare <= BASIS_POINTS, "Referral: invalid discountShare");
 
-        referrerDiscountShares[_account] = _discountShare;
+        Storage().referrerDiscountShares[_account] = _discountShare;
         emit SetReferrerDiscountShare(_account, _discountShare);
     }
 
     function registerCode(bytes32 _code) external {
         require(_code != bytes32(0), "Referral: invalid _code");
-        require(codeOwners[_code] == address(0), "Referral: code already exists");
+        require(Storage().codeOwners[_code] == address(0), "Referral: code already exists");
 
-        codeOwners[_code] = msg.sender;
+        Storage().codeOwners[_code] = msg.sender;
         emit RegisterCode(msg.sender, _code);
     }
 
     modifier onlyCodeOwner(bytes32 _code) {
-        address account = codeOwners[_code];
+        address account = Storage().codeOwners[_code];
         require(msg.sender == account, "Referral: forbidden");
         _;
     }
@@ -93,32 +90,29 @@ library LibReferral {
      */
     function setCodeOwner(bytes32 _code, address _newAccount) external onlyCodeOwner(_code) {
         require(_code != bytes32(0), "Referral: invalid _code");
-
-        codeOwners[_code] = _newAccount;
+        Storage().codeOwners[_code] = _newAccount;
         emit SetCodeOwner(msg.sender, _newAccount, _code);
     }
 
-    // TODO only Gov
     function govSetCodeOwner(bytes32 _code, address _newAccount) external {
         require(_code != bytes32(0), "Referral: invalid _code");
-
-        codeOwners[_code] = _newAccount;
+        Storage().codeOwners[_code] = _newAccount;
         emit GovSetCodeOwner(_code, _newAccount);
     }
 
     function getTraderReferralInfo(address _account) internal view returns (bytes32, address) {
-        bytes32 code = traderReferralCodes[_account];
+        bytes32 code = Storage().traderReferralCodes[_account];
         address referrer;
         if (code != bytes32(0)) {
-            referrer = codeOwners[code];
+            referrer = Storage().codeOwners[code];
         }
         return (code, referrer);
     }
 
     function _setTraderReferralCode(address _account, bytes32 _code) internal {
-        traderReferralCodes[_account] = _code;
+        Storage().traderReferralCodes[_account] = _code;
         emit SetTraderReferralCode(_account, _code);
-        emit SetTraderReferralCode(_account, codeOwners[_code], _code);
+        emit SetTraderReferralCode(_account, Storage().codeOwners[_code], _code);
     }
 
     function getCodeOwners(bytes32[] memory _codes) internal view returns (address[] memory) {
@@ -126,13 +120,15 @@ library LibReferral {
 
         for (uint256 i = 0; i < _codes.length; i++) {
             bytes32 code = _codes[i];
-            owners[i] = codeOwners[code];
+            owners[i] = Storage().codeOwners[code];
         }
 
         return owners;
     }
 
-    function updatePositionCallback(MarketPositionCallBackIntl.UpdatePositionEvent memory _event) external {
+    function updatePositionCallback(bytes calldata _data) external {
+        MarketPositionCallBackIntl.UpdatePositionEvent memory _event =
+            abi.decode(_data, (MarketPositionCallBackIntl.UpdatePositionEvent));
         (bytes32 referralCode, address referrer) = getTraderReferralInfo(_event.inputs._account);
         if (referralCode == bytes32(0)) {
             referrer = codeOwners[_event.inputs._refCode];
@@ -158,9 +154,5 @@ library LibReferral {
                 referrer
             );
         }
-    }
-
-    function getHooksCalls() external pure override returns (MarketCallBackIntl.Calls memory) {
-        return MarketCallBackIntl.Calls({updatePosition: true, updateOrder: false, deleteOrder: false});
     }
 }

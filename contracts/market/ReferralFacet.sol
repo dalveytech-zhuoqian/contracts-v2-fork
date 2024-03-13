@@ -37,14 +37,6 @@ contract ReferralFacet {
         LibReferral.govSetCodeOwner(_code, _newAccount);
     }
 
-    function updatePositionCallback(MarketPositionCallBackIntl.UpdatePositionEvent memory _event) external {
-        LibReferral.updatePositionCallback(_event);
-    }
-
-    function getHooksCalls() external pure override returns (MarketCallBackIntl.Calls memory) {
-        return LibReferral.getHooksCalls();
-    }
-
     //========================================================================
     //      view functions
     //========================================================================

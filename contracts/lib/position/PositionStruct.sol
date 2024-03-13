@@ -6,14 +6,14 @@ import {Order} from "../order/OrderStruct.sol";
 library Position {
     struct Props {
         // 1
-        uint128 size;
-        uint128 collateral;
+        uint256 size;
+        uint256 collateral;
         // 2
         int256 entryFundingRate;
         // 3
         int256 realisedPnl;
         // 4
-        uint128 averagePrice;
+        uint256 averagePrice;
         bool isLong;
         uint32 lastTime;
         uint16 market;
@@ -55,7 +55,6 @@ library Position {
         uint256 _priceDelta =
             position.averagePrice > price ? position.averagePrice - price : price - position.averagePrice;
         uint256 _pnl = (position.size * _priceDelta) / position.averagePrice;
-
         bool _hasProfit;
 
         if (position.isLong) {
