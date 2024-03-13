@@ -24,6 +24,9 @@ library MarketDataTypes {
         bytes32 refCode;
         uint8 execNum;
         bool keepLev;
+        bool keepLevTP;
+        bool keepLevSL;
+        bool triggerAbove;
     }
 
     function decodeCache(bytes memory data) internal pure returns (Cache memory inputs) {
@@ -43,7 +46,11 @@ library MarketDataTypes {
             inputs.refCode,
             inputs.keepLev,
             inputs.orderId,
-            inputs.isExec
+            inputs.isExec,
+            inputs.triggerAbove,
+            inputs.keepLevSL,
+            inputs.keepLevTP
+
         ) = abi.decode(
             data,
             (
@@ -62,6 +69,9 @@ library MarketDataTypes {
                 bytes32,
                 bool,
                 uint256,
+                bool,
+                bool,
+                bool,
                 bool
             )
         );
