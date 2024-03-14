@@ -84,7 +84,7 @@ library OracleHandler {
     );
     event UpdatePrice(address feed, address indexed token, uint256 price);
 
-    function Storage() internal pure returns (OrderStorage storage fs) {
+    function Storage() internal pure returns (StorageStruct storage fs) {
         bytes32 position = STORAGE_POSITION;
         assembly {
             fs.slot := position

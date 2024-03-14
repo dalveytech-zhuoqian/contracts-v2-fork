@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {FeeType} from "../types/FeeType.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+import {FeeType} from "../types/FeeType.sol";
 import {MarketDataTypes} from "../types/MarketDataTypes.sol";
+import {BalanceHandler} from "../balance/BalanceHandler.sol";
 
 library FeeHandler {
     using SafeCast for int256;
+    using SafeERC20 for IERC20;
 
     bytes32 constant FEE_STORAGE_POSITION = keccak256("blex.fee.storage");
     uint256 constant PRECISION = 10 ** 18;
@@ -50,23 +55,18 @@ library FeeHandler {
         mapping(uint16 market => uint256) lastFundingTimes;
     }
 
-    // FundFee
-    event UpdateFundInterval(address indexed market, uint256 interval);
-    event UpdateCalInterval(address indexed market, uint256 interval);
+    event UpdateFundInterval(uint16 indexed market, uint256 interval);
+    event UpdateCalInterval(uint16 indexed market, uint256 interval);
     event AddSkipTime(uint256 indexed startTime, uint256 indexed endTime);
     event UpdateConfig(uint256 index, uint256 oldFRate, uint256 newFRate);
-
-    // FeeRouter
-    event UpdateFee(address indexed account, address indexed market, int256[] fees, uint256 amount);
-    event UpdateFeeAndRates(address indexed market, uint8 kind, uint256 oldFeeOrRate, uint256 feeOrRate);
-    //================================================================================
-    // feevault
-    //================================================================================
-    event FeeVaultWithdraw(address indexed token, address indexed to, uint256 amount);
-    event UpdateCumulativeFundRate(address indexed market, int256 longRate, int256 shortRate);
-    event UpdateFundRate(address indexed market, int256 longRate, int256 shortRate);
-    event UpdateLastFundTime(address indexed market, uint256 timestamp);
-    //================================================================================
+    event UpdateFee(address indexed account, uint16 indexed market, int256[] fees, uint256 amount);
+    event UpdateFeeAndRates(uint16 indexed market, uint8 kind, uint256 oldFeeOrRate, uint256 feeOrRate);
+    event UpdateCumulativeFundRate(uint16 indexed market, int256 longRate, int256 shortRate);
+    event UpdateFundRate(uint16 indexed market, int256 longRate, int256 shortRate);
+    event UpdateLastFundTime(uint16 indexed market, uint256 timestamp);
+    event AddNegativeFeeLoss(
+        uint16 indexed market, address account, uint256 amount, uint256 lossBefore, uint256 lossAfter
+    );
 
     function initialize(uint16 market) internal {
         FeeStorage storage fs = Storage();
@@ -84,32 +84,27 @@ library FeeHandler {
         }
     }
 
-    function collectFees(bytes memory data) external {
-        // address account,
-        // address token,
-        // int256[] memory fees
-        // uint256 fundfeeLoss
-    }
-    function payoutFees(bytes memory data) external {
-        // address account,
-        // address token,
-        // int256[] memory fees,
-        // int256 feesTotal
-    }
-    function updateCumulativeFundingRate(bytes memory data) external {
-        // uint16 market,
-        // uint256 longSize,
-        // uint256 shortSize
+    function collectFees(uint16 market, address account, address token, int256[] memory fees, uint256 fundfeeLoss)
+        external
+    {
+        uint256 _amount = IERC20(token).allowance(msg.sender, address(this));
+        // todo 会存在这种现象嘛 如果存在要不要更新event
+        //if (_amount == 0 && fundfeeLoss == 0) return;
+        if (_amount != 0) {
+            BalanceHandler.marketToFee(market, account, _amount);
+        }
+        if (fundfeeLoss > 0) {
+            uint256 _before = Storage().fundFeeLoss[market];
+            Storage().fundFeeLoss[market] += fundfeeLoss;
+            BalanceHandler.feeToMarket(market, account, fees, fundfeeLoss);
+            // emit AddNegativeFeeLoss(market, account, _before, Storage().fundFeeLoss[market]);
+        }
+        emit UpdateFee(account, market, fees, _amount);
     }
 
-    function updateGlobalFundingRate(
-        uint16 market,
-        int256 longRate,
-        int256 shortRate,
-        int256 nextLongRate,
-        int256 nextShortRate,
-        uint256 timestamp
-    ) external {}
+    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) external {
+        // TODO too much to do
+    }
 
     /**
      * 只是获取根据当前仓位获取各种费用应该收取多少, 并不包含收费顺序和是否能收得到
@@ -170,5 +165,20 @@ library FeeHandler {
 
         uint256 _size = (sizeDelta * (PRECISION - _point)) / PRECISION;
         return sizeDelta - _size;
+    }
+
+    //==========================================================================================
+    //        private functions
+    //==========================================================================================
+
+    function updateGlobalFundingRate(
+        uint16 market,
+        int256 longRate,
+        int256 shortRate,
+        int256 nextLongRate,
+        int256 nextShortRate,
+        uint256 timestamp
+    ) private {
+        // TODO much to do
     }
 }

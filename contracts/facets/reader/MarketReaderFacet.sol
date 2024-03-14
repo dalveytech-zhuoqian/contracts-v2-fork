@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../../lib/utils/EnumerableValues.sol";
 import {Position} from "../../lib/types/PositionStruct.sol";
 
-import {LibAccessManaged} from "../lib/ac/LibAccessManaged.sol";
+import {LibAccessManaged} from "../../ac/LibAccessManaged.sol";
 import {MarketHandler} from "../../lib/market/MarketHandler.sol";
 import {PositionHandler} from "../../lib/position/PositionHandler.sol";
 
@@ -17,6 +17,15 @@ contract MarketReaderFacet { /* is IAccessManaged */
     //================================================================
     function isLiquidate(uint16 market, address account, bool isLong) external view {
         // LibMarketValid.validateLiquidation(market, pnl, fees, liquidateFee, collateral, size, raise);
+    }
+
+    function getGlobalPnl() public view returns (int256) {
+        address[] memory _markets = markets.values();
+        int256 pnl = 0;
+        for (uint256 i = 0; i < _markets.length; i++) {
+            pnl = pnl + IMarket(_markets[i]).getPNL();
+        }
+        return pnl;
     }
 
     function availableLiquidity(address market, address account, bool isLong) external view returns (uint256) {}

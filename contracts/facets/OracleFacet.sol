@@ -9,8 +9,9 @@ import {LibAccessManaged} from "../ac/LibAccessManaged.sol";
 import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
 
 contract OracleFacet {
-    function setConfig(LibOracleStore.ConfigStruct calldata _config) external {
-        LibOracleStore.StorageStruct storage store = LibOracleStore.getStorage();
+    function setConfig(bytes calldata _data) external restricted {
+        (OracleHandler.ConfigStruct memory _config) = abi.decode(_data, (OracleHandler.ConfigStruct));
+        OracleHandler.StorageStruct storage store = OracleHandler.Storage();
         store.config = _config;
     }
 

@@ -2,14 +2,23 @@
 pragma solidity ^0.8.0;
 
 import {LibAccessManaged} from "../ac/LibAccessManaged.sol";
+import {FeeHandler} from "../lib/fee/FeeHandler.sol";
+import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
 
 contract FeeFacet { /* is IAccessManaged */
     // uint256 public constant FEE_RATE_PRECISION = LibFundFee.PRECISION;
 
-    // FeeRouter for MarketLib: onlyRole(WITHDRAW_ROLE)
-    function addSkipTime(uint256 start, uint256 end) external restricted {}
+    function initFeeFacet(uint16 market) external restricted {
+        FeeHandler.initialize(market);
+    }
 
-    function feeVaultWithdraw(address token, address to, uint256 amount) external restricted {}
+    function addSkipTime(uint256 start, uint256 end) external restricted {
+        FeeHandler.addSkipTime(market, start, end);
+    }
+
+    function feeVaultWithdraw(uint16 market, address to, uint256 amount) external restricted {
+        BalanceHandler.feeToReward(market, to, amount);
+    }
 
     function setFundingIntervals(uint16 market, uint256 interval) external {
         FeeHandler.Storage().fundingIntervals[market] = interval;
