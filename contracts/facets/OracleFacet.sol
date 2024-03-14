@@ -16,7 +16,8 @@ contract OracleFacet {
     }
 
     function setPrices(address[] memory _tokens, uint256[] memory _prices, uint256 _timestamp) external restricted {}
-    function setPricesAndExecute(bytes calldata _data) external stricted {}
+
+  
     function setAdjustment(address _token, bool _isAdditive, uint256 _adjustmentBps) external restricted {}
 
     function setSpreadBasisPoints(address _token, uint256 _spreadBasisPoints) external restricted {}

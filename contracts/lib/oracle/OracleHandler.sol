@@ -32,7 +32,6 @@ library OracleHandler {
     struct ConfigStruct {
         bool isSpreadEnablede;
         bool isFastPriceEnabled;
-        bool isGmxPriceEnabled;
         uint32 lastUpdatedBlock;
         uint32 minBlockInterval;
         uint32 lastUpdatedAt;
@@ -91,22 +90,20 @@ library OracleHandler {
         }
     }
 
-    function config() external view returns (ConfigStruct memory) {
+    function config() internal view returns (ConfigStruct memory) {
         return Storage().config;
     }
 
-    function setMaxCumulativeDeltaDiffs(address[] memory _tokens, uint256[] memory _maxCumulativeDeltaDiffs) external {}
+    function setMaxCumulativeDeltaDiffs(address[] memory _tokens, uint256[] memory _maxCumulativeDeltaDiffs) internal {}
 
-    function setTokens(address[] memory _tokens, uint256[] memory _tokenPrecisions) external {}
+    function setTokens(address[] memory _tokens, uint256[] memory _tokenPrecisions) internal {}
 
-    function setCompactedPrices(uint256[] memory _priceBitArray, uint256 _timestamp) external {}
+    function setCompactedPrices(uint256[] memory _priceBitArray, uint256 _timestamp) internal {}
 
-    function setPrices(address[] memory _tokens, uint256[] memory _prices, uint256 _timestamp) external onlyUpdater {
+    function setPrices(address[] memory _tokens, uint256[] memory _prices, uint256 _timestamp) internal {
         bool shouldUpdate = _setLastUpdatedValues(_timestamp);
 
         if (shouldUpdate) {
-            address _feed = chainPriceFeed;
-
             for (uint256 i = 0; i < _tokens.length; i++) {
                 address token = _tokens[i];
                 _setPrice(token, _prices[i], _feed);
@@ -114,13 +111,9 @@ library OracleHandler {
         }
     }
 
-    function setPricesAndExecute(bytes calldata _data) external stricted {
-        (address token, uint256 price, uint256 timestamp, bytes memory _vars) =
-            abi.decode(_data, (address, uint256, uint256, bytes));
-        _setLastUpdatedValues(timestamp);
-        _setPrice(token, price, chainPriceFeed);
-        _market.execOrderKey(_vars);
-    }
+    //==================================================================================================
+    //================ view    functions================================================================
+    //==================================================================================================
 
     // under regular operation, the fastPrice (prices[token]) is returned and there is no spread returned from this function,
     // though VaultPriceFeed might apply its own spread
@@ -133,8 +126,7 @@ library OracleHandler {
     // - in case the maxDeviationBasisPoints between _refPrice and fastPrice is exceeded
     // - in case watchers flag an issue
     // - in case the cumulativeFastDelta exceeds the cumulativeRefDelta by the maxCumulativeDeltaDiff
-    function getPrice(address _token, uint256 _refPrice, bool _maximise) external view returns (uint256) {
-        return prices[_token];
+    function getPrice(address _token, uint256 _refPrice, bool _maximise) internal view returns (uint256) {
         if (block.timestamp > lastUpdatedAt + maxPriceUpdateDelay) {
             if (_maximise) {
                 return (_refPrice * (BASIS_POINTS_DIVISOR + spreadBasisPointsIfChainError)) / BASIS_POINTS_DIVISOR;
@@ -185,7 +177,7 @@ library OracleHandler {
         return fastPrice;
     }
 
-    function favorFastPrice(address _token) public view returns (bool) {
+    function favorFastPrice(address _token) internal view returns (bool) {
         if (isSpreadEnablede) {
             return false;
         }
@@ -204,7 +196,7 @@ library OracleHandler {
         return true;
     }
 
-    function getPriceData(address _token) public view returns (uint256, uint256, uint256, uint256) {
+    function getPriceData(address _token) internal view returns (uint256, uint256, uint256, uint256) {
         PriceDataItem memory data = priceData[_token];
         return (
             uint256(data.refPrice),
@@ -214,7 +206,34 @@ library OracleHandler {
         );
     }
 
-    function _setPrice(address _token, uint256 _price, address _feed) private {
+    function getPrice(address _token, bool _maximise) internal view returns (uint256) {
+        uint256 price = _getPrice(_token, _maximise);
+
+        uint256 adjustmentBps = adjustmentBasisPoints[_token];
+
+        if (adjustmentBps > 0) {
+            if (isAdjustmentAdditive[_token]) {
+                return (price * (BASIS_POINTS_DIVISOR + adjustmentBps)) / BASIS_POINTS_DIVISOR;
+            }
+            return (price * (BASIS_POINTS_DIVISOR - adjustmentBps)) / BASIS_POINTS_DIVISOR;
+        }
+        return price;
+    }
+
+    function getChainPrice(address _token, bool _maximise) internal view returns (uint256) {
+        uint256 xxxUSD = _getPrice(_token, _maximise);
+        uint256 _USDTUSD = _getPrice(USDT, _maximise);
+        if (xxxUSD < (2 ** 256 - 1) / PRICE_PRECISION) {
+            return (xxxUSD * PRICE_PRECISION) / _USDTUSD;
+        }
+        return (xxxUSD / PRICE_PRECISION) * _USDTUSD;
+    }
+
+    //==================================================================================================
+    //================ private functions================================================================
+    //==================================================================================================
+
+    function _setPrice(address _token, uint256 _price) internal {
         if (false && _feed != address(0)) {
             uint256 refPrice = IChainPriceFeed(_feed).getLatestPrice(_token);
             uint256 fastPrice = prices[_token];
@@ -269,7 +288,7 @@ library OracleHandler {
         );
     }
 
-    function _setLastUpdatedValues(uint256 _timestamp) private returns (bool) {
+    function _setLastUpdatedValues(uint256 _timestamp) internal returns (bool) {
         if (minBlockInterval > 0) {
             require(
                 block.number - lastUpdatedBlock >= minBlockInterval, "FastPriceFeed: minBlockInterval not yet passed"
@@ -290,86 +309,10 @@ library OracleHandler {
 
         return true;
     }
-    //==================================================================================================
-    //==================================================================================================
-
-    function getPrice(address _token, bool _maximise) public view returns (uint256) {
-        uint256 price = _getPrice(_token, _maximise);
-
-        uint256 adjustmentBps = adjustmentBasisPoints[_token];
-
-        if (adjustmentBps > 0) {
-            if (isAdjustmentAdditive[_token]) {
-                return (price * (BASIS_POINTS_DIVISOR + adjustmentBps)) / BASIS_POINTS_DIVISOR;
-            }
-            return (price * (BASIS_POINTS_DIVISOR - adjustmentBps)) / BASIS_POINTS_DIVISOR;
-        }
-        return price;
-    }
-
-    function _getPrice(address _token, bool _maximise) internal view returns (uint256) {
-        uint256 price = getChainPrice(_token, _maximise);
-
-        if (isFastPriceEnabled) {
-            price = getFastPrice(_token, price, _maximise);
-        }
-
-        if (isGmxPriceEnabled) {
-            uint256 _gmxPrice = getGmxPrice(_token, _maximise);
-            // get the higher of the two prices
-            if (_maximise && _gmxPrice > price) {
-                price = _gmxPrice;
-            }
-            // get the lower of the two prices
-            if (!_maximise && price > _gmxPrice) {
-                price = _gmxPrice;
-            }
-        }
-
-        if (strictStableTokens[_token]) {
-            uint256 delta = price > ONE_USD ? price - ONE_USD : ONE_USD - price;
-            if (delta <= maxStrictPriceDeviation) {
-                return ONE_USD;
-            }
-
-            // if _maximise and price is e.g. 1.02, return 1.02
-            if (_maximise && price > ONE_USD) {
-                return price;
-            }
-
-            // if !_maximise and price is e.g. 0.98, return 0.98
-            if (!_maximise && price < ONE_USD) {
-                return price;
-            }
-
-            return ONE_USD;
-        }
-
-        uint256 _spreadBasisPoints = spreadBasisPoints[_token];
-
-        if (_maximise) {
-            return (price * (BASIS_POINTS_DIVISOR + _spreadBasisPoints)) / BASIS_POINTS_DIVISOR;
-        }
-        return (price * (BASIS_POINTS_DIVISOR - _spreadBasisPoints)) / BASIS_POINTS_DIVISOR;
-    }
-    //==================================================================================================
-    //==================================================================================================
-    //==================================================================================================
-
-    function getChainPrice(address _token, bool _maximise) public view returns (uint256) {
-        uint256 xxxUSD = _getPrice(_token, _maximise);
-        uint256 _USDTUSD = _getPrice(USDT, _maximise);
-        if (xxxUSD < (2 ** 256 - 1) / PRICE_PRECISION) {
-            return (xxxUSD * PRICE_PRECISION) / _USDTUSD;
-        }
-        return (xxxUSD / PRICE_PRECISION) * _USDTUSD;
-    }
 
     function _getChainPrice(address _token, bool _maximise) private view returns (uint256) {
         address _feed = priceFeeds[_token];
         require(_feed != address(0), "PriceFeed: invalid price feed");
-
-        IPriceFeed _priceFeed = IPriceFeed(_feed);
 
         uint256 _price = 0;
         uint80 _id = _priceFeed.latestRound();
@@ -409,5 +352,39 @@ library OracleHandler {
 
         uint256 _decimals = priceDecimals[_token];
         return (_price * PRICE_PRECISION) / (10 ** _decimals);
+    }
+
+    function _getPrice(address _token, bool _maximise) internal view returns (uint256) {
+        uint256 price = getChainPrice(_token, _maximise);
+
+        if (isFastPriceEnabled) {
+            price = getFastPrice(_token, price, _maximise);
+        }
+
+        if (strictStableTokens[_token]) {
+            uint256 delta = price > ONE_USD ? price - ONE_USD : ONE_USD - price;
+            if (delta <= maxStrictPriceDeviation) {
+                return ONE_USD;
+            }
+
+            // if _maximise and price is e.g. 1.02, return 1.02
+            if (_maximise && price > ONE_USD) {
+                return price;
+            }
+
+            // if !_maximise and price is e.g. 0.98, return 0.98
+            if (!_maximise && price < ONE_USD) {
+                return price;
+            }
+
+            return ONE_USD;
+        }
+
+        uint256 _spreadBasisPoints = spreadBasisPoints[_token];
+
+        if (_maximise) {
+            return (price * (BASIS_POINTS_DIVISOR + _spreadBasisPoints)) / BASIS_POINTS_DIVISOR;
+        }
+        return (price * (BASIS_POINTS_DIVISOR - _spreadBasisPoints)) / BASIS_POINTS_DIVISOR;
     }
 }
