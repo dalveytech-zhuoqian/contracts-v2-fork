@@ -3,8 +3,7 @@ pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
 import "../../utils/EnumerableValues.sol";
-
-import {Position} from "./PositionStruct.sol";
+import {Position} from "./../../types/PositionStruct.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 

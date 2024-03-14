@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {MarketPositionCallBackIntl, MarketCallBackIntl} from "../market/IMarketCallBackIntl.sol";
+import {MarketPositionCallBackIntl, MarketCallBackIntl} from "../../interfaces/IMarketCallBackIntl.sol";
 
-library LibReferral {
+library ReferralHandler {
     bytes32 constant STORAGE_POSITION = keccak256("blex.referral.storage");
 
     struct Tier {

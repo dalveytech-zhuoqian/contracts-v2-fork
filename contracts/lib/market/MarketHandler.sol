@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-library LibMarket { /* is IOrderBook, Ac */
+library MarketHandler { /* is IOrderBook, Ac */
     bytes32 constant STORAGE_POSITION = keccak256("blex.market.storage");
 
     using EnumerableSet for EnumerableSet.UintSet;

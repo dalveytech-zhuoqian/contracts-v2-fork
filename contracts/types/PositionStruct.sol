@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {Order} from "../order/OrderStruct.sol";
+import {Order} from "./OrderStruct.sol";
 
 library Position {
     struct Props {

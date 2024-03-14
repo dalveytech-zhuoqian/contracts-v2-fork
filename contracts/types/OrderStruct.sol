@@ -3,8 +3,6 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import {OrderHelper} from "./OrderHelper.sol";
-
 library Order {
     using Order for Props;
 
@@ -39,10 +37,6 @@ library Order {
         bool isLong;
         uint16 market;
         uint96 extra2; //todo
-    }
-
-    function getPairKey(Props memory order) internal pure returns (bytes32) {
-        return OrderHelper.getKey(order.account, order.pairId);
     }
 
     function getKey(Props memory order) internal pure returns (bytes32) {

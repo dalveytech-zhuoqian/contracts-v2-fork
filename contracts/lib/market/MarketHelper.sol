@@ -4,17 +4,16 @@ pragma solidity ^0.8.17;
 import {MarketPositionCallBackIntl, MarketOrderCallBackIntl, MarketCallBackIntl} from "./IMarketCallBackIntl.sol";
 import {Order} from "../order/OrderStruct.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {LibMarket} from "./LibMarket.sol";
-import {IVaultRouter} from "../vault/interfaces/IVaultRouter.sol";
+import {IVaultRouter} from "../../interfaces/vault/IVaultRouter.sol";
 
-library MarketLib {
+library MarketHelper {
     /**
      * @dev Withdraws profit and loss (PnL) from the vault.
      */
-    function vaultWithdraw(uint16 market, address account, int256 pnl) internal {
+    function vaultWithdraw(address vr, uint16 market, address account, int256 pnl) internal {
         revert("TODO decimal convertion for pnl");
         if (pnl > 0) {
-            IVaultRouter(LibMarket.Storage().vaultRouter[market]).transferFromVault(account, uint256(pnl));
+            IVaultRouter(vr).transferFromVault(account, uint256(pnl));
         }
     }
 
