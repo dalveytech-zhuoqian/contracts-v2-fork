@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {LibMarket} from "../lib/market/LibMarket.sol";
+import {MarketHandler} from "../lib/market/MarketHandler.sol";
 import {LibAccessManaged} from "../lib/ac/LibAccessManaged.sol";
 
 contract MarketFacet { /* is IAccessManaged */

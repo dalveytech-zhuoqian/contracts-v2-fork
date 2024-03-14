@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {LibAccessManaged} from "../lib/ac/LibAccessManaged.sol";
+
 contract FeeFacet { /* is IAccessManaged */
     // uint256 public constant FEE_RATE_PRECISION = LibFundFee.PRECISION;
 

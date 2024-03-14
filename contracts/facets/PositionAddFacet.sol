@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
-import {MarketDataTypes} from "../lib/MarketDataTypes.sol";
-import {Order} from "../lib/order/OrderStruct.sol";
+import {MarketDataTypes} from "../lib/types/MarketDataTypes.sol";
+import {Order} from "../lib/types/OrderStruct.sol";
 
 contract PositionAddFacet { /* is MarketStorage, ReentrancyGuard, Ac */
     function increasePosition(bytes calldata _data) external {

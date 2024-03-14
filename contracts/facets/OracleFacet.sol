@@ -5,8 +5,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {LibAccessManaged} from "./lib/ac/LibAccessManaged.sol";
-import {LibOracleStore} from "./lib/oracle/LibOracleStore.sol";
+import {LibAccessManaged} from "../lib/ac/LibAccessManaged.sol";
+import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
 
 contract OracleFacet {
     function setConfig(LibOracleStore.ConfigStruct calldata _config) external {
