@@ -4,18 +4,21 @@ pragma experimental ABIEncoderV2;
 
 import {MarketDataTypes} from "../lib/types/MarketDataTypes.sol";
 import {Order} from "../lib/types/OrderStruct.sol";
+import {LibAccessManaged} from "../ac/LibAccessManaged.sol";
 
 contract PositionSubFacet {
     function decreasePosition(bytes calldata data) external {
         MarketDataTypes.Cache memory _vars = MarketDataTypes.decodeCache(data);
     }
 
-    function liquidate(uint16 market, address accounts, bool _isLong) external {}
+    function liquidate(uint16 market, address accounts, bool _isLong) external restricted {}
 
-    function execSubOrderKey(Order.Props memory order, MarketDataTypes.Cache memory _params) external {
+    function execSubOrderKey(Order.Props memory order, MarketDataTypes.Cache memory _params) external restricted {
         // decreasePositionFromOrder()
     }
 
+    //========================================================================
+    // private functions
     //========================================================================
 
     function decreasePositionFromOrder(Order.Props memory order, MarketDataTypes.Cache memory _params) private {}

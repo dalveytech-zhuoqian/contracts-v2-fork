@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {LibDiamond} from "../diamond-2/contracts/libraries/LibDiamond.sol";
-import {IAccessManager} from "openzeppelin_5_contracts/access/manager/IAccessManager.sol";
-import {AuthorityUtils} from "openzeppelin_5_contracts/access/manager/AuthorityUtils.sol";
-import {IAccessManaged} from "openzeppelin_5_contracts/access/manager/IAccessManaged.sol";
+import {IAccessManager} from "@openzeppelin/contracts/access/manager/IAccessManager.sol";
+import {AuthorityUtils} from "@openzeppelin/contracts/access/manager/AuthorityUtils.sol";
+import {IAccessManaged} from "@openzeppelin/contracts/access/manager/IAccessManaged.sol";
 
 library LibAccessManaged {
     bytes32 private constant STORAGE_POSITION = keccak256("blex.access.managed.storage");
@@ -56,12 +56,8 @@ library LibAccessManaged {
      */
     function _checkCanCall(address caller, bytes calldata data) private {
         if (msg.sender == address(this)) return;
-        (bool immediate, uint32 delay) = AuthorityUtils.canCallWithDelay(
-            LibDiamond.contractOwner(),
-            caller,
-            address(this),
-            bytes4(data[0 : 4])
-        );
+        (bool immediate, uint32 delay) =
+            AuthorityUtils.canCallWithDelay(LibDiamond.contractOwner(), caller, address(this), bytes4(data[0:4]));
         if (!immediate) {
             if (delay > 0) {
                 Storage().consumingSchedule = true;

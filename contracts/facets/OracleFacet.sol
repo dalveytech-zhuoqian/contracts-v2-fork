@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {LibAccessManaged} from "../lib/ac/LibAccessManaged.sol";
+import {LibAccessManaged} from "../ac/LibAccessManaged.sol";
 import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
 
 contract OracleFacet {

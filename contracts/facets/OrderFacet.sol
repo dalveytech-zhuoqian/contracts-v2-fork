@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import {MarketDataTypes} from "../lib/types/MarketDataTypes.sol";
 import {Order} from "../lib/types/OrderStruct.sol";
+import {LibAccessManaged} from "../ac/LibAccessManaged.sol";
 
 contract OrderFacet { /* is IAccessManaged */
     function updateOrder(bytes calldata data) external {
@@ -20,7 +21,10 @@ contract OrderFacet { /* is IAccessManaged */
         _cancelOrder(msg.sender, markets, isIncrease, orderID, isLong);
     }
 
-    function sysCancelOrder(address user, address markets, bool isIncrease, uint256 orderID, bool isLong) external {
+    function sysCancelOrder(address user, address markets, bool isIncrease, uint256 orderID, bool isLong)
+        external
+        restricted
+    {
         if (msg.sender == address(this)) {
             // called by market
         } else {

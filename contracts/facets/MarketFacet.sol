@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
-import {LibAccessManaged} from "../lib/ac/LibAccessManaged.sol";
+import {LibAccessManaged} from "../ac/LibAccessManaged.sol";
 
 contract MarketFacet { /* is IAccessManaged */
     function setPrices(bytes calldata data) external restricted {}
