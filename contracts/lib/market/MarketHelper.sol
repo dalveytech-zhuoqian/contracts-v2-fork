@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.17;
 
-import {MarketPositionCallBackIntl, MarketOrderCallBackIntl, MarketCallBackIntl} from "./IMarketCallBackIntl.sol";
+import {MarketPositionCallBackIntl, MarketOrderCallBackIntl, MarketCallBackIntl} from "../IMarketCallBackIntl.sol";
 import {Order} from "../types/OrderStruct.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IVaultRouter} from "../../interfaces/vault/IVaultRouter.sol";
+import {IVaultRouter} from "../../interfaces/IVaultRouter.sol";
 
 library MarketHelper {
     /**
