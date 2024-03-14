@@ -2,9 +2,9 @@
 pragma solidity ^0.8.17;
 pragma experimental ABIEncoderV2;
 
-import {Position} from "./../position/PositionStruct.sol";
-import {MarketDataTypes} from "./../MarketDataTypes.sol";
-import {FeeType} from "../fee/FeeType.sol";
+import {Position} from "../types/PositionStruct.sol";
+import {MarketDataTypes} from "../types/MarketDataTypes.sol";
+import {FeeType} from "../types/FeeType.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 
@@ -57,13 +57,13 @@ library PositionSubMgrLib {
     }
 
     function calculateTransToUser(
-        MarketDataTypes.UpdatePositionInputs memory _params, // 定义更新仓位所需的参数
+        MarketDataTypes.Cache memory _params, // 定义更新仓位所需的参数
         Position.Props memory _position, // 定义当前仓位的属性
         int256 dPNL, // 变动盈亏
         int256 fees // 手续费
     ) internal pure returns (int256) {
         // 检查是否完全平仓
-        bool isCloseAll = _position.size == _params._sizeDelta;
+        bool isCloseAll = _position.size == _params.sizeDelta;
         // 如果完全平仓，更新参数中的保证金变动
         if (isCloseAll) _params.collateralDelta = _position.collateral;
         // 如果保证金不足以支付亏损和手续费，则触发清算，返回0
@@ -79,12 +79,12 @@ library PositionSubMgrLib {
     }
 
     function calculateNewCollateral(
-        MarketDataTypes.UpdatePositionInputs memory _params,
+        MarketDataTypes.Cache memory _params,
         Position.Props memory _position,
         int256 dPNL,
         int256 fees
     ) internal pure returns (uint256) {
-        bool isCloseAll = _position.size == _params._sizeDelta;
+        bool isCloseAll = _position.size == _params.sizeDelta;
         if (isCloseAll) _params.collateralDelta = _position.collateral;
         if (_params.liqState > 0 || isCloseAll) return 0; // 如果处于清算状态或者是全部清算，则返回0
         if (_position.collateral.toInt256() + dPNL - fees <= 0) return 0; // 如果保证金加上盈亏减去费用小于等于0，则返回0
@@ -129,7 +129,7 @@ library PositionSubMgrLib {
     }
 
     function calDecreaseTransactionValues(
-        MarketDataTypes.UpdatePositionInputs memory _params,
+        MarketDataTypes.Cache memory _params,
         Position.Props memory _position,
         int256 dPNL,
         int256[] memory _originFees
@@ -154,7 +154,7 @@ library PositionSubMgrLib {
         // 计算完毕, 数据还原
 
         // 如果仓位大小等于参数中的大小变化，则从保证金中扣除提取的金额
-        if (_position.size == _params._sizeDelta) {
+        if (_position.size == _params.sizeDelta) {
             _position.collateral -= withdrawFromFeeVault.toUint256();
             _params.collateralDelta = _position.collateral;
         }
@@ -163,15 +163,15 @@ library PositionSubMgrLib {
         outs.collateralDecreased = _position.collateral - outs.newCollateralUnsigned;
 
         // 计算保证金变化后的值，如果仓位大小等于参数中的大小变化，则为保证金本身，否则为保证金减少的金额减去提取的金额
-        outs.collateralDeltaAfter = (_position.size == _params._sizeDelta)
+        outs.collateralDeltaAfter = (_position.size == _params.sizeDelta)
             ? _position.collateral.toInt256()
             : outs.collateralDecreased.toInt256() - outs.withdrawFromFeeVault;
     }
 
     function isClearPos(
-        MarketDataTypes.UpdatePositionInputs memory _params, // 定义更新仓位所需的参数
+        MarketDataTypes.Cache memory _params, // 定义更新仓位所需的参数
         Position.Props memory _position // 定义当前仓位的属性
     ) internal pure returns (bool) {
-        return (_params.liqState != 1 || _params.liqState != 2) && _params._sizeDelta != _position.size;
+        return (_params.liqState != 1 || _params.liqState != 2) && _params.sizeDelta != _position.size;
     }
 }
