@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import {MarketPositionCallBackIntl, MarketOrderCallBackIntl, MarketCallBackIntl} from "./IMarketCallBackIntl.sol";
-import {Order} from "../order/OrderStruct.sol";
+import {Order} from "../types/OrderStruct.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IVaultRouter} from "../../interfaces/vault/IVaultRouter.sol";
 
