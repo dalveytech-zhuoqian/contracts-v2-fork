@@ -8,7 +8,7 @@ import {LibAccessManaged} from "../../lib/ac/LibAccessManaged.sol";
 import {MarketHandler} from "../../lib/market/MarketHandler.sol";
 import {PositionHandler} from "../../lib/position/PositionHandler.sol";
 
-contract MarketFacet { /* is IAccessManaged */
+contract MarketReaderFacet { /* is IAccessManaged */
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableValues for EnumerableSet.AddressSet;
 

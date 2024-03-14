@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {LibAccessManaged} from "../ac/LibAccessManaged.sol";
-
 library OracleHandler {
     bytes32 constant STORAGE_POSITION = keccak256("blex.oracle.storage");
 

@@ -3,9 +3,9 @@
 pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
-import "../../utils/EnumerableValues.sol";
-import {Order} from "./OrderStruct.sol";
-import {MarketDataTypes} from "../MarketDataTypes.sol";
+import "../utils/EnumerableValues.sol";
+import {Order} from "../types/OrderStruct.sol";
+import {MarketDataTypes} from "../types/MarketDataTypes.sol";
 import {OrderHelper} from "./OrderHelper.sol";
 
 library OrderHandler { /* is IOrderBook, Ac */

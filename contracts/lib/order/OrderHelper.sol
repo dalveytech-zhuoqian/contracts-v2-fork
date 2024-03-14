@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import {Order} from "../../types/OrderStruct.sol";
+import {Order} from "../types/OrderStruct.sol";
 
 library OrderHelper {
     function getKey(address account, uint64 orderID) internal pure returns (bytes32) {

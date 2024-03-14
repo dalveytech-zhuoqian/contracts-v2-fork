@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {FeeType} from "./FeeType.sol";
+import {FeeType} from "../types/FeeType.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {MarketDataTypes} from "../MarketDataTypes.sol";
+import {MarketDataTypes} from "../types/MarketDataTypes.sol";
 
 library FeeHandler {
     using SafeCast for int256;
