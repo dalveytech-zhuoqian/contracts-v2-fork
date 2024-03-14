@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../../lib/utils/EnumerableValues.sol";
 import {Position} from "../../lib/types/PositionStruct.sol";
 
-import {LibAccessManaged} from "../../lib/ac/LibAccessManaged.sol";
+import {LibAccessManaged} from "../lib/ac/LibAccessManaged.sol";
 import {MarketHandler} from "../../lib/market/MarketHandler.sol";
 import {PositionHandler} from "../../lib/position/PositionHandler.sol";
 
