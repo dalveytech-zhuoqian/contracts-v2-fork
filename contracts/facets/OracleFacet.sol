@@ -8,7 +8,7 @@ pragma solidity ^0.8.17;
 import {LibAccessManaged} from "./lib/ac/LibAccessManaged.sol";
 import {LibOracleStore} from "./lib/oracle/LibOracleStore.sol";
 
-contract Oracle {
+contract OracleFacet {
     function setConfig(LibOracleStore.ConfigStruct calldata _config) external {
         LibOracleStore.StorageStruct storage store = LibOracleStore.getStorage();
         store.config = _config;

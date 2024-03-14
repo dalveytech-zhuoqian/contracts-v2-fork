@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract FundFeeFacet { /* is IAccessManaged */
+contract FeeFacet { /* is IAccessManaged */
     // uint256 public constant FEE_RATE_PRECISION = LibFundFee.PRECISION;
 
     // FeeRouter for MarketLib: onlyRole(WITHDRAW_ROLE)
