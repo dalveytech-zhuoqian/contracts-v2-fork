@@ -1,14 +1,24 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.0;
+
+import {LibMarket} from "../lib/market/LibMarket.sol";
+import {LibAccessManaged} from "../lib/ac/LibAccessManaged.sol";
 
 import "../utils/EnumerableValues.sol";
 
 import {PositionHandler} from "../lib/position/PositionHandler.sol";
 import {Position} from "../lib/position/PositionStruct.sol";
 
-contract ReaderFacet {
+contract MarketFacet { /* is IAccessManaged */
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableValues for EnumerableSet.AddressSet;
+
+    //================================================================
+    //   view functions
+    //================================================================
+    function isLiquidate(uint16 market, address account, bool isLong) external view {
+        // LibMarketValid.validateLiquidation(market, pnl, fees, liquidateFee, collateral, size, raise);
+    }
 
     function availableLiquidity(address market, address account, bool isLong) external view returns (uint256) {}
 

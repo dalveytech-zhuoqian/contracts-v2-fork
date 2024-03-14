@@ -5,18 +5,32 @@ import {FeeType} from "./FeeType.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {MarketDataTypes} from "../MarketDataTypes.sol";
 
-library LibFee {
+library FeeHandler {
     using SafeCast for int256;
 
     bytes32 constant FEE_STORAGE_POSITION = keccak256("blex.fee.storage");
     uint256 constant PRECISION = 10 ** 18;
+
+    enum ConfigType {
+        SkipTime,
+        MaxFRatePerDay,
+        FRateFactor,
+        MaxFRate,
+        MinFRate,
+        FeeLoss,
+        MinFundingInterval,
+        MinorityFRate,
+        MinCFRate,
+        FundingFeeLossOffLimit,
+        Counter
+    }
 
     struct FeeStorage {
         // =========================================================================
         //                            FundFeeStore & FundFee
         // =========================================================================
         mapping(uint16 market => uint256 interval) fundingIntervals;
-        mapping(uint8 configType => uint256 value) configs;
+        mapping(uint16 market => mapping(uint8 configType => uint256 value)) configs;
         mapping(uint16 market => uint256 calInterval) calIntervals;
         mapping(uint16 market => uint256 lastCalTime) lastCalTimes;
         mapping(uint16 market => mapping(bool isLong => int256 calFundingRate)) calFundingRates;
@@ -36,30 +50,31 @@ library LibFee {
         mapping(uint16 market => uint256) lastFundingTimes;
     }
 
-    function initialize(address feeVault_, address factory_) internal {
-        FeeStorage storage fs = Storage();
-        fs.feeVault = feeVault_;
-        fs.factory = factory_;
-        fs.marketReader = marketReader_;
-        fs.configs[uint8(ConfigType.MaxFRatePerDay)] = PRECISION;
-        fs.configs[uint8(ConfigType.FRateFactor)] = PRECISION;
-        fs.configs[uint8(ConfigType.MinFRate)] = 1250;
-        fs.configs[uint8(ConfigType.MinFundingInterval)] = 1 hours;
-        fs.configs[uint8(ConfigType.FundingFeeLossOffLimit)] = 1e7;
-    }
+    // FundFee
+    event UpdateFundInterval(address indexed market, uint256 interval);
+    event UpdateCalInterval(address indexed market, uint256 interval);
+    event AddSkipTime(uint256 indexed startTime, uint256 indexed endTime);
+    event UpdateConfig(uint256 index, uint256 oldFRate, uint256 newFRate);
 
-    enum ConfigType {
-        SkipTime,
-        MaxFRatePerDay,
-        FRateFactor,
-        MaxFRate,
-        MinFRate,
-        FeeLoss,
-        MinFundingInterval,
-        MinorityFRate,
-        MinCFRate,
-        FundingFeeLossOffLimit,
-        Counter
+    // FeeRouter
+    event UpdateFee(address indexed account, address indexed market, int256[] fees, uint256 amount);
+    event UpdateFeeAndRates(address indexed market, uint8 kind, uint256 oldFeeOrRate, uint256 feeOrRate);
+    //================================================================================
+    // feevault
+    //================================================================================
+    event FeeVaultWithdraw(address indexed token, address indexed to, uint256 amount);
+    event UpdateCumulativeFundRate(address indexed market, int256 longRate, int256 shortRate);
+    event UpdateFundRate(address indexed market, int256 longRate, int256 shortRate);
+    event UpdateLastFundTime(address indexed market, uint256 timestamp);
+    //================================================================================
+
+    function initialize(uint16 market) internal {
+        FeeStorage storage fs = Storage();
+        fs.configs[market][uint8(ConfigType.MaxFRatePerDay)] = PRECISION;
+        fs.configs[market][uint8(ConfigType.FRateFactor)] = PRECISION;
+        fs.configs[market][uint8(ConfigType.MinFRate)] = 1250;
+        fs.configs[market][uint8(ConfigType.MinFundingInterval)] = 1 hours;
+        fs.configs[market][uint8(ConfigType.FundingFeeLossOffLimit)] = 1e7;
     }
 
     function Storage() internal pure returns (FeeStorage storage fs) {
@@ -69,86 +84,35 @@ library LibFee {
         }
     }
 
-    function setFeeVault(address feeVault_) internal {
-        Storage().feeVault = feeVault_;
+    function collectFees(bytes memory data) external {
+        // address account,
+        // address token,
+        // int256[] memory fees
+        // uint256 fundfeeLoss
+    }
+    function payoutFees(bytes memory data) external {
+        // address account,
+        // address token,
+        // int256[] memory fees,
+        // int256 feesTotal
+    }
+    function updateCumulativeFundingRate(bytes memory data) external {
+        // uint16 market,
+        // uint256 longSize,
+        // uint256 shortSize
     }
 
-    function setMarketReader(uint16 marketReader_) internal {
-        Storage().marketReader = marketReader_;
-    }
+    function updateGlobalFundingRate(
+        uint16 market,
+        int256 longRate,
+        int256 shortRate,
+        int256 nextLongRate,
+        int256 nextShortRate,
+        uint256 timestamp
+    ) external {}
 
-    function setFundingIntervals(uint16 market, uint256 interval) internal {
-        Storage().fundingIntervals[market] = interval;
-    }
-
-    function setConfigs(uint8 configType, uint256 value) internal {
-        Storage().configs[configType] = value;
-    }
-
-    function setCalIntervals(uint16 market, uint256 interval) internal {
-        Storage().calIntervals[market] = interval;
-    }
-
-    function setLastCalTimes(uint16 market, uint256 lastCalTime) internal {
-        Storage().lastCalTimes[market] = lastCalTime;
-    }
-
-    function setCalFundingRates(uint16 market, bool isLong, int256 calFundingRate) internal {
-        Storage().calFundingRates[market][isLong] = calFundingRate;
-    }
-
-    function setFundFeeLoss(uint16 market, uint256 loss) internal {
-        Storage().fundFeeLoss[market] = loss;
-    }
-
-    function setFactory(address factory_) internal {
-        Storage().factory = factory_;
-    }
-
-    function setFeeAndRates(uint16 market, uint8 feeType, uint256 feeAndRate) internal {
-        Storage().feeAndRates[market][feeType] = feeAndRate;
-    }
-
-    function feeVault() internal view returns (address) {
-        return Storage().feeVault;
-    }
-
-    function fundingIntervals(uint16 market) internal view returns (uint256 fundingInterval) {
-        return Storage().fundingIntervals[market];
-    }
-
-    function configs(uint8 configType) internal view returns (uint256 value) {
-        return Storage().configs[configType];
-    }
-
-    function calIntervals(uint16 market) internal view returns (uint256 calInterval) {
-        return Storage().calIntervals[market];
-    }
-
-    function lastCalTimes(uint16 market) internal view returns (uint256 lastCalTime) {
-        return Storage().lastCalTimes[market];
-    }
-
-    function calFundingRates(uint16 market, bool isLong) internal view returns (int256 calFundingRate) {
-        return Storage().calFundingRates[market][isLong];
-    }
-
-    function fundFeeLoss(uint16 market) internal view returns (uint256 loss) {
-        return Storage().fundFeeLoss[market];
-    }
-
-    function factory() internal view returns (address) {
-        return Storage().factory;
-    }
-
-    function feeAndRates(uint16 market, uint8 feeType) internal view returns (uint256 feeAndRate) {
-        return Storage().feeAndRates[market][feeType];
-    }
     /**
      * 只是获取根据当前仓位获取各种费用应该收取多少, 并不包含收费顺序和是否能收得到
-     * @param params 用户传参
-     * @param _fundFee 资金费
-     * @return feeAndRates 费率参数
      */
 
     function getFees(MarketDataTypes.Cache memory params, int256 _fundFee)
@@ -157,29 +121,29 @@ library LibFee {
         returns (int256[] memory fees)
     {
         fees = new int256[](uint8(FeeType.T.Counter));
-        address _market = params._market;
+
         fees[uint8(FeeType.T.FundFee)] = _fundFee;
 
-        if (params._sizeDelta == 0 && params.collateralDelta != 0) {
+        if (params.sizeDelta == 0 && params.collateralDelta != 0) {
             return fees;
         }
 
         // open position
         if (params.isOpen) {
-            fees[uint8(FeeType.T.OpenFee)] = int256(getFee(_market, params._sizeDelta, uint8(FeeType.T.OpenFee)));
+            fees[uint8(FeeType.T.OpenFee)] = int256(getFee(params.market, params.sizeDelta, uint8(FeeType.T.OpenFee)));
         } else {
             // close position
-            fees[uint8(FeeType.T.CloseFee)] = int256(getFee(_market, params._sizeDelta, uint8(FeeType.T.CloseFee)));
+            fees[uint8(FeeType.T.CloseFee)] = int256(getFee(params.market, params.sizeDelta, uint8(FeeType.T.CloseFee)));
 
             // liquidate position
             if (params.liqState == 1) {
-                uint256 _fee = Storage().feeAndRates[_market][uint8(FeeType.T.LiqFee)];
+                uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.T.LiqFee)];
                 fees[uint8(FeeType.T.LiqFee)] = int256(_fee);
             }
         }
         if (params.execNum > 0) {
             // exec fee
-            uint256 _fee = Storage().feeAndRates[_market][uint8(FeeType.T.ExecFee)];
+            uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.T.ExecFee)];
             _fee = _fee * params.execNum;
 
             fees[uint8(FeeType.T.ExecFee)] = int256(_fee);
@@ -194,7 +158,7 @@ library LibFee {
      * @param kind The fee kind.
      * @return The fee amount.
      */
-    function getFee(address market, uint256 sizeDelta, uint8 kind) internal view returns (uint256) {
+    function getFee(uint16 market, uint256 sizeDelta, uint8 kind) internal view returns (uint256) {
         if (sizeDelta == 0) {
             return 0;
         }

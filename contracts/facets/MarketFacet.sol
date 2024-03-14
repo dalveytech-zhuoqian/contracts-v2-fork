@@ -25,11 +25,4 @@ contract MarketFacet { /* is IAccessManaged */
             }
         }
     }
-
-    //================================================================
-    //   view functions
-    //================================================================
-    function isLiquidate(uint16 market, address account, bool isLong) external view {
-        // LibMarketValid.validateLiquidation(market, pnl, fees, liquidateFee, collateral, size, raise);
-    }
 }
