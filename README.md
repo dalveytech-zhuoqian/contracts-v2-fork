@@ -4,6 +4,14 @@ This project demonstrates a basic Hardhat use case. It comes with a sample contr
 
 Try running some of the following tasks:
 
+# install submodules
+
+```shell
+git submodule update --init --recursive
+```
+
+# commands
+
 ```shell
 npx hardhat help
 npx hardhat test
