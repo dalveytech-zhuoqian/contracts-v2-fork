@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.20;
 
-import "../../utils/EnumerableValues.sol";
-import {Order} from "./OrderStruct.sol";
-import {MarketDataTypes} from "../MarketDataTypes.sol";
+import "../utils/EnumerableValues.sol";
+import {Order} from "../types/OrderStruct.sol";
+import {MarketDataTypes} from "../types/MarketDataTypes.sol";
 import {OrderHandler} from "./OrderHandler.sol";
 import {OrderHelper} from "./OrderHelper.sol";
 
