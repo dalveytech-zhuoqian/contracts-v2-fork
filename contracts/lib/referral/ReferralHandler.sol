@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {MarketPositionCallBackIntl, MarketCallBackIntl} from "../IMarketCallBackIntl.sol";
+import {MarketCbStruct} from "../MarketCbStruct.sol";
+import {FeeType} from "../types/FeeType.sol";
 
 library ReferralHandler {
     bytes32 constant STORAGE_POSITION = keccak256("blex.referral.storage");
@@ -39,7 +41,7 @@ library ReferralHandler {
         address account, uint256 sizeDelta, uint256 marginFeeBasisPoints, bytes32 referralCode, address referrer
     );
 
-    function Storage() public {
+    function Storage() internal pure returns (StorageStruct storage fs) {
         bytes32 position = STORAGE_POSITION;
         assembly {
             fs.slot := position
@@ -127,29 +129,29 @@ library ReferralHandler {
     }
 
     function updatePositionCallback(bytes calldata _data) external {
-        MarketPositionCallBackIntl.UpdatePositionEvent memory _event =
-            abi.decode(_data, (MarketPositionCallBackIntl.UpdatePositionEvent));
-        (bytes32 referralCode, address referrer) = getTraderReferralInfo(_event.inputs._account);
+        MarketCbStruct.UpdatePositionEvent memory _event = abi.decode(_data, (MarketCbStruct.UpdatePositionEvent));
+        (bytes32 referralCode, address referrer) = getTraderReferralInfo(_event.inputs.account);
+
         if (referralCode == bytes32(0)) {
-            referrer = codeOwners[_event.inputs._refCode];
+            referrer = Storage().codeOwners[_event.inputs.refCode];
             if (referrer == address(0)) return;
-            _setTraderReferralCode(_event.inputs._account, _event.inputs._refCode);
-            referralCode = _event.inputs._refCode;
+            _setTraderReferralCode(_event.inputs.account, _event.inputs.refCode);
+            referralCode = _event.inputs.refCode;
         }
 
         if (_event.inputs.isOpen) {
             emit IncreasePositionReferral(
-                _event.inputs._account,
-                _event.inputs._sizeDelta,
-                uint256(_event.fees[uint8(FeeRouterLib.FeeType.OpenFee)]),
+                _event.inputs.account,
+                _event.inputs.sizeDelta,
+                uint256(_event.fees[uint8(FeeType.T.OpenFee)]),
                 referralCode,
                 referrer
             );
         } else {
             emit DecreasePositionReferral(
-                _event.inputs._account,
-                _event.inputs._sizeDelta,
-                uint256(_event.fees[uint8(FeeRouterLib.FeeType.CloseFee)]),
+                _event.inputs.account,
+                _event.inputs.sizeDelta,
+                uint256(_event.fees[uint8(FeeType.T.CloseFee)]),
                 referralCode,
                 referrer
             );
