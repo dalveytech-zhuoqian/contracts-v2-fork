@@ -104,5 +104,15 @@ contract MarketReaderFacet { /* is IAccessManaged */
         return PositionHandler.getPNL(_position, sizeDelta, markPrice);
     }
 
-    function getMarketPNL(uint16 market, uint256 longPrice, uint256 shortPrice) external view returns (int256) {}
+    function getPNL(uint16 market) external view returns (int256 pnl) {
+        uint256 longPrice = IPrice(priceFeed).getPrice(indexToken, false);
+        uint256 shortPrice = IPrice(priceFeed).getPrice(indexToken, true);
+        pnl = TransferHelper.parseVaultAssetSigned(
+            PositionHandler.getMarketPNL(market, longPrice, shortPrice), collateralTokenDigits
+        );
+    }
+
+    function getGlobalOpenInterest(uint16 market) public view returns (uint256 _globalSize) {
+        return MarketHandler.getGlobalOpenInterest(market);
+    }
 }

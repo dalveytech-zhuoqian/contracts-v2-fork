@@ -182,17 +182,7 @@ library FundingRateCalculator {
         return Math.min((size * _CFRate * fundingFeeLossOffLimit) / (ONE_WITH_8_DECIMALS ** 2), totalLoss);
     }
 
-    /**
-     * 共用函数, 用来获取《累计资金费率》或《累计资金费率临时值》的周期
-     */
-    function getFundingInterval(address market, mapping(address => uint256) storage fundingIntervals)
-        internal
-        view
-        returns (uint256 _interval)
-    {
-        _interval = fundingIntervals[market];
-        if (_interval == 0) return MIN_FUNDING_INTERVAL_3600;
-    }
+
 
     //========================================================================
     //               TIM

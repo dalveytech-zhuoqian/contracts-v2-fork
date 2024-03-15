@@ -26,5 +26,4 @@ contract FeeReaderFacet { /* is IAccessManaged */
         // MarketDataTypes.UpdateOrderInputs memory params
     }
 
-    function getGlobalOpenInterest() public view returns (uint256 _globalSize) {}
 }

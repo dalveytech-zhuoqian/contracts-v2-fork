@@ -27,9 +27,9 @@ library MarketHandler { /* is IOrderBook, Ac */
         address oracle;
         mapping(uint16 => Props) config;
         mapping(uint16 => string) name;
-        mapping(uint16 => address) vaultRouter;
+        mapping(uint16 => address) vault;
         mapping(uint16 => uint256) balance;
-        EnumerableSet.UintSet marketIds;
+        mapping(address vault => EnumerableSet.UintSet) marketIds;
     }
 
     function Storage() internal pure returns (StorageStruct storage fs) {
@@ -45,11 +45,27 @@ library MarketHandler { /* is IOrderBook, Ac */
         Storage().config[market] = data;
     }
 
-    function initMarket(uint16 market, string calldata name, address oracle, address vaultRouter) external {
+    function initMarket(uint16 market, string calldata name, address vault) external {
         Storage().name[market] = name;
-        Storage().oracle = oracle;
-        Storage().vaultRouter[market] = vaultRouter;
-        Storage().marketIds.add(market);
+        addMarket(market, vault);
+    }
+
+    function addMarket(uint16 marketId, address vault) public {
+        Storage().marketIds[vault].add(uint256(marketId));
+        Storage().vault[marketId] = vault;
+    }
+
+    function containsMarket(uint16 marketId) external view returns (bool) {
+        StorageStruct storage $ = Storage();
+        address vault = $.vault[marketId];
+        return $.marketIds[vault].contains(uint256(marketId));
+    }
+
+    function removeMarket(uint16 marketId) external {
+        StorageStruct storage $ = Storage();
+        address vault = $.vault[marketId];
+        Storage().marketIds[vault].remove(uint256(marketId));
+        delete Storage().vault[marketId];
     }
 
     function config(uint16 market) internal view returns (Props memory _config) {

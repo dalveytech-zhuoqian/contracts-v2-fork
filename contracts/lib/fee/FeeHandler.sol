@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {BalanceHandler} from "../balance/BalanceHandler.sol";
+import {MarketDataTypes} from "../types/MarketDataTypes.sol";
+import {FeeType} from "../types/FeeType.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
-import {FeeType} from "../types/FeeType.sol";
-import {MarketDataTypes} from "../types/MarketDataTypes.sol";
-import {BalanceHandler} from "../balance/BalanceHandler.sol";
+import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {FundingRateCalculator} from "./FundingRateCalculator.sol";
 
 library FeeHandler {
     using SafeCast for int256;
@@ -40,7 +40,6 @@ library FeeHandler {
         mapping(uint16 market => uint256 lastCalTime) lastCalTimes;
         mapping(uint16 market => mapping(bool isLong => int256 calFundingRate)) calFundingRates;
         mapping(uint16 market => uint256 loss) fundFeeLoss;
-        mapping(uint16 market => uint256 balance) balances;
         // =========================================================================
         //                            FeeRouter
         // =========================================================================
@@ -180,5 +179,27 @@ library FeeHandler {
         uint256 timestamp
     ) private {
         // TODO much to do
+    }
+
+    function _getLastCollectTimes(uint16 market) private view returns (uint256) {
+        return Storage().lastFundingTimes[market];
+    }
+
+    function _calFeeRate(uint16 _market, uint256 _longSize, uint256 _shortSize) private view returns (uint256) {}
+
+    function _getMaxFRate(uint16 market, uint256 openInterest, uint256 aum) internal view returns (uint256) {
+        uint256 fundingInterval = _getCalInterval(market);
+        return FundingRateCalculator.calculateMaxFundingRate(openInterest, aum, maxFRatePerDay(market), fundingInterval);
+    }
+
+    function _getCalInterval(uint16 market) private view returns (uint256 _interval) {
+        FeeStorage storage fs = Storage();
+        _interval = fs.fundingIntervals[market];
+        if (_interval == 0) return FundingRateCalculator.MIN_FUNDING_INTERVAL_3600;
+    }
+
+    function maxFRatePerDay(uint16 market) public view returns (uint256) {
+        FeeStorage storage fs = Storage();
+        return fs.configs[market][uint8(ConfigType.MaxFRatePerDay)];
     }
 }

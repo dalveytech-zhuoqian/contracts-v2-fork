@@ -4,8 +4,17 @@ pragma solidity ^0.8.0;
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
 import {LibAccessManaged} from "../ac/LibAccessManaged.sol";
 import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
+import {MarketHandler} from "../lib/market/MarketHandler.sol";
 
 contract MarketFacet { /* is IAccessManaged */
+    function addMarket(uint16 marketId) external restricted {
+        MarketHandler.addMarket(marketId);
+    }
+
+    function removeMarket(uint16 marketId) external {
+        MarketHandler.removeMarket(marketId);
+    }
+
     function setPricesAndExecute(bytes calldata _data) external stricted {
         (address token, uint256 price, uint256 timestamp, bytes[] memory _varList) =
             abi.decode(_data, (address, uint256, uint256, bytes[]));
@@ -19,6 +28,10 @@ contract MarketFacet { /* is IAccessManaged */
 
     function execOrder(bytes calldata data) external restricted {
         _execOrder(data);
+    }
+
+    function containsMarket(uint16 marketId) external view returns (bool) {
+        return MarketHandler.containsMarket(marketId);
     }
 
     function _execOrder(bytes calldata data) private {

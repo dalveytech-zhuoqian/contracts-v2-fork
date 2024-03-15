@@ -161,6 +161,34 @@ library PositionHandler {
         return _hasProfit ? int256(_pnl) : -int256(_pnl);
     }
 
+    function getMarketPNL(uint16 market, uint256 longPrice, uint256 shortPrice) external view returns (int256) {
+        int256 _totalPNL = _getMarketPNL(market, longPrice, true);
+        _totalPNL += _getMarketPNL(market, shortPrice, false);
+        return _totalPNL;
+    }
+
+    function _getMarketPNL(uint16 market, uint256 markPrice, bool isLong) private view returns (int256) {
+        Position.Props memory _position = _getGlobalPosition(storageKey(market, isLong));
+        if (_position.size == 0) {
+            return 0;
+        }
+
+        (bool _hasProfit, uint256 _pnl) = _getPNL(_position, markPrice);
+        return _hasProfit ? int256(_pnl) : -int256(_pnl);
+    }
+
+    function _getPNL(Position.Props memory position, uint256 markPrice)
+        private
+        pure
+        returns (bool _hasProfit, uint256 _realisedPnl)
+    {
+        (_hasProfit, _realisedPnl) = position.getPNL(markPrice);
+    }
+
+    function _getGlobalPosition(bytes32 sk) private view returns (Position.Props memory _position) {
+        _position = Storage().globalPositions[sk];
+    }
+
     function _calGlobalPosition(Cache memory cache) private view returns (Position.Props memory) {
         Position.Props memory _position = Storage().globalPositions[cache.sk];
         if (cache.isOpen) {
