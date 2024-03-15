@@ -34,7 +34,6 @@ library OracleHandler {
         bool isFastPriceEnabled;
         uint32 lastUpdatedBlock;
         uint32 minBlockInterval;
-        uint32 lastUpdatedAt;
         // allowed deviation from primary price
         uint32 maxDeviationBasisPoints; //1000
         uint32 priceDuration; // 300
@@ -50,29 +49,26 @@ library OracleHandler {
 
     struct StorageStruct {
         ConfigStruct config;
-        // array of tokens used in setCompactedPrices, saves L1 calldata gas costs
-        address[] tokens;
         // array of tokenPrecisions used in setCompactedPrices, saves L1 calldata gas costs
         // if the token price will be sent with 3 decimals, then tokenPrecision for that token
         // should be 10 ** 3
         uint256[] tokenPrecisions;
-        uint256[] updatedAt;
         // Chainlink can return prices for stablecoins
         // that differs from 1 USD by a larger percentage than stableSwapFeeBasisPoints
         // we use strictStableTokens to cap the price to 1 USD
         // this allows us to configure stablecoins like DAI as being a stableToken
         // while not being a strictStableToken
-        mapping(address => bool) strictStableTokens;
-        mapping(address => bool) isAdjustmentAdditive;
-        mapping(address => address) priceFeeds;
-        mapping(address => uint256) spreadBasisPoints;
-        mapping(address => uint256) adjustmentBasisPoints;
-        mapping(address => uint256) lastAdjustmentTimings;
-        mapping(address => uint256) priceDecimals;
-        mapping(address => uint256) lastUpdatedAtBlock;
-        mapping(address => uint256) prices;
-        mapping(address => uint256) maxCumulativeDeltaDiffs;
-        mapping(address => PriceDataItem) priceData;
+        mapping(uint16 => bool) strictStableTokens;
+        mapping(uint16 => bool) isAdjustmentAdditive;
+        mapping(uint16 => address) priceFeeds;
+        mapping(uint16 => uint256) spreadBasisPoints;
+        mapping(uint16 => uint256) adjustmentBasisPoints;
+        mapping(uint16 => uint256) lastAdjustmentTimings;
+        mapping(uint16 => uint256) priceDecimals;
+        mapping(uint16 => uint256) lastUpdatedAtBlock;
+        mapping(uint16 => uint256) prices;
+        mapping(uint16 => uint256) maxCumulativeDeltaDiffs;
+        mapping(uint16 => PriceDataItem) priceData;
     }
 
     event PriceData(
@@ -126,6 +122,21 @@ library OracleHandler {
     // - in case the maxDeviationBasisPoints between _refPrice and fastPrice is exceeded
     // - in case watchers flag an issue
     // - in case the cumulativeFastDelta exceeds the cumulativeRefDelta by the maxCumulativeDeltaDiff
+
+    function getPrice(uint16 market, bool _maximise) internal view returns (uint256) {
+        uint256 price = _getPrice(_token, _maximise);
+
+        uint256 adjustmentBps = adjustmentBasisPoints[_token];
+
+        if (adjustmentBps > 0) {
+            if (isAdjustmentAdditive[_token]) {
+                return (price * (BASIS_POINTS_DIVISOR + adjustmentBps)) / BASIS_POINTS_DIVISOR;
+            }
+            return (price * (BASIS_POINTS_DIVISOR - adjustmentBps)) / BASIS_POINTS_DIVISOR;
+        }
+        return price;
+    }
+
     function getPrice(address _token, uint256 _refPrice, bool _maximise) internal view returns (uint256) {
         if (block.timestamp > lastUpdatedAt + maxPriceUpdateDelay) {
             if (_maximise) {
@@ -204,20 +215,6 @@ library OracleHandler {
             uint256(data.cumulativeRefDelta),
             uint256(data.cumulativeFastDelta)
         );
-    }
-
-    function getPrice(address _token, bool _maximise) internal view returns (uint256) {
-        uint256 price = _getPrice(_token, _maximise);
-
-        uint256 adjustmentBps = adjustmentBasisPoints[_token];
-
-        if (adjustmentBps > 0) {
-            if (isAdjustmentAdditive[_token]) {
-                return (price * (BASIS_POINTS_DIVISOR + adjustmentBps)) / BASIS_POINTS_DIVISOR;
-            }
-            return (price * (BASIS_POINTS_DIVISOR - adjustmentBps)) / BASIS_POINTS_DIVISOR;
-        }
-        return price;
     }
 
     function getChainPrice(address _token, bool _maximise) internal view returns (uint256) {

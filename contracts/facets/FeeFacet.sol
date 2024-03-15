@@ -12,6 +12,12 @@ contract FeeFacet { /* is IAccessManaged */
         FeeHandler.initialize(market);
     }
 
+    function collectFees(bytes calldata _data) external restricted {
+        (address account, address token, int256[] memory fees, uint256 fundfeeLoss) =
+            abi.decode(_data, (address, address, int256[], uint256));
+        FeeHandler.collectFees(market, account, token, fees, fundfeeLoss);
+    }
+
     function addSkipTime(uint256 start, uint256 end) external restricted {
         FeeHandler.addSkipTime(market, start, end);
     }
@@ -20,31 +26,31 @@ contract FeeFacet { /* is IAccessManaged */
         BalanceHandler.feeToReward(market, to, amount);
     }
 
-    function setFundingIntervals(uint16 market, uint256 interval) external {
+    function setFundingIntervals(uint16 market, uint256 interval) external restricted {
         FeeHandler.Storage().fundingIntervals[market] = interval;
     }
 
-    function setConfigs(uint16 market, uint8 configType, uint256 value) external {
+    function setConfigs(uint16 market, uint8 configType, uint256 value) external restricted {
         FeeHandler.Storage().configs[market][configType] = value;
     }
 
-    function setCalIntervals(uint16 market, uint256 interval) external {
+    function setCalIntervals(uint16 market, uint256 interval) external restricted {
         FeeHandler.Storage().calIntervals[market] = interval;
     }
 
-    function setLastCalTimes(uint16 market, uint256 lastCalTime) external {
+    function setLastCalTimes(uint16 market, uint256 lastCalTime) external restricted {
         FeeHandler.Storage().lastCalTimes[market] = lastCalTime;
     }
 
-    function setCalFundingRates(uint16 market, bool isLong, int256 calFundingRate) external {
+    function setCalFundingRates(uint16 market, bool isLong, int256 calFundingRate) external restricted {
         FeeHandler.Storage().calFundingRates[market][isLong] = calFundingRate;
     }
 
-    function setFundFeeLoss(uint16 market, uint256 loss) external {
+    function setFundFeeLoss(uint16 market, uint256 loss) external restricted {
         FeeHandler.Storage().fundFeeLoss[market] = loss;
     }
 
-    function setFeeAndRates(uint16 market, uint8 feeType, uint256 feeAndRate) external {
+    function setFeeAndRates(uint16 market, uint8 feeType, uint256 feeAndRate) external restricted {
         FeeHandler.Storage().feeAndRates[market][feeType] = feeAndRate;
     }
 }

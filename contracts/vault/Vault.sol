@@ -2,7 +2,10 @@
 pragma solidity ^0.8.20;
 
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
-import {ERC4626Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
+import {
+    IERC4626,
+    ERC4626Upgradeable
+} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -10,9 +13,10 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Precision} from "../lib/utils/Precision.sol";
 import {IMarket} from "../interfaces/IMarket.sol";
 import {IVaultReward} from "../interfaces/IVaultReward.sol";
+import {IVault} from "../interfaces/IVault.sol";
 import {TransferHelper} from "../lib/utils/TransferHelper.sol";
 
-contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable {
+contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -111,25 +115,19 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable {
         emit CoolDownDurationUpdated(_duration);
     }
 
-    function transferToVault(address account, uint256 amount) external restricted {
-        StorageStruct storage $ = _getStorage();
-        require(false == $.isFreezeTransfer, "VaultRouter:freeze");
-        SafeERC20.safeTransferFrom(IERC20(asset()), account, address(this), amount);
-    }
-
-    function transferFromVault(address to, uint256 amount) external restricted {
+    function withdrawFromVault(address to, uint256 amount) external override onlyMarket {
         StorageStruct storage $ = _getStorage();
         require(false == $.isFreezeTransfer, "VaultRouter:freeze");
         SafeERC20.safeTransfer(IERC20(asset()), to, amount);
     }
 
-    function borrowFromVault(uint16 market, uint256 amount) external onlyMarket {
+    function borrowFromVault(uint16 market, uint256 amount) external override onlyMarket {
         StorageStruct storage $ = _getStorage();
         require(false == $.isFreezeAccouting, "VaultRouter:freeze");
         _updateFundsUsed(market, amount, true);
     }
 
-    function repayToVault(uint16 market, uint256 amount) external onlyMarket {
+    function repayToVault(uint16 market, uint256 amount) external override onlyMarket {
         StorageStruct storage $ = _getStorage();
         require(false == $.isFreezeAccouting, "VaultRouter:freeze");
         _updateFundsUsed(market, amount, false);
@@ -138,11 +136,15 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable {
     //     view functions
     //================================================================================================
 
-    function priceDecimals() external pure returns (uint256) {
+    function priceDecimals() external pure override returns (uint256) {
         return 8;
     }
 
-    function totalAssets() public view override(ERC4626Upgradeable) returns (uint256) {
+    function fundsUsed(uint16 market) external view returns (uint256) {
+        return _getStorage().fundsUsed[market];
+    }
+
+    function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         return getAUM();
     }
 
@@ -155,9 +157,9 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable {
         return IERC20(asset()).balanceOf(address(this));
     }
 
-    function getAUM() public view returns (uint256) {
+    function getAUM() public view override returns (uint256) {
         StorageStruct storage $ = _getStorage();
-        int256 unbalancedPnl = IMarket($.market).getGlobalPnl();
+        int256 unbalancedPnl = IMarket($.market).getGlobalPnl(address(this));
         uint256 usdBalance = getUSDBalance();
 
         uint256 aum;
@@ -167,6 +169,14 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable {
             aum = usdBalance + uint256(-unbalancedPnl);
         }
         return aum;
+    }
+
+    function sellLpFee() external view returns (uint256) {
+        return _getStorage().sellLpFee;
+    }
+
+    function buyLpFee() external view returns (uint256) {
+        return _getStorage().buyLpFee;
     }
 
     //================================================================================================
@@ -230,7 +240,6 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable {
         StorageStruct storage $ = _getStorage();
         require($.allowBuy, "buy is not allowed");
         require(false == $.isFreezeTransfer, "vault:freeze");
-        require(msg.sender == $.vaultReward, "access deined");
         $.lastDepositAt[receiver] = block.timestamp;
         uint256 s_assets = super._convertToAssets(shares, Math.Rounding.Ceil);
         uint256 cost = assets > s_assets ? assets - s_assets : s_assets - assets;
@@ -252,7 +261,6 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable {
     {
         StorageStruct storage $ = _getStorage();
         require(false == $.isFreezeTransfer, "vault:freeze");
-        require(msg.sender == $.vaultReward, "access deined");
         require(block.timestamp > $.cooldownDuration + $.lastDepositAt[_owner], "vault:cooldown");
         uint256 s_assets = super._convertToAssets(shares, Math.Rounding.Floor);
         bool exceeds_assets = s_assets > assets;
@@ -292,7 +300,7 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable {
         revert("transfer not allowed");
     }
 
-    function computationalCosts(bool isBuy, uint256 amount) private view returns (uint256) {
+    function computationalCosts(bool isBuy, uint256 amount) public view override returns (uint256) {
         StorageStruct storage $ = _getStorage();
         if (isBuy) {
             return (amount * ($.buyLpFee)) / FEE_RATE_PRECISION;

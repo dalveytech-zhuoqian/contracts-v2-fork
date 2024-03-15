@@ -7,6 +7,7 @@ interface IMarket {
     //================================================================================================
 
     function getGlobalPnl(uint16[] memory markets) external view returns (int256);
+    function getGlobalPnl(address vault) external view returns (int256);
     function getGlobalOpenInterest() external view returns (uint256 _globalSize);
     function availableLiquidity(address market, address account, bool isLong) external view returns (uint256);
 
@@ -41,8 +42,6 @@ interface IMarket {
         external
         view
         returns (int256);
-
-    // TODO 不明确
     function getMarketPNL(uint16 market, uint256 longPrice, uint256 shortPrice) external view returns (int256);
     function getMarketSizes(uint16 market) external view returns (uint256, uint256);
 
@@ -71,6 +70,7 @@ interface IMarket {
     //================================================================================================
 
     function addSkipTime(uint256 start, uint256 end) external;
+    function collectFees(bytes calldata _data) external;
     function feeVaultWithdraw(address token, address to, uint256 amount) external;
 
     //================================================================================================

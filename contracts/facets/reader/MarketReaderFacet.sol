@@ -7,10 +7,13 @@ import {Position} from "../../lib/types/PositionStruct.sol";
 import {LibAccessManaged} from "../../ac/LibAccessManaged.sol";
 import {MarketHandler} from "../../lib/market/MarketHandler.sol";
 import {PositionHandler} from "../../lib/position/PositionHandler.sol";
+import {OracleHandler} from "../../lib/oracle/OracleHandler.sol";
 
 contract MarketReaderFacet { /* is IAccessManaged */
     using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableValues for EnumerableSet.AddressSet;
+    using EnumerableValues for EnumerableSet.UintSet;
 
     //================================================================
     //   view functions
@@ -19,11 +22,16 @@ contract MarketReaderFacet { /* is IAccessManaged */
         // LibMarketValid.validateLiquidation(market, pnl, fees, liquidateFee, collateral, size, raise);
     }
 
-    function getGlobalPnl() public view returns (int256) {
-        address[] memory _markets = markets.values();
+    function getGlobalPnl(address vault) public view returns (int256) {
+        EnumerableSet.UintSet storage marketIds = MarketHandler.Storage().marketIds[vault];
+        uint256[] memory _markets = marketIds.values();
         int256 pnl = 0;
         for (uint256 i = 0; i < _markets.length; i++) {
-            pnl = pnl + IMarket(_markets[i]).getPNL();
+            uint16 market = uint16(_markets[i]);
+            pnl = pnl
+                + PositionHandler.getMarketPNL(
+                    market, OracleHandler.getPrice(market, true), OracleHandler.getPrice(market, false)
+                );
         }
         return pnl;
     }
