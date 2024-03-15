@@ -3,8 +3,8 @@ pragma solidity ^0.8.17;
 
 import {MarketPositionCallBackIntl, MarketOrderCallBackIntl, MarketCallBackIntl} from "../IMarketCallBackIntl.sol";
 import {Order} from "../types/OrderStruct.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IVaultRouter} from "../../interfaces/IVaultRouter.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IVault} from "../../interfaces/IVault.sol";
 
 library MarketHelper {
     /**
@@ -13,7 +13,7 @@ library MarketHelper {
     function vaultWithdraw(address vr, uint16 market, address account, int256 pnl) internal {
         revert("TODO decimal convertion for pnl");
         if (pnl > 0) {
-            IVaultRouter(vr).transferFromVault(account, uint256(pnl));
+            IVault(vr).transferFromVault(account, uint256(pnl));
         }
     }
 
