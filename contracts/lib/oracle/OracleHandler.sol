@@ -118,7 +118,7 @@ library OracleHandler {
         return comparePrices(_refPrice, fastPrice, _maximise);
     }
 
-    function comparePrices(uint256 price1, uint256 price2, bool maximize) public pure returns (uint256) {
+    function comparePrices(uint256 price1, uint256 price2, bool maximize) private pure returns (uint256) {
         return maximize ? (price1 > price2 ? price1 : price2) : (price1 < price2 ? price1 : price2);
     }
 

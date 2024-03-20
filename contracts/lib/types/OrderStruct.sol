@@ -37,6 +37,7 @@ library Order {
         bool isLong;
         uint16 market;
         uint96 extra2; //todo
+        uint128 gas;
     }
 
     function getKey(Props memory order) internal pure returns (bytes32) {

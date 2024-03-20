@@ -27,6 +27,7 @@ library MarketDataTypes {
         bool keepLevTP;
         bool keepLevSL;
         bool triggerAbove;
+        uint128 gas;
     }
 
     function decodeCache(bytes memory data) internal pure returns (Cache memory inputs) {
@@ -50,7 +51,6 @@ library MarketDataTypes {
             inputs.triggerAbove,
             inputs.keepLevSL,
             inputs.keepLevTP
-
         ) = abi.decode(
             data,
             (
