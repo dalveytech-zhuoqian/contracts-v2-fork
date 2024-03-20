@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {LibAccessManaged} from "../ac/LibAccessManaged.sol";
+import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {FeeHandler} from "../lib/fee/FeeHandler.sol";
 import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
 
-contract FeeFacet { /* is IAccessManaged */
+contract FeeFacet is IAccessManaged {
     // uint256 public constant FEE_RATE_PRECISION = LibFundFee.PRECISION;
 
     function initFeeFacet(uint16 market) external restricted {

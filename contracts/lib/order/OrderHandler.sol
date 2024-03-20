@@ -165,7 +165,6 @@ library OrderHandler { /* is IOrderBook, Ac */
     }
 
     function getKeys(bytes32 sk, uint256 start, uint256 end) internal view returns (bytes32[] memory) {
-        bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
         return Storage().orderKeys[sk].valuesAt(start, end);
     }
 
