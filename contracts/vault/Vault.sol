@@ -67,13 +67,15 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         _;
     }
 
-    function initialize(address _asset, string memory _name, string memory _symbol, address _market)
+    function initialize(address _asset, string memory _name, string memory _symbol, address _market, address _authority)
         external
         onlyInitializing
     {
-        StorageStruct storage $ = _getStorage();
+        super.__AccessManaged_init(_authority);
         super.__ERC20_init(_name, _symbol);
         super.__ERC4626_init(IERC20(_asset));
+
+        StorageStruct storage $ = _getStorage();
         $.market = _market;
         $.cooldownDuration = 15 minutes; // 15
         $.sellLpFee = (1 * FEE_RATE_PRECISION) / 100; // 1%

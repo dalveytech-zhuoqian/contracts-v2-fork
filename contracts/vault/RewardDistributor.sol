@@ -38,9 +38,10 @@ contract RewardDistributor is AccessManagedUpgradeable {
         _;
     }
 
-    function initialize(address _rewardToken, address _rewardTracker) external onlyInitializing {
+    function initialize(address _rewardToken, address _rewardTracker, address _auth) external onlyInitializing {
         require(_rewardToken != address(0));
         require(_rewardTracker != address(0));
+        super.__AccessManaged_init(_auth);
         _getStorage().rewardToken = _rewardToken;
         _getStorage().rewardTracker = _rewardTracker;
     }
@@ -70,12 +71,6 @@ contract RewardDistributor is AccessManagedUpgradeable {
      * @param _amount The number of tokens per interval.
      */
     function setTokensPerInterval(uint256 _amount) external restricted {
-        /* 
-        require(
-            lastDistributionTime != 0,
-            "RewardDistributor: invalid lastDistributionTime"
-        );
-        */
         if (_getStorage().lastDistributionTime == 0) _getStorage().lastDistributionTime = block.timestamp;
         IVaultReward(_getStorage().rewardTracker).updateRewards();
         _getStorage().tokensPerInterval = _amount;

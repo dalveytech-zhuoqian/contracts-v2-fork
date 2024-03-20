@@ -242,10 +242,17 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable {
     event LogUpdatePool(uint256 supply, uint256 cumulativeRewardPerToken);
     event Harvest(address account, uint256 amount);
 
-    function initialize(address _vault, address _market, address _distributor) external onlyInitializing {
+    function initialize(address _vault, address _market, address _distributor, address _authority)
+        external
+        onlyInitializing
+    {
         require(_vault != address(0));
         require(_market != address(0));
         require(_distributor != address(0));
+
+        super.__AccessManaged_init(_authority);
+        super.__ReentrancyGuard_init();
+
         _getStorage().vault = IVault(_vault);
         _getStorage().market = IMarket(_market);
         _getStorage().distributor = _distributor;
