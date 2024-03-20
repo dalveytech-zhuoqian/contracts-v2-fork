@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Context} from "@openzeppelin/utils/Context.sol";
-import {IAccessManaged} from "@openzeppelin/access/manager/IAccessManaged.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {IAccessManaged} from "@openzeppelin/contracts/access/manager/IAccessManaged.sol";
 import {LibAccessManaged} from "./LibAccessManaged.sol";
 import {LibDiamond} from "../diamond/contracts/libraries/LibDiamond.sol";
 

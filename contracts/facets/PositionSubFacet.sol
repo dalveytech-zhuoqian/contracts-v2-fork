@@ -4,10 +4,11 @@ pragma experimental ABIEncoderV2;
 
 import {MarketDataTypes} from "../lib/types/MarketDataTypes.sol";
 import {Order} from "../lib/types/OrderStruct.sol";
-import {LibAccessManaged} from "../ac/LibAccessManaged.sol";
+import {IAccessManaged} from "../ac/IAccessManaged.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
-contract PositionSubFacet {
-    function decreasePosition(bytes calldata data) external {
+contract PositionSubFacet is IAccessManaged, ReentrancyGuardUpgradeable {
+    function decreasePosition(bytes calldata data) external nonReentrant {
         MarketDataTypes.Cache memory _vars = MarketDataTypes.decodeCache(data);
     }
 

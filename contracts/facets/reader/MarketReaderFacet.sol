@@ -3,13 +3,14 @@ pragma solidity ^0.8.0;
 
 import "../../lib/utils/EnumerableValues.sol";
 import {Position} from "../../lib/types/PositionStruct.sol";
+import {IPrice} from "../../interfaces/IPrice.sol";
 
 import {LibAccessManaged} from "../../ac/LibAccessManaged.sol";
 import {MarketHandler} from "../../lib/market/MarketHandler.sol";
 import {PositionHandler} from "../../lib/position/PositionHandler.sol";
 import {OracleHandler} from "../../lib/oracle/OracleHandler.sol";
 
-contract MarketReaderFacet { /* is IAccessManaged */
+contract MarketReaderFacet {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableValues for EnumerableSet.AddressSet;
@@ -108,19 +109,22 @@ contract MarketReaderFacet { /* is IAccessManaged */
         view
         returns (int256)
     {
-        Position.Props memory _position = getPosition(market, account, markPrice, isLong);
-        return PositionHandler.getPNL(_position, sizeDelta, markPrice);
+        // TODO
+        // Position.Props memory _position = getPosition(market, account, markPrice, isLong);
+        // return PositionHandler.getPNL(_position, sizeDelta, markPrice);
     }
 
     function getPNL(uint16 market) external view returns (int256 pnl) {
-        uint256 longPrice = IPrice(priceFeed).getPrice(indexToken, false);
-        uint256 shortPrice = IPrice(priceFeed).getPrice(indexToken, true);
-        pnl = TransferHelper.parseVaultAssetSigned(
-            PositionHandler.getMarketPNL(market, longPrice, shortPrice), collateralTokenDigits
-        );
+        // TODO
+        // uint256 longPrice = IPrice(this).getPrice(market, false);
+        // uint256 shortPrice = IPrice(this).getPrice(market, true);
+        // pnl = TransferHelper.parseVaultAssetSigned(
+        //     PositionHandler.getMarketPNL(market, longPrice, shortPrice), collateralTokenDigits
+        // );
     }
 
     function getGlobalOpenInterest(uint16 market) public view returns (uint256 _globalSize) {
-        return MarketHandler.getGlobalOpenInterest(market);
+        // TODO
+        // return MarketHandler.getGlobalOpenInterest(market);
     }
 }

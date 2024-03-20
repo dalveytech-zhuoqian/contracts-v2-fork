@@ -13,13 +13,13 @@ contract FeeFacet is IAccessManaged {
     }
 
     function collectFees(bytes calldata _data) external restricted {
-        (address account, address token, int256[] memory fees, uint256 fundfeeLoss) =
-            abi.decode(_data, (address, address, int256[], uint256));
+        (address account, address token, int256[] memory fees, uint256 fundfeeLoss, uint16 market) =
+            abi.decode(_data, (address, address, int256[], uint256, uint16));
         FeeHandler.collectFees(market, account, token, fees, fundfeeLoss);
     }
 
-    function addSkipTime(uint256 start, uint256 end) external restricted {
-        FeeHandler.addSkipTime(market, start, end);
+    function addSkipTime(uint16 market, uint256 start, uint256 end) external restricted {
+        // FeeHandler.addSkipTime(market, start, end);
     }
 
     function feeVaultWithdraw(uint16 market, address to, uint256 amount) external restricted {

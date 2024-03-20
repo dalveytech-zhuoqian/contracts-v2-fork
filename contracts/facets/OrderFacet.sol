@@ -4,9 +4,9 @@ pragma experimental ABIEncoderV2;
 
 import {MarketDataTypes} from "../lib/types/MarketDataTypes.sol";
 import {Order} from "../lib/types/OrderStruct.sol";
-import {LibAccessManaged} from "../ac/LibAccessManaged.sol";
+import {IAccessManaged} from "../ac/IAccessManaged.sol";
 
-contract OrderFacet {
+contract OrderFacet is IAccessManaged {
     function updateOrder(bytes calldata data) external {
         (MarketDataTypes.Cache memory _inputs) = abi.decode(data, (MarketDataTypes.Cache));
         if (_inputs.isCreate) {

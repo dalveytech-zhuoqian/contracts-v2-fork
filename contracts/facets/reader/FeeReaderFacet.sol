@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract FeeReaderFacet { /* is IAccessManaged */
+contract FeeReaderFacet {
     // =================================================================================
     // read only
     // =================================================================================
@@ -25,5 +25,4 @@ contract FeeReaderFacet { /* is IAccessManaged */
     function getOrderFees(bytes memory data) external view returns (int256 fees) {
         // MarketDataTypes.UpdateOrderInputs memory params
     }
-
 }
