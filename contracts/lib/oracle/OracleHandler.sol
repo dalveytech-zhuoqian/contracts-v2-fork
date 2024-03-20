@@ -5,7 +5,6 @@ import {IPriceFeed} from "../../interfaces/IPriceFeed.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 library OracleHandler {
-    using SafeCast for uint256;
     using SafeCast for int256;
 
     bytes32 constant STORAGE_POSITION = keccak256("blex.oracle.storage");
@@ -15,7 +14,7 @@ library OracleHandler {
     uint256 constant MAX_REF_PRICE = type(uint160).max;
     uint256 constant MAX_CUMULATIVE_REF_DELTA = type(uint32).max;
     uint256 constant MAX_CUMULATIVE_FAST_DELTA = type(uint32).max;
-    uint256 constant BASIS_POINTS_DIVISOR = 10000;
+    uint256 constant BP_DIVISOR = 10000;
 
     // fit data in a uint256 slot to save gas costs
     struct PriceDataItem {
@@ -26,29 +25,18 @@ library OracleHandler {
     }
 
     struct ConfigStruct {
-        bool isSpreadEnablede;
-        bool isFastPriceEnabled;
-        uint32 maxDeviationBasisPoints; //1000
+        uint32 maxDeviationBP; // 1000
         uint32 priceDuration; // 300
-        uint32 maxPriceUpdateDelay; //3600
-        uint32 spreadBasisPointsIfInactive;
-        uint32 spreadBasisPointsIfChainError;
-        uint32 priceDataInterval;
-        uint32 sampleSpace; //  3
+        uint32 maxPriceUpdateDelay; // 3600
+        uint32 priceDataInterval; // 60
+        uint32 sampleSpace; // 3
     }
 
     struct StorageStruct {
         address USDT;
         ConfigStruct config;
-        // Chainlink can return prices for stablecoins
-        // that differs from 1 USD by a larger percentage than stableSwapFeeBasisPoints
-        // this allows us to configure stablecoins like DAI as being a stableToken
-        // while not being a strictStableToken
-        mapping(uint16 => bool) isAdjustmentAdditive;
         mapping(uint16 => address) priceFeeds;
-        mapping(uint16 => uint256) spreadBasisPoints;
-        mapping(uint16 => uint256) adjustmentBasisPoints;
-        mapping(uint16 => uint256) lastAdjustmentTimings;
+        mapping(uint16 => uint256) spreadBP;
         mapping(uint16 => uint256) prices;
         mapping(uint16 => uint256) maxCumulativeDeltaDiffs;
         mapping(uint16 => PriceDataItem) priceData;
@@ -82,6 +70,7 @@ library OracleHandler {
     function setPrice(uint16 _market, uint256 _price) internal {
         _setPrice(_market, _price);
     }
+
     //==================================================================================================
     //================ view    functions================================================================
     //==================================================================================================
@@ -89,77 +78,48 @@ library OracleHandler {
     // under regular operation, the fastPrice (prices[token]) is returned and there is no spread returned from this function,
     // though VaultPriceFeed might apply its own spread
     //
-    // if the fastPrice has not been updated within priceDuration then it is ignored and only _refPrice with a spread is used (spread: spreadBasisPointsIfInactive)
-    // in case the fastPrice has not been updated for maxPriceUpdateDelay then the _refPrice with a larger spread is used (spread: spreadBasisPointsIfChainError)
+    // if the fastPrice has not been updated within priceDuration then it is ignored and only _refPrice with a spread is used (spread: spreadBPIfInactive)
+    // in case the fastPrice has not been updated for maxPriceUpdateDelay then the _refPrice with a larger spread is used (spread: spreadBPIfChainError)
     //
     // there will be a spread from the _refPrice to the fastPrice in the following cases:
-    // - in case isSpreadEnabled is set to true
-    // - in case the maxDeviationBasisPoints between _refPrice and fastPrice is exceeded
+    // - in case the maxDeviationBP between _refPrice and fastPrice is exceeded
     // - in case watchers flag an issue
     // - in case the cumulativeFastDelta exceeds the cumulativeRefDelta by the maxCumulativeDeltaDiff
 
     function getPrice(uint16 market, bool _maximise) internal view returns (uint256) {
-        uint256 price = _getPrice(market, _maximise);
-        uint256 adjustmentBps = Storage().adjustmentBasisPoints[market];
-        if (adjustmentBps > 0) {
-            if (Storage().isAdjustmentAdditive[market]) {
-                return (price * (BASIS_POINTS_DIVISOR + adjustmentBps)) / BASIS_POINTS_DIVISOR;
-            }
-            return (price * (BASIS_POINTS_DIVISOR - adjustmentBps)) / BASIS_POINTS_DIVISOR;
-        }
-        return price;
+        uint256 chainPrice = getChainPrice(market, _maximise);
+        return getFastPrice(market, chainPrice, _maximise);
     }
 
     function getFastPrice(uint16 market, uint256 _refPrice, bool _maximise) internal view returns (uint256) {
         uint256 lastUpdate = uint256(Storage().priceData[market].refTime);
-        if (block.timestamp > lastUpdate + uint256(Storage().config.maxPriceUpdateDelay)) {
-            if (_maximise) {
-                return (_refPrice * (BASIS_POINTS_DIVISOR + uint256(Storage().config.spreadBasisPointsIfChainError)))
-                    / BASIS_POINTS_DIVISOR;
-            }
-
-            return (_refPrice * (BASIS_POINTS_DIVISOR - uint256(Storage().config.spreadBasisPointsIfChainError)))
-                / (BASIS_POINTS_DIVISOR);
-        }
-
-        if (block.timestamp > lastUpdate + uint256(Storage().config.priceDuration)) {
-            if (_maximise) {
-                return (_refPrice * (BASIS_POINTS_DIVISOR + uint256(Storage().config.spreadBasisPointsIfInactive)))
-                    / BASIS_POINTS_DIVISOR;
-            }
-
-            return (_refPrice * (BASIS_POINTS_DIVISOR - uint256(Storage().config.spreadBasisPointsIfInactive)))
-                / BASIS_POINTS_DIVISOR;
-        }
-
         uint256 fastPrice = Storage().prices[market];
-        if (fastPrice == 0) {
+        if (
+            block.timestamp > lastUpdate + uint256(Storage().config.maxPriceUpdateDelay)
+                || block.timestamp > lastUpdate + uint256(Storage().config.priceDuration) || fastPrice == 0
+        ) {
             return _refPrice;
         }
 
-        uint256 diffBasisPoints = _refPrice > fastPrice ? _refPrice - fastPrice : fastPrice - _refPrice;
-        diffBasisPoints = (diffBasisPoints * BASIS_POINTS_DIVISOR) / _refPrice;
+        uint256 diffBP = _refPrice > fastPrice ? _refPrice - fastPrice : fastPrice - _refPrice;
+        diffBP = (diffBP * BP_DIVISOR) / _refPrice;
 
-        // create a spread between the _refPrice and the fastPrice if the maxDeviationBasisPoints is exceeded
+        // create a spread between the _refPrice and the fastPrice if the maxDeviationBP is exceeded
         // or if watchers have flagged an issue with the fast price
         // 1. fastPrice
-        //      1. isSpreadEnabled, false
-        //      2. fastprice > chainlink, false
+        // 2. fastprice > chainlink, false
         // 2. 1%
         // 3. fastPricechainlink/, fastPrice
 
-        bool hasSpread = !favorFastPrice(market) || diffBasisPoints > uint256(Storage().config.maxDeviationBasisPoints);
-        if (hasSpread) {
-            // return the higher of the two prices
-            if (_maximise) {
-                return _refPrice > fastPrice ? _refPrice : fastPrice;
-            }
-
-            // return the lower of the two prices
-            return _refPrice < fastPrice ? _refPrice : fastPrice;
+        if (favorFastPrice(market) && diffBP <= uint256(Storage().config.maxDeviationBP)) {
+            return fastPrice;
         }
 
-        return fastPrice;
+        return comparePrices(_refPrice, fastPrice, _maximise);
+    }
+
+    function comparePrices(uint256 price1, uint256 price2, bool maximize) public pure returns (uint256) {
+        return maximize ? (price1 > price2 ? price1 : price2) : (price1 < price2 ? price1 : price2);
     }
 
     function getChainPrice(uint16 market, bool _maximise) internal view returns (uint256) {
@@ -171,63 +131,17 @@ library OracleHandler {
         return (xxxUSD / PRICE_PRECISION) * _USDTUSD;
     }
 
-    function favorFastPrice(uint16 market) internal view returns (bool) {
-        if (Storage().config.isSpreadEnablede) {
-            return false;
-        }
-
-        (,, uint256 cumulativeRefDelta, uint256 cumulativeFastDelta) = getPriceData(market);
-        if (
-            cumulativeFastDelta > cumulativeRefDelta
-                && cumulativeFastDelta - cumulativeRefDelta > Storage().maxCumulativeDeltaDiffs[market]
-        ) {
-            // fast > chainlink, fast-chainlink >
-            // force a spread if the cumulative delta for the fast price feed exceeds the cumulative delta
-            // for the Chainlink price feed by the maxCumulativeDeltaDiff allowed
-            return false;
-        }
-
-        return true;
-    }
-
-    function getPriceData(uint16 market) internal view returns (uint256, uint256, uint256, uint256) {
-        PriceDataItem memory data = Storage().priceData[market];
-        return (
-            uint256(data.refPrice),
-            uint256(data.refTime),
-            uint256(data.cumulativeRefDelta),
-            uint256(data.cumulativeFastDelta)
-        );
-    }
-
-    function getLatestPrice(uint16 market) internal view returns (uint256) {
-        uint256 xxxUSD = _getLatestPrice(market);
-        uint256 _USDTUSD = (IPriceFeed(Storage().USDT).latestAnswer()).toUint256();
-        if (xxxUSD < (2 ** 256 - 1) / PRICE_PRECISION) {
-            return (xxxUSD * PRICE_PRECISION) / _USDTUSD;
-        }
-        return (xxxUSD / PRICE_PRECISION) * _USDTUSD;
-    }
-
     //==================================================================================================
     //================ private functions================================================================
     //==================================================================================================
-    function _getLatestPrice(uint16 market) private view returns (uint256) {
-        address _feed = Storage().priceFeeds[market];
-        require(_feed != address(0), "PriceFeed: invalid price feed");
-        IPriceFeed _priceFeed = IPriceFeed(_feed);
-        int256 _price = _priceFeed.latestAnswer();
-        require(_price > 0, "PriceFeed: invalid price");
-        return uint256(_price);
-    }
-
     function _setPrice(uint16 market, uint256 _price) internal {
-        if (market != 0) {
-            uint256 refPrice = getLatestPrice(market);
+        // check if the market has a price feed
+        if (Storage().priceFeeds[market] != address(0)) {
+            uint256 refPrice = _getLatestPriceWithUSDT(market);
             uint256 fastPrice = Storage().prices[market];
 
             (uint256 prevRefPrice, uint256 refTime, uint256 cumulativeRefDelta, uint256 cumulativeFastDelta) =
-                getPriceData(market);
+                _getPriceData(market);
 
             if (prevRefPrice > 0) {
                 // chainlink
@@ -277,6 +191,24 @@ library OracleHandler {
         );
     }
 
+    function _getLatestPriceWithUSDT(uint16 market) internal view returns (uint256) {
+        uint256 xxxUSD = _getLatestPrice(market);
+        uint256 _USDTUSD = (IPriceFeed(Storage().USDT).latestAnswer()).toUint256();
+        if (xxxUSD < (2 ** 256 - 1) / PRICE_PRECISION) {
+            return (xxxUSD * PRICE_PRECISION) / _USDTUSD;
+        }
+        return (xxxUSD / PRICE_PRECISION) * _USDTUSD;
+    }
+
+    function _getLatestPrice(uint16 market) private view returns (uint256) {
+        address _feed = Storage().priceFeeds[market];
+        require(_feed != address(0), "PriceFeed: invalid price feed");
+        IPriceFeed _priceFeed = IPriceFeed(_feed);
+        int256 _price = _priceFeed.latestAnswer();
+        require(_price > 0, "PriceFeed: invalid price");
+        return uint256(_price);
+    }
+
     function _getChainPrice(uint16 market, bool _maximise) private view returns (uint256) {
         address _feed = Storage().priceFeeds[market];
         require(_feed != address(0), "PriceFeed: invalid price feed");
@@ -320,18 +252,28 @@ library OracleHandler {
         return (_price * PRICE_PRECISION) / (10 ** _decimals);
     }
 
-    function _getPrice(uint16 market, bool _maximise) internal view returns (uint256) {
-        uint256 price = getChainPrice(market, _maximise);
+    function _getPriceData(uint16 market) internal view returns (uint256, uint256, uint256, uint256) {
+        PriceDataItem memory data = Storage().priceData[market];
+        return (
+            uint256(data.refPrice),
+            uint256(data.refTime),
+            uint256(data.cumulativeRefDelta),
+            uint256(data.cumulativeFastDelta)
+        );
+    }
 
-        if (Storage().config.isFastPriceEnabled) {
-            price = getFastPrice(market, price, _maximise);
+    function favorFastPrice(uint16 market) internal view returns (bool) {
+        (,, uint256 cumulativeRefDelta, uint256 cumulativeFastDelta) = _getPriceData(market);
+        if (
+            cumulativeFastDelta > cumulativeRefDelta
+                && cumulativeFastDelta - cumulativeRefDelta > Storage().maxCumulativeDeltaDiffs[market]
+        ) {
+            // fast > chainlink, fast-chainlink >
+            // force a spread if the cumulative delta for the fast price feed exceeds the cumulative delta
+            // for the Chainlink price feed by the maxCumulativeDeltaDiff allowed
+            return false;
         }
 
-        uint256 _spreadBasisPoints = Storage().spreadBasisPoints[market];
-
-        if (_maximise) {
-            return (price * (BASIS_POINTS_DIVISOR + _spreadBasisPoints)) / BASIS_POINTS_DIVISOR;
-        }
-        return (price * (BASIS_POINTS_DIVISOR - _spreadBasisPoints)) / BASIS_POINTS_DIVISOR;
+        return true;
     }
 }

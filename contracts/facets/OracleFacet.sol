@@ -11,15 +11,11 @@ import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
 contract OracleFacet is IAccessManaged {
     function initDefaultOracleConfig() external restricted {
         OracleHandler.ConfigStruct memory _config = OracleHandler.ConfigStruct({
-            isSpreadEnablede: true,
-            isFastPriceEnabled: true,
-            maxDeviationBasisPoints: 1000,
-            priceDuration: 300,
-            maxPriceUpdateDelay: 3600,
-            spreadBasisPointsIfInactive: 100,
-            spreadBasisPointsIfChainError: 100,
-            priceDataInterval: 100,
-            sampleSpace: 3
+            maxDeviationBP: 100, //超过 1% 进行比价
+            priceDuration: 300, //checked
+            maxPriceUpdateDelay: 3600, // checked
+            priceDataInterval: 60, //checked
+            sampleSpace: 1 //checked
         });
         OracleHandler.StorageStruct storage store = OracleHandler.Storage();
         store.config = _config;

@@ -34,11 +34,11 @@ library ReferralHandler {
     event GovSetCodeOwner(bytes32 code, address newAccount);
 
     event IncreasePositionReferral(
-        address account, uint256 sizeDelta, uint256 marginFeeBasisPoints, bytes32 referralCode, address referrer
+        address account, uint256 sizeDelta, uint256 marginFeeBP, bytes32 referralCode, address referrer
     );
 
     event DecreasePositionReferral(
-        address account, uint256 sizeDelta, uint256 marginFeeBasisPoints, bytes32 referralCode, address referrer
+        address account, uint256 sizeDelta, uint256 marginFeeBP, bytes32 referralCode, address referrer
     );
 
     function Storage() internal pure returns (StorageStruct storage fs) {
