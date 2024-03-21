@@ -28,7 +28,7 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         bool isFreezeTransfer;
         address market;
         address vaultReward;
-        uint256 cooldownDuration; //
+        uint256 cooldownDuration;
         uint256 buyLpFee;
         // 2%
         uint256 sellLpFee; // 1%
