@@ -99,7 +99,7 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         emit AllowBuyUpdated(allow);
     }
 
-    function setMarket(address _m) external restricted {
+    function setMarket(address _m) external override restricted {
         StorageStruct storage $ = _getStorage();
         $.market = _m;
         emit MarketUpdated(_m);
@@ -173,11 +173,11 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         return aum;
     }
 
-    function sellLpFee() external view returns (uint256) {
+    function sellLpFee() external view override returns (uint256) {
         return _getStorage().sellLpFee;
     }
 
-    function buyLpFee() external view returns (uint256) {
+    function buyLpFee() external view override returns (uint256) {
         return _getStorage().buyLpFee;
     }
 

@@ -10,6 +10,7 @@ import {IVault, IERC4626} from "../interfaces/IVault.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IVaultReward} from "../interfaces/IVaultReward.sol";
 
 library SafeMath {
     /**
@@ -212,7 +213,7 @@ library SafeMath {
     }
 }
 
-contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable {
+contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IVaultReward {
     using SafeCast for int256;
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
@@ -263,20 +264,20 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable {
     }
     /**
      * @dev This function is used to buy shares in a vault using an ERC20 asset as payment.
-     * @param vault The address of the vault.
      * @param to The address where the purchased shares will be sent.
      * @param amount The amount of ERC20 tokens to use for purchasing the shares.
      * @param minSharesOut The minimum number of shares that the buyer expects to receive for their payment.
      * @return sharesOut The actual number of shares purchased by the buyer.
      */
 
-    function buy(IERC4626 vault, address to, uint256 amount, uint256 minSharesOut)
+    function buy(address to, uint256 amount, uint256 minSharesOut)
         public
+        override
         nonReentrant
         returns (uint256 sharesOut)
     {
+        IVault vault = _getStorage().vault;
         address _token = vault.asset();
-
         SafeERC20.safeTransferFrom(IERC20(_token), msg.sender, address(this), amount);
         IERC20(_token).approve(address(vault), amount);
         if ((sharesOut = vault.deposit(amount, to)) < minSharesOut) {
@@ -287,17 +288,18 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable {
     /**
      * @dev This function sells a specified amount of shares in a given vault on behalf of the caller using the `vaultReward` contract.
      * The `to` address receives the resulting assets of the sale.
-     * @param vault The address of the vault to sell assets from.
      * @param to The address that receives the resulting shares of the sale.
      * @param shares The amount of shares to sell.
      * @param minAssetsOut The minimum amount of assets the caller expects to receive from the sale.
      * @return assetOut The resulting number of shares received by the `to` address.
      */
-    function sell(IERC4626 vault, address to, uint256 shares, uint256 minAssetsOut)
+    function sell(address to, uint256 shares, uint256 minAssetsOut)
         public
+        override
         nonReentrant
         returns (uint256 assetOut)
     {
+        IVault vault = _getStorage().vault;
         if ((assetOut = vault.redeem(shares, to, to)) < minAssetsOut) {
             revert("MinOutError");
         }
@@ -312,7 +314,7 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable {
      * Finally, the `transferFromVault` function of the `vaultRouter` contract is called to transfer the rewards
      * from the market's vault to the LP's account.
      */
-    function claimLPReward() public nonReentrant {
+    function claimLPReward() public override nonReentrant {
         address _account = msg.sender;
         if (IVault(_getStorage().vault).balanceOf(_account) == 0) return;
         _claimLPRewardForAccount(msg.sender);
@@ -339,7 +341,7 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable {
      * @notice function can only be called without reentry.
      * @param _account needs to update the account address for rewards. If it is 0, the rewards for all accounts will be updated.
      */
-    function updateRewardsByAccount(address _account) public {
+    function updateRewardsByAccount(address _account) public override {
         uint256 blockReward = IRewardDistributor(_getStorage().distributor).distribute(); //
         uint256 supply = _getStorage().vault.totalSupply();
         // LP
@@ -385,7 +387,7 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable {
      * The function returns the amount of rewards earned by the calling account as a `uint256`.
      * @return The amount of rewards earned by the calling account as a `uint256`.
      */
-    function getLPReward() public view returns (uint256) {
+    function getLPReward() public view override returns (uint256) {
         if (_getStorage().lpEarnedRewards[msg.sender] == 0) return 0;
         // return lpEarnedRewards[msg.sender] - claimable(msg.sender);
         return _getStorage().lpEarnedRewards[msg.sender] - _getStorage().claimableReward[msg.sender];
@@ -397,7 +399,7 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable {
      * The `getLPPrice` function returns the current price of LP tokens in the market, which is then returned by this function as a `uint256`.
      * @return The current price of LP tokens in the market as a `uint256`.
      */
-    function getLPPrice() public view returns (uint256) {
+    function getLPPrice() public view override returns (uint256) {
         uint256 assets = _getStorage().vault.totalAssets();
         uint256 supply = _getStorage().vault.totalSupply();
         if (assets == 0 || supply == 0) return 1 * 10 ** priceDecimals();
@@ -429,34 +431,11 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable {
         return _getStorage().vault.previewRedeem(shares);
     }
 
-    /**
-     * @dev This function retrieves the USD balance of the contract calling the function, by calling the getUSDBalance function of the vaultRouter contract.
-     * It does not take any parameters.
-     * @return balance The USD balance of the contract calling the function.
-     */
-    function getUSDBalance() public view returns (uint256) {
-        return _getStorage().vault.getUSDBalance();
-    }
-
-    /**
-     * @dev This function allows anyone to retrieve the current assets under management (AUM) of the market.
-     * The function calls the `getAUM` function of the `vaultRouter` contract, which returns the current AUM of the market as a `uint256`.
-     * The AUM represents the total value of assets held in the market, including both the LP tokens and any other tokens held by the market.
-     * @return The current AUM of the market as a `uint256`.
-     */
-    function getAUM() public view returns (uint256) {
-        return _getStorage().vault.getAUM();
-    }
-
-    function priceDecimals() public view returns (uint256) {
+    function priceDecimals() public view override returns (uint256) {
         return _getStorage().vault.priceDecimals();
     }
 
-    function sellLpFee() public view returns (uint256) {
-        return _getStorage().vault.sellLpFee();
-    }
-
-    function getAPR() external view returns (uint256) {
+    function getAPR() external view override returns (uint256) {
         return _getStorage().apr;
     }
 
@@ -473,7 +452,7 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable {
         return _getStorage().vault.asset();
     }
 
-    function pendingRewards() external view returns (uint256) {
+    function pendingRewards() external view override returns (uint256) {
         return claimable(msg.sender);
     }
 

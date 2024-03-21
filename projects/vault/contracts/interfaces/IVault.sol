@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
 interface IVault is IERC4626 {
+    function setMarket(address market) external;
+
     function withdrawFromVault(address to, uint256 amount) external; //transferToVault
 
     function borrowFromVault(uint16 market, uint256 amount) external;
