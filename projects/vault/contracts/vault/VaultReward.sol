@@ -33,7 +33,7 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
         mapping(address => uint256) averageStakedAmounts;
     }
 
-    function _getStorage() private pure returns (StorageStruct storage $) {
+    function _getStorage() internal pure returns (StorageStruct storage $) {
         bytes32 position = POS_STORAGE_POSITION;
         assembly {
             $.slot := position
@@ -124,7 +124,7 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
         updateRewardsByAccount(_account);
         uint256 tokenAmount = _getStorage().claimableReward[_account];
         _getStorage().claimableReward[_account] = 0;
-        IERC20(rewardToken()).safeTransfer(_account, tokenAmount);
+        IERC20(_getStorage().vault.asset()).safeTransfer(_account, tokenAmount);
         emit Harvest(_account, tokenAmount);
     }
 
@@ -193,48 +193,6 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
         return _getStorage().lpEarnedRewards[msg.sender] - _getStorage().claimableReward[msg.sender];
     }
 
-    /**
-     * @dev This function allows anyone to retrieve the current price of LP tokens in the current market.
-     * The function calls the `getLPPrice` function of the `vaultRouter` contract, passing in the address of the `vault` contract.
-     * The `getLPPrice` function returns the current price of LP tokens in the market, which is then returned by this function as a `uint256`.
-     * @return The current price of LP tokens in the market as a `uint256`.
-     */
-    function getLPPrice() public view override returns (uint256) {
-        uint256 assets = _getStorage().vault.totalAssets();
-        uint256 supply = _getStorage().vault.totalSupply();
-        if (assets == 0 || supply == 0) return 1 * 10 ** priceDecimals();
-        return (assets * 10 ** priceDecimals()) / supply;
-    }
-
-    function previewDeposit(uint256 assets) external view returns (uint256) {
-        return _getStorage().vault.previewDeposit(assets);
-    }
-
-    /**
-     * @dev See {IERC4626-previewMint}.
-     */
-    function previewMint(uint256 shares) external view returns (uint256) {
-        return _getStorage().vault.previewMint(shares);
-    }
-
-    /**
-     * @dev See {IERC4626-previewWithdraw}.
-     */
-    function previewWithdraw(uint256 assets) external view returns (uint256) {
-        return _getStorage().vault.previewWithdraw(assets);
-    }
-
-    /**
-     * @dev See {IERC4626-previewRedeem}.
-     */
-    function previewRedeem(uint256 shares) external view returns (uint256) {
-        return _getStorage().vault.previewRedeem(shares);
-    }
-
-    function priceDecimals() public view override returns (uint256) {
-        return _getStorage().vault.priceDecimals();
-    }
-
     function getAPR() external view override returns (uint256) {
         return _getStorage().apr;
     }
@@ -246,10 +204,6 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
      */
     function tokensPerInterval() external view returns (uint256) {
         return IRewardDistributor(_getStorage().distributor).tokensPerInterval();
-    }
-
-    function rewardToken() public view returns (address) {
-        return _getStorage().vault.asset();
     }
 
     function pendingRewards() external view override returns (uint256) {
@@ -267,7 +221,7 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
      * @param _account The user's account address.
      * @return The amount of rewards claimable by the user in the market as a `uint256`.
      */
-    function claimable(address _account) public view returns (uint256) {
+    function claimable(address _account) public view override returns (uint256) {
         uint256 stakedAmount = stakedAmounts(_account);
         if (stakedAmount == 0) {
             return _getStorage().claimableReward[_account];
@@ -286,7 +240,7 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
         return claimableReward[_account] + accountReward; */
     }
 
-    function stakedAmounts(address _account) private view returns (uint256) {
+    function stakedAmounts(address _account) public view returns (uint256) {
         return _getStorage().vault.balanceOf(_account);
     }
 }

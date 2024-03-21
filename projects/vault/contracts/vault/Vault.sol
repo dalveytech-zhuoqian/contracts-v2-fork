@@ -137,7 +137,7 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
     //     view functions
     //================================================================================================
 
-    function priceDecimals() external pure override returns (uint256) {
+    function priceDecimals() public pure override returns (uint256) {
         return 8;
     }
 
@@ -178,6 +178,13 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
 
     function buyLpFee() external view override returns (uint256) {
         return _getStorage().buyLpFee;
+    }
+
+    function getLPPrice() external view override returns (uint256) {
+        uint256 assets = totalAssets();
+        uint256 supply = totalSupply();
+        if (assets == 0 || supply == 0) return 1 * 10 ** priceDecimals();
+        return (assets * 10 ** priceDecimals()) / supply;
     }
 
     //================================================================================================

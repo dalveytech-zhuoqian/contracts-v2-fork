@@ -29,4 +29,6 @@ interface IVault is IERC4626 {
     function fundsUsed(uint16 market) external view returns (uint256);
 
     function priceDecimals() external pure returns (uint256);
+
+    function getLPPrice() external view returns (uint256);
 }

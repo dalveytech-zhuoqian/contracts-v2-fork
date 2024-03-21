@@ -13,13 +13,11 @@ interface IVaultReward {
 
     function updateRewardsByAccount(address) external;
 
-    function getAPR() external returns (uint256);
+    function getAPR() external view returns (uint256);
 
     function getLPReward() external returns (uint256);
 
-    function pendingRewards() external returns (uint256);
+    function pendingRewards() external view returns (uint256);
 
-    function getLPPrice() external returns (uint256);
-
-    function priceDecimals() external returns (uint256);
+    function claimable(address) external view returns (uint256);
 }
