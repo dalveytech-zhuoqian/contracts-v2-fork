@@ -6,18 +6,16 @@ import {
     IERC4626,
     ERC4626Upgradeable
 } from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Precision} from "../lib/utils/Precision.sol";
 import {IMarket} from "../interfaces/IMarket.sol";
 import {IVaultReward} from "../interfaces/IVaultReward.sol";
 import {IVault} from "../interfaces/IVault.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Precision} from "../lib/utils/Precision.sol";
 import {TransferHelper} from "../lib/utils/TransferHelper.sol";
 
 contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
-    using Math for uint256;
     using SafeERC20 for IERC20;
 
     uint256 public constant NUMBER_OF_DEAD_SHARES = 1000;
@@ -30,8 +28,9 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         bool isFreezeTransfer;
         address market;
         address vaultReward;
-        uint256 cooldownDuration; // 15
-        uint256 buyLpFee; // 2%
+        uint256 cooldownDuration; //
+        uint256 buyLpFee;
+        // 2%
         uint256 sellLpFee; // 1%
         uint256 totalFundsUsed;
         mapping(address => uint256) lastDepositAt;
