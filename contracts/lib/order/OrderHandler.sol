@@ -33,10 +33,11 @@ library OrderHandler { /* is IOrderBook, Ac */
     function add(MarketDataTypes.Cache[] memory _vars) internal returns (Order.Props[] memory _orders) {
         uint256 len = _vars.length;
         _orders = new Order.Props[](len);
+
         for (uint256 i; i < len;) {
-            Order.Props memory _order = _vars[i]._order;
-            _order.version = Order.STRUCT_VERSION;
-            bytes32 sk = OrderHelper.storageKey(_vars.market, _vars.isLong, _vars.isIncrease);
+            Order.Props memory _order; //= _vars[i]._order;
+            // _order.version = Order.STRUCT_VERSION;
+            bytes32 sk = OrderHelper.storageKey(_vars[i].market, _vars[i].isLong, _vars[i].isOpen);
             _order.orderID = uint64(_generateID(sk, _order.account));
             _order = _setupTriggerAbove(_vars[i], _order);
             _orders[i] = _order;
@@ -46,14 +47,14 @@ library OrderHandler { /* is IOrderBook, Ac */
         }
 
         if (len == 2) {
-            _orders[0].pairKey = _orders[1].orderID;
-            _orders[1].pairKey = _orders[0].orderID;
+            _orders[0].pairId = _orders[1].orderID;
+            _orders[1].pairId = _orders[0].orderID;
         }
 
         for (uint256 i; i < len;) {
             Order.Props memory _order = _orders[i];
-            _validInputParams(_order, _vars[i].isOpen);
-            bytes32 sk = OrderHelper.storageKey(_vars.market, _vars.isLong, _vars.isIncrease);
+            _validInputParams(_order, _vars[i].isOpen, _vars[i].isLong);
+            bytes32 sk = OrderHelper.storageKey(_vars[i].market, _vars[i].isLong, _vars[i].isOpen);
             _add(sk, _order);
             unchecked {
                 ++i;
@@ -63,8 +64,9 @@ library OrderHandler { /* is IOrderBook, Ac */
 
     function update(MarketDataTypes.Cache memory _vars) internal returns (Order.Props memory _order) {
         bytes32 okey = OrderHelper.getKey(_vars.account, _vars.orderId);
-        require(containsKey(okey), "OrderBook:invalid orderKey");
-        _order = orders(okey);
+        bytes32 sk = OrderHelper.storageKey(_vars.market, _vars.isLong, _vars.isOpen);
+        require(containsKey(sk, okey), "OrderBook:invalid orderKey");
+        _order = orders(sk, okey);
         require(_order.version == Order.STRUCT_VERSION, "OrderBook:wrong version"); // ，
         _order.price = _vars.price;
 
@@ -81,10 +83,10 @@ library OrderHandler { /* is IOrderBook, Ac */
         _order = _setupTriggerAbove(_vars, _order); // order
         if (_vars.isOpen) {
             _order.tp = _vars.tp;
-            _order.tl = _vars.sl;
+            _order.sl = _vars.sl;
         }
-        _validInputParams(_order, _vars.isOpen);
-        _set(_order);
+        _validInputParams(_order, _vars.isOpen, _vars.isLong);
+        _set(_order, sk);
     }
 
     function remove(uint16 market, bool isIncrease, bool isLong, address account, uint256 orderID)
@@ -93,14 +95,16 @@ library OrderHandler { /* is IOrderBook, Ac */
     {
         bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
         bytes32 ok = OrderHelper.getKey(account, uint64(orderID));
-        if (false == isIncrease) {
-            bytes32 pairKey = orders(sk, ok).pairKey; // pairKey
-            _orders = new Order.Props[](pairKey != bytes32(0) ? 2 : 1); // pairKey0_orders
-            if (pairKey != bytes32(0)) _orders[1] = _remove(sk, pairKey);
-        } else {
-            _orders = new Order.Props[](1);
-        } // pairKey0_orders
-        _orders[0] = _remove(sk, ok);
+        // TODO
+        // if (false == isIncrease) {
+        // bytes32 pairKey = OrderHelper.getPairKey(
+        // ); // pairKey
+        //     _orders = new Order.Props[](pairKey != bytes32(0) ? 2 : 1); // pairKey0_orders
+        //     if (pairKey != bytes32(0)) _orders[1] = _remove(sk, pairKey);
+        // } else {
+        //     _orders = new Order.Props[](1);
+        // } // pairKey0_orders
+        // _orders[0] = _remove(sk, ok);
     }
 
     function removeByAccount(uint16 market, bool isIncrease, bool isLong, address account)
@@ -136,7 +140,7 @@ library OrderHandler { /* is IOrderBook, Ac */
     //===============================================================
     // view only
     //===============================================================
-    function orders(bytes32 storageKey, bytes32 orderKey) internal view returns (Order.Props[] memory _orders) {
+    function orders(bytes32 storageKey, bytes32 orderKey) internal view returns (Order.Props memory _orders) {
         return Storage().orders[storageKey][orderKey];
     }
 
@@ -205,7 +209,6 @@ library OrderHandler { /* is IOrderBook, Ac */
             require(_order.collateral > 0, "OB:invalid collateral");
         }
         require(_order.account != address(0), "OrderBook:invalid account");
-        require(_order.triggerAbove != 0, "OB:trigger above init");
     }
 
     function _setupTriggerAbove(MarketDataTypes.Cache memory _vars, Order.Props memory _order)
@@ -213,16 +216,16 @@ library OrderHandler { /* is IOrderBook, Ac */
         pure
         returns (Order.Props memory)
     {
-        if (_vars.isFromMarket()) {
-            _order.triggerAbove = _vars.isOpen == !_vars._isLong;
+        if (_vars.isFromMarket) {
+            _order.triggerAbove = _vars.isOpen == !_vars.isLong;
             _order.isFromMarket = true;
         } else {
             if (_vars.isOpen) {
-                _order.triggerAbove = !_vars._isLong;
-            } else if (_vars._order.triggerAbove == 0) {
-                _order.triggerAbove = _vars._oraclePrice < _order.price;
+                _order.triggerAbove = !_vars.isLong;
+            } else if (_vars.triggerAbove == false) {
+                _order.triggerAbove = _vars.oraclePrice < _order.price;
             } else {
-                _order.triggerAbove = _vars._order.triggerAbove;
+                _order.triggerAbove = _vars.triggerAbove;
             }
         }
         return _order;

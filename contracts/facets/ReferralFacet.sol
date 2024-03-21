@@ -27,25 +27,25 @@ contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable {
     }
 
     function setReferrerTier(address _referrer, uint256 _tierId) external restricted {
-        ReferralHandler.setReferrerTier(_referrer, _tierId);
+        // ReferralHandler.setReferrerTier(_referrer, _tierId);
     }
 
     function setReferrerDiscountShare(address _account, uint256 _discountShare) external restricted {
-        ReferralHandler.setReferrerDiscountShare(_account, _discountShare);
+        // ReferralHandler.setReferrerDiscountShare(_account, _discountShare);
     }
 
     function setTraderReferralCode(address _account, bytes32 _code) external restricted {
-        ReferralHandler._setTraderReferralCode(_account, _code);
+        // ReferralHandler._setTraderReferralCode(_account, _code);
     }
     //========================================================================
     //      view functions
     //========================================================================
 
     function getTraderReferralInfo(address _account) internal view returns (bytes32, address) {
-        return ReferralHandler.getTraderReferralInfo(_account);
+        // return ReferralHandler.getTraderReferralInfo(_account);
     }
 
     function getCodeOwners(bytes32 _code) external view returns (address) {
-        return ReferralHandler.codeOwners(_code);
+        // return ReferralHandler.codeOwners(_code);
     }
 }

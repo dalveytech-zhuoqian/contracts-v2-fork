@@ -15,11 +15,11 @@ library Order {
         uint128 collateral;
         uint128 size;
         //====2
-        uint128 price;
-        uint128 tp;
+        uint256 price;
+        uint256 tp;
         //====3
-        uint8 triggerAbove;
-        bool fromMarket;
+        bool triggerAbove;
+        bool isFromMarket;
         bool isKeepLev;
         bool isKeepLevTP;
         bool isKeepLevSL;
@@ -32,12 +32,13 @@ library Order {
         address account; //224
         uint96 extra1;
         //====5
-        uint128 sl;
+        uint256 sl;
         bool isIncrease;
         bool isLong;
         uint16 market;
         uint96 extra2; //todo
         uint128 gas;
+        uint8 version;
     }
 
     function getKey(Props memory order) internal pure returns (bytes32) {
@@ -46,6 +47,11 @@ library Order {
 
     function updateTime(Props memory _order) internal view {
         _order.updatedAtBlock = uint32(block.timestamp);
+    }
+
+    function isMarkPriceValid(Props memory _order, uint256 _oraclePrice) internal pure returns (bool) {
+        // TODO
+        return _order.isFromMarket || _order.price == _oraclePrice;
     }
 
     function validOrderAccountAndID(Props memory order) internal pure {

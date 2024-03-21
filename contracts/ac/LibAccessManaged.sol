@@ -46,7 +46,7 @@ library LibAccessManaged {
      * The `receive()` function will always panic whereas the `fallback()` may panic depending on the calldata length.
      * ====
      */
-    function restricted() internal {
+    function restricted() external {
         _checkCanCall(msg.sender, msg.data);
     }
 

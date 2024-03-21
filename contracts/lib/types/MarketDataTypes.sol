@@ -16,64 +16,65 @@ library MarketDataTypes {
         uint256 collateralDelta;
         uint256 tp;
         uint256 sl;
-        uint256 orderId;
+        uint64 orderId;
         address account;
         bool isExec;
         uint8 liqState;
         uint64 fromOrder;
         bytes32 refCode;
         uint8 execNum;
-        bool keepLev;
-        bool keepLevTP;
-        bool keepLevSL;
+        bool isKeepLev;
+        bool isKeepLevTP;
+        bool isKeepLevSL;
         bool triggerAbove;
         uint128 gas;
     }
 
     function decodeCache(bytes memory data) internal pure returns (Cache memory inputs) {
-        (
-            inputs.pay,
-            inputs.slippage,
-            inputs.market,
-            inputs.isLong,
-            inputs.isOpen,
-            inputs.isCreate,
-            inputs.sizeDelta,
-            inputs.price,
-            inputs.collateralDelta,
-            inputs.tp,
-            inputs.sl,
-            inputs.account,
-            inputs.refCode,
-            inputs.keepLev,
-            inputs.orderId,
-            inputs.isExec,
-            inputs.triggerAbove,
-            inputs.keepLevSL,
-            inputs.keepLevTP
-        ) = abi.decode(
-            data,
-            (
-                uint256,
-                uint256,
-                uint16,
-                bool,
-                bool,
-                bool,
-                uint256,
-                uint256,
-                uint256,
-                uint256,
-                uint256,
-                address,
-                bytes32,
-                bool,
-                uint256,
-                bool,
-                bool,
-                bool,
-                bool
-            )
-        );
+        // (
+        //     inputs.pay,
+        //     inputs.slippage,
+        //     inputs.market,
+        //     inputs.isLong,
+        //     inputs.isOpen,
+        //     inputs.isCreate,
+        //     inputs.sizeDelta,
+        //     inputs.price,
+        //     inputs.collateralDelta,
+        //     inputs.tp,
+        //     inputs.sl,
+        //     inputs.account,
+        //     inputs.refCode,
+        //     inputs.keepLev,
+        //     inputs.orderId,
+        //     inputs.isExec,
+        //     inputs.triggerAbove,
+        //     inputs.keepLevSL,
+        //     inputs.keepLevTP
+        // ) = abi.decode(
+        //     data,
+        //     (
+        //         uint256,
+        //         uint256,
+        //         uint16,
+        //         bool,
+        //         bool,
+        //         bool,
+        //         uint256,
+        //         uint256,
+        //         uint256,
+        //         uint256,
+        //         uint256,
+        //         uint64,
+        //         address,
+        //         bytes32,
+        //         bool,
+        //         uint256,
+        //         bool,
+        //         bool,
+        //         bool,
+        //         bool
+        //     )
+        // );
     }
 }

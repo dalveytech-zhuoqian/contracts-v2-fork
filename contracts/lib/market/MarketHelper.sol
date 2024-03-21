@@ -13,7 +13,7 @@ library MarketHelper {
     function vaultWithdraw(address vr, uint16 market, address account, int256 pnl) internal {
         revert("TODO decimal convertion for pnl");
         if (pnl > 0) {
-            IVault(vr).transferFromVault(account, uint256(pnl));
+            // IVault(vr).transferFromVault(account, uint256(pnl));
         }
     }
 
