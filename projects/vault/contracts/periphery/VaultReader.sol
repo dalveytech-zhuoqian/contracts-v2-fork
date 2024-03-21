@@ -5,6 +5,7 @@ import {IVaultReward} from "../interfaces/IVaultReward.sol";
 import {IVault} from "../interfaces/IVault.sol";
 
 contract VaultReader {
+    string constant version = "0.0.1";
     IVault public vault;
     IVaultReward public vaultReward;
 
