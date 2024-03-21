@@ -170,15 +170,24 @@ library FeeHandler {
     //        private functions
     //==========================================================================================
 
-    function updateGlobalFundingRate(
+    function _updateGlobalFundingRate(
         uint16 market,
         int256 longRate,
         int256 shortRate,
-        int256 nextLongRate,
-        int256 nextShortRate,
+        int256 longRateDelta,
+        int256 shortRateDelta,
         uint256 timestamp
     ) private {
-        // TODO much to do
+        // DONE
+        Storage().cumulativeFundingRates[market][true] += longRateDelta;
+        Storage().cumulativeFundingRates[market][false] += shortRateDelta;
+        Storage().fundingRates[market][true] = longRate;
+        Storage().fundingRates[market][false] = shortRate;
+        Storage().lastFundingTimes[market] = timestamp;
+
+        emit UpdateCumulativeFundRate(market, longRateDelta, shortRateDelta);
+        emit UpdateFundRate(market, longRate, shortRate);
+        emit UpdateLastFundTime(market, timestamp);
     }
 
     function _getLastCollectTimes(uint16 market) private view returns (uint256) {

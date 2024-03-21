@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
 library MarketHandler { /* is IOrderBook, Ac */
     bytes32 constant STORAGE_POSITION = keccak256("blex.market.storage");
@@ -28,11 +29,12 @@ library MarketHandler { /* is IOrderBook, Ac */
         mapping(uint16 => Props) config;
         mapping(uint16 => string) name;
         mapping(uint16 => address) vault;
+        mapping(uint16 => address) token;
         mapping(uint16 => uint256) balance;
         mapping(address vault => EnumerableSet.UintSet) marketIds;
     }
 
-    function Storage() internal pure returns (StorageStruct storage fs) {
+    function Storage() public pure returns (StorageStruct storage fs) {
         bytes32 position = STORAGE_POSITION;
         assembly {
             fs.slot := position
@@ -45,14 +47,29 @@ library MarketHandler { /* is IOrderBook, Ac */
         Storage().config[market] = data;
     }
 
-    function initMarket(uint16 market, string calldata name, address vault) external {
+    function addMarket(uint16 market, string calldata name, address vault, address token) external {
         Storage().name[market] = name;
-        addMarket(market, vault);
-    }
-
-    function addMarket(uint16 marketId, address vault) public {
-        Storage().marketIds[vault].add(uint256(marketId));
-        Storage().vault[marketId] = vault;
+        if (token == address(0)) {
+            Storage().token[market] = IERC4626(vault).asset();
+        } else {
+            Storage().token[market] = token;
+        }
+        Storage().marketIds[vault].add(uint256(market));
+        Storage().vault[market] = vault;
+        Storage().config[market] = Props({
+            isSuspended: false,
+            allowOpen: true,
+            allowClose: true,
+            validDecrease: true,
+            minSlippage: 0,
+            maxSlippage: 100,
+            minLeverage: 1,
+            maxLeverage: 100,
+            minPayment: 0,
+            minCollateral: 0,
+            decreaseNumLimit: 10,
+            maxTradeAmount: 0
+        });
     }
 
     function containsMarket(uint16 marketId) external view returns (bool) {

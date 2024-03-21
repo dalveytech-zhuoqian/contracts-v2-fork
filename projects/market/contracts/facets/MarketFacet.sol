@@ -6,8 +6,11 @@ import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
 
 contract MarketFacet is IAccessManaged {
-    function addMarket(uint16 marketId, address vault) external restricted {
-        MarketHandler.addMarket(marketId, vault);
+    function addMarket(bytes calldata data) external restricted {
+        (uint16 market, string memory name, address vault, address token, MarketHandler.Props memory config) =
+            abi.decode(data, (uint16, string, address, address, MarketHandler.Props));
+        MarketHandler.addMarket(market, name, vault, token);
+        MarketHandler.Storage().config[market] = config;
     }
 
     function removeMarket(uint16 marketId) external {

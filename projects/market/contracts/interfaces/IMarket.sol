@@ -6,6 +6,13 @@ interface IMarketExternal {
     function getGlobalPnl(address vault) external view returns (int256);
 }
 
+interface IFee {
+    function feeAndRates(uint16 market)
+        external
+        view
+        returns (uint256[] memory fees, int256[] memory fundingRates, int256[] memory _cumulativeFundingRates);
+}
+
 interface IMarket is IMarketExternal {
     //================================================================================================
     // market view only
@@ -17,13 +24,6 @@ interface IMarket is IMarketExternal {
     // =================================================================================
     // fee view only
     // =================================================================================
-
-    function cumulativeFundingRates(uint16 market, bool isLong) external view returns (int256);
-    function feeAndRates(bytes calldata data) external view returns (bytes memory returnData);
-    function getExecFee(uint16 market) external view returns (uint256);
-    function getFees(bytes memory data) external view returns (int256[] memory fees);
-    function getFundingRate(uint16 market, bool isLong) external view returns (int256);
-    function getOrderFees(bytes memory data) external view returns (int256 fees);
 
     //================================================================================================
     // position view only

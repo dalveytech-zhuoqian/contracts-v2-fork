@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {FeeHandler} from "../lib/fee/FeeHandler.sol";
 import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
+import {MarketHandler} from "../lib/market/MarketHandler.sol";
 
 contract FeeFacet is IAccessManaged {
     // uint256 public constant FEE_RATE_PRECISION = LibFundFee.PRECISION;
@@ -23,7 +24,8 @@ contract FeeFacet is IAccessManaged {
     }
 
     function feeVaultWithdraw(uint16 market, address to, uint256 amount) external restricted {
-        BalanceHandler.feeToReward(market, to, amount);
+        address token = MarketHandler.Storage().token[market];
+        BalanceHandler.feeToReward(token, market, to, amount);
     }
 
     function setFundingIntervals(uint16 market, uint256 interval) external restricted {

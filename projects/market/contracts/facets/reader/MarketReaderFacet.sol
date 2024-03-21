@@ -9,8 +9,11 @@ import {LibAccessManaged} from "../../ac/LibAccessManaged.sol";
 import {MarketHandler} from "../../lib/market/MarketHandler.sol";
 import {PositionHandler} from "../../lib/position/PositionHandler.sol";
 import {OracleHandler} from "../../lib/oracle/OracleHandler.sol";
+import {FeeHandler} from "../../lib/fee/FeeHandler.sol";
+import {FeeType} from "../../lib/types/FeeType.sol";
+import {IFee} from "../../interfaces/IMarket.sol";
 
-contract MarketReaderFacet {
+contract MarketReaderFacet is IFee {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableValues for EnumerableSet.AddressSet;
@@ -126,5 +129,27 @@ contract MarketReaderFacet {
     function getGlobalOpenInterest(uint16 market) public view returns (uint256 _globalSize) {
         // TODO
         // return MarketHandler.getGlobalOpenInterest(market);
+    }
+
+    // =================================================================================
+    // read only
+    // =================================================================================
+
+    function feeAndRates(uint16 market)
+        external
+        view
+        override
+        returns (uint256[] memory fees, int256[] memory fundingRates, int256[] memory _cumulativeFundingRates)
+    {
+        fees = new uint256[](uint8(FeeType.T.Counter));
+        for (uint8 i = 0; i < uint8(FeeType.T.Counter); i++) {
+            fees[i] = FeeHandler.Storage().feeAndRates[market][i];
+        }
+        fundingRates = new int256[](2);
+        fundingRates[0] = FeeHandler.Storage().fundingRates[market][true];
+        fundingRates[1] = FeeHandler.Storage().fundingRates[market][false];
+        _cumulativeFundingRates = new int256[](2);
+        _cumulativeFundingRates[0] = FeeHandler.Storage().cumulativeFundingRates[market][true];
+        _cumulativeFundingRates[1] = FeeHandler.Storage().cumulativeFundingRates[market][false];
     }
 }
