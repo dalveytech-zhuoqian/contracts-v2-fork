@@ -14,6 +14,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Precision} from "../lib/utils/Precision.sol";
 import {TransferHelper} from "../lib/utils/TransferHelper.sol";
+import {IVaultFactory} from "../interfaces/IVaultFactory.sol";
 
 contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
     using SafeERC20 for IERC20;
@@ -66,16 +67,15 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         _;
     }
 
-    function initialize(address _asset, string memory _name, string memory _symbol, address _market, address _authority)
-        external
-        onlyInitializing
-    {
-        super.__AccessManaged_init(_authority);
-        super.__ERC20_init(_name, _symbol);
-        super.__ERC4626_init(IERC20(_asset));
+    function initialize() external onlyInitializing {
+        IVaultFactory.Parameters memory p = IVaultFactory(msg.sender).parameters();
+
+        super.__AccessManaged_init(p.auth);
+        super.__ERC20_init(p.name, p.symbol);
+        super.__ERC4626_init(IERC20(p.asset));
 
         StorageStruct storage $ = _getStorage();
-        $.market = _market;
+        $.market = p.market;
         $.cooldownDuration = 15 minutes; // 15
         $.sellLpFee = (1 * FEE_RATE_PRECISION) / 100; // 1%
     }

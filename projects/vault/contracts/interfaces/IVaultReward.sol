@@ -19,5 +19,5 @@ interface IVaultReward {
 
     function claimable(address) external view returns (uint256);
 
-    function getLPReward(address _account) public view override returns (uint256);
+    function getLPReward(address _account) external view returns (uint256);
 }
