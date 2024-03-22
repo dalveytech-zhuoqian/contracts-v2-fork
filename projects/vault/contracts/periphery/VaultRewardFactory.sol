@@ -6,7 +6,7 @@ import {IVaultRewardFactory} from "../interfaces/IVaultRewardFactory.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 
-contract VaultFactory is IVaultRewardFactory, UpgradeableBeacon {
+contract VaultRewardFactory is IVaultRewardFactory, UpgradeableBeacon {
     Parameters internal _parameters;
 
     event NewVaultReward(address indexed proxy, Parameters param);
