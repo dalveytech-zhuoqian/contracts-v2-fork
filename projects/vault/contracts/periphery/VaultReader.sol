@@ -25,6 +25,7 @@ contract VaultReader {
         uint256 apr;
         uint256 priceDecimal;
         uint256 usdBalance;
+        uint256 lpReward;
     }
 
     function info(address _account) external view returns (Cache memory c) {
@@ -38,5 +39,6 @@ contract VaultReader {
         c.apr = vaultReward.getAPR();
         c.priceDecimal = vault.priceDecimals();
         c.usdBalance = vault.getUSDBalance();
+        c.lpReward = vaultReward.getLPReward(_account);
     }
 }

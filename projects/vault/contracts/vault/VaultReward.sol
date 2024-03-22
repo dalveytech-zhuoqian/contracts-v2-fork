@@ -187,10 +187,10 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
      * The function returns the amount of rewards earned by the calling account as a `uint256`.
      * @return The amount of rewards earned by the calling account as a `uint256`.
      */
-    function getLPReward() public view override returns (uint256) {
-        if (_getStorage().lpEarnedRewards[msg.sender] == 0) return 0;
+    function getLPReward(address _account) public view override returns (uint256) {
+        if (_getStorage().lpEarnedRewards[_account] == 0) return 0;
         // return lpEarnedRewards[msg.sender] - claimable(msg.sender);
-        return _getStorage().lpEarnedRewards[msg.sender] - _getStorage().claimableReward[msg.sender];
+        return _getStorage().lpEarnedRewards[_account] - _getStorage().claimableReward[_account];
     }
 
     function getAPR() external view override returns (uint256) {
