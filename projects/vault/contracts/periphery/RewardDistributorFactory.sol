@@ -9,7 +9,7 @@ import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol"
 contract RewardDistributorFactory is IRewardDistributorFactory, UpgradeableBeacon {
     Parameters internal _parameters;
 
-    event NewVaultReward(address indexed proxy, Parameters param);
+    event NewRewardDistributor(address indexed proxy, Parameters param);
 
     constructor(address implementation_) UpgradeableBeacon(implementation_, msg.sender) {}
 
@@ -27,6 +27,6 @@ contract RewardDistributorFactory is IRewardDistributorFactory, UpgradeableBeaco
         proxy = address(beaconProxy);
         IRewardDistributor(proxy).initialize();
         delete _parameters;
-        emit NewVaultReward(proxy, p);
+        emit NewRewardDistributor(proxy, p);
     }
 }
