@@ -12,6 +12,7 @@ import {SafeMath} from "../lib/SafeMath.sol";
 
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IVaultReward} from "../interfaces/IVaultReward.sol";
+import {IVaultRewardFactory} from "../interfaces/IVaultRewardFactory.sol";
 
 contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IVaultReward {
     using SafeCast for int256;
@@ -43,20 +44,19 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
     event LogUpdatePool(uint256 supply, uint256 cumulativeRewardPerToken);
     event Harvest(address account, uint256 amount);
 
-    function initialize(address _vault, address _market, address _distributor, address _authority)
-        external
-        onlyInitializing
-    {
-        require(_vault != address(0));
-        require(_market != address(0));
-        require(_distributor != address(0));
+    function initialize() external override onlyInitializing {
+        IVaultRewardFactory.Parameters memory p = IVaultRewardFactory(msg.sender).parameters();
 
-        super.__AccessManaged_init(_authority);
+        require(p.vault != address(0));
+        require(p.market != address(0));
+        require(p.distributor != address(0));
+
+        super.__AccessManaged_init(p.authority);
         super.__ReentrancyGuard_init();
 
-        _getStorage().vault = IVault(_vault);
-        _getStorage().market = IMarket(_market);
-        _getStorage().distributor = _distributor;
+        _getStorage().vault = IVault(p.vault);
+        _getStorage().market = IMarket(p.market);
+        _getStorage().distributor = p.distributor;
     }
 
     function setAPR(uint256 _apr) external restricted {
