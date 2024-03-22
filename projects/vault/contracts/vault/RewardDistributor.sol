@@ -7,8 +7,10 @@ import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 import {IVaultReward} from "../interfaces/IVaultReward.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IRewardDistributorFactory} from "../interfaces/IRewardDistributorFactory.sol";
+import {IRewardDistributor} from "../interfaces/IRewardDistributor.sol";
 
-contract RewardDistributor is AccessManagedUpgradeable {
+contract RewardDistributor is AccessManagedUpgradeable, IRewardDistributor {
     using SafeERC20 for IERC20;
 
     bytes32 constant POS_STORAGE_POSITION = keccak256("blex.reward.distributor.storage");
@@ -38,12 +40,14 @@ contract RewardDistributor is AccessManagedUpgradeable {
         _;
     }
 
-    function initialize(address _rewardToken, address _rewardTracker, address _auth) external onlyInitializing {
-        require(_rewardToken != address(0));
-        require(_rewardTracker != address(0));
-        super.__AccessManaged_init(_auth);
-        _getStorage().rewardToken = _rewardToken;
-        _getStorage().rewardTracker = _rewardTracker;
+    function initialize() external override initializer {
+        IRewardDistributorFactory.Parameters memory p = IRewardDistributorFactory(msg.sender).parameters();
+        require(p.rewardToken != address(0));
+        require(p.rewardTracker != address(0));
+        require(p.auth != address(0));
+        super.__AccessManaged_init(p.auth);
+        _getStorage().rewardToken = p.rewardToken;
+        _getStorage().rewardTracker = p.rewardTracker;
     }
 
     /**
@@ -115,5 +119,9 @@ contract RewardDistributor is AccessManagedUpgradeable {
 
         uint256 timeDiff = block.timestamp - _getStorage().lastDistributionTime;
         return _getStorage().tokensPerInterval * timeDiff;
+    }
+
+    function tokensPerInterval() external view override returns (uint256) {
+        return _getStorage().tokensPerInterval;
     }
 }

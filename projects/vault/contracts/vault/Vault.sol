@@ -67,7 +67,7 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         _;
     }
 
-    function initialize() external onlyInitializing {
+    function initialize() external initializer override {
         IVaultFactory.Parameters memory p = IVaultFactory(msg.sender).parameters();
 
         super.__AccessManaged_init(p.auth);

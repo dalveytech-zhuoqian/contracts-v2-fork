@@ -44,7 +44,7 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
     event LogUpdatePool(uint256 supply, uint256 cumulativeRewardPerToken);
     event Harvest(address account, uint256 amount);
 
-    function initialize() external override onlyInitializing {
+    function initialize() external override initializer {
         IVaultRewardFactory.Parameters memory p = IVaultRewardFactory(msg.sender).parameters();
 
         require(p.vault != address(0));
