@@ -1,27 +1,64 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat"
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+  const [deployer] = await ethers.getSigners()
+  const authAddress = "0x00"
 
-  const lockedAmount = ethers.parseEther("0.001");
+  // deploy Vault Beacon
+  const Vault = await ethers.getContractFactory("Vault")
+  const vaultBeacon = await upgrades.deployBeacon(Vault)
+  await vaultBeacon.waitForDeployment()
 
-  const lock = await ethers.deployContract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
+  // deploy VaultReward Beacon
+  const VaultReward = await ethers.getContractFactory("VaultReward")
+  const vaultRewardBeacon = await upgrades.deployBeacon(VaultReward)
+  await vaultRewardBeacon.waitForDeployment()
 
-  await lock.waitForDeployment();
+  // deploy RewardDistributor Beacon
+  const RewardDistributor = await ethers.getContractFactory("RewardDistributor")
+  const rewardDistributorBeacon = await upgrades.deployBeacon(RewardDistributor)
+  await rewardDistributorBeacon.waitForDeployment()
 
-  console.log(
-    `Lock with ${ethers.formatEther(
-      lockedAmount
-    )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-  );
+  // deploy VaultFactory
+  const VaultFactory = await ethers.getContractFactory("VaultFactory")
+  const vaultFactory = await upgrades.deployProxy(
+    VaultFactory,
+    [vaultBeacon.address, authAddress]
+  )
+  await vaultFactory.waitForDeployment()
+
+  // deploy VaultRewardFactory
+  const VaultRewardFactory = await ethers.getContractFactory("VaultRewardFactory")
+  const vaultRewardFactory = await upgrades.deployProxy(
+    VaultRewardFactory,
+    [vaultRewardBeacon.address, authAddress]
+  )
+  await vaultRewardFactory.waitForDeployment()
+
+  // deploy RewardDistributorFacotry
+  const RewardDistributorFactory = await ethers.getContractFactory("RewardDistributorFactory")
+  const rewardDistributorFactory = await upgrades.deployProxy(
+    RewardDistributorFactory,
+    [rewardDistributorBeacon.address, authAddress]
+  )
+  await rewardDistributorFactory.waitForDeployment()
+
+  // deploy VaultBuilder
+  const VaultBuilder = await ethers.getContractFactory("VaultBuilder")
+  const vaultBuilder = await upgrades.deployProxy(VaultBuilder, [
+    vaultFactory.target,
+    vaultRewardFactory.target,
+    rewardDistributorFactory.target,
+    authAddress
+  ])
+  await vaultBuilder.waitForDeployment()
+  console.log("VaultBuilder deployed to:", vaultBuilder.target)
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+  console.error(error)
+  process.exitCode = 1
+})
