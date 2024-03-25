@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.17;
-pragma experimental ABIEncoderV2;
+pragma abicoder v2;
 
 import {Position} from "../types/PositionStruct.sol";
 import {MarketDataTypes} from "../types/MarketDataTypes.sol";
@@ -136,7 +136,7 @@ library PositionSubMgrLib {
     ) internal pure returns (DecreaseTransactionOuts memory outs) {
         // 从手续费保险库中计算提取金额和剩余手续费
         (int256 withdrawFromFeeVault, int256[] memory afterFees) = calculateWithdrawFromFeeVault(_originFees);
-        int256 totalFees;// = afterFees.totoalFees();
+        int256 totalFees; // = afterFees.totoalFees();
         // 如果提取金额大于0，则增加头寸保证金
         if (withdrawFromFeeVault > 0) {
             // 零时增加, 方便计算
