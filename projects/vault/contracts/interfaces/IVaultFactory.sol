@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-interface IVaultFactory  {
+interface IVaultFactory {
     struct Parameters {
         address asset;
         address market;
@@ -10,6 +10,6 @@ interface IVaultFactory  {
         address auth;
     }
 
-    function parameters() external returns( Parameters memory);
-    
+    function parameters() external returns (Parameters memory);
+    function deploy(Parameters calldata p) external returns (address proxy);
 }
