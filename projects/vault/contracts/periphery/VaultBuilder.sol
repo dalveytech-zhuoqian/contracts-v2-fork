@@ -28,11 +28,28 @@ contract VaultBuilder is AccessManagedUpgradeable {
         emit NewFactory(_vaultFactory, _vaultRewardFactory, _rewardDistributorFactory);
     }
 
-    function deploy(
-        IVaultFactory.Parameters calldata vfp,
-        IVaultRewardFactory.Parameters calldata rfp,
-        IRewardDistributorFactory.Parameters calldata rdp
-    ) external restricted {
+    struct Parameters {
+        address asset;
+        address market;
+        string name;
+        string symbol;
+        address auth;
+    }
+
+    function deploy(Parameters calldata p) external restricted {
+        IVaultFactory.Parameters memory vfp =
+            IVaultFactory.Parameters({asset: p.asset, market: p.market, name: p.name, symbol: p.symbol, auth: p.auth});
+
+        IVaultRewardFactory.Parameters memory rfp = IVaultRewardFactory.Parameters({
+            rewardToken: p.asset,
+            rewardDistributor: address(0),
+            auth: p.auth
+
+            
+            
+        });
+
+        IRewardDistributorFactory.Parameters memory rdp;
         address vault = IVaultFactory(vaultFactory).deploy(vfp);
         address vaultReward = IVaultRewardFactory(vaultRewardFactory).deploy(rfp);
         address vaultRewardDistributor = IRewardDistributorFactory(rewardDistributorFactory).deploy(rdp);
