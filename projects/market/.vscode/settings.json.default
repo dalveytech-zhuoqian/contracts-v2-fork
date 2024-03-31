@@ -2,14 +2,11 @@
 	"editor.formatOnSave": true,
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.codeActionsOnSave": {
-		"source.fixAll": "explicit"
+		"source.fixAll": true
 	},
 	"mochaExplorer.env": {
 		"HARDHAT_CONFIG": "hardhat.config.ts",
 		"HARDHAT_COMPILE": "true"
 	},
-	"mochaExplorer.require": [
-		"ts-node/register/transpile-only"
-	],
-	"solidity.compileUsingRemoteVersion": "v0.8.20+commit.a1b79de6"
+	"mochaExplorer.require": ["ts-node/register/transpile-only"]
 }

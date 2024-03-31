@@ -1,3 +1,0 @@
-[submodule "contracts/diamond"]
-	path = contracts/diamond
-	url = https://github.com/mudgen/diamond-2-hardhat.git

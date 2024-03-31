@@ -1,0 +1,42 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "@openzeppelin/contracts/access/manager/IAccessManaged.sol": {
+      "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.0.0) (access/manager/IAccessManaged.sol)\n\npragma solidity ^0.8.20;\n\ninterface IAccessManaged {\n    /**\n     * @dev Authority that manages this contract was updated.\n     */\n    event AuthorityUpdated(address authority);\n\n    error AccessManagedUnauthorized(address caller);\n    error AccessManagedRequiredDelay(address caller, uint32 delay);\n    error AccessManagedInvalidAuthority(address authority);\n\n    /**\n     * @dev Returns the current authority.\n     */\n    function authority() external view returns (address);\n\n    /**\n     * @dev Transfers control to a new authority. The caller must be the current authority.\n     */\n    function setAuthority(address) external;\n\n    /**\n     * @dev Returns true only in the context of a delayed restricted call, at the moment that the scheduled operation is\n     * being consumed. Prevents denial of service for delayed restricted calls in the case that the contract performs\n     * attacker controlled calls.\n     */\n    function isConsumingScheduledOp() external view returns (bytes4);\n}\n"
+    },
+    "src/ac/AccessManagedFacet.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n\nimport {LibAccessManaged} from \"./LibAccessManaged.sol\";\nimport {IAccessManaged} from \"@openzeppelin/contracts/access/manager/IAccessManaged.sol\";\n\ncontract AccessManagedFacet {\n    event AuthorityUpdated(address authority);\n\n    function setAuthority(address newAuthority) public {\n        LibAccessManaged.Storage()._authority = newAuthority;\n        emit AuthorityUpdated(newAuthority);\n    }\n\n    function authority() public view returns (address) {\n        return LibAccessManaged.Storage()._authority;\n    }\n}\n"
+    },
+    "src/ac/LibAccessManaged.sol": {
+      "content": "// SPDX-License-Identifier: BUSL-1.1\npragma solidity ^0.8.0;\n\nlibrary LibAccessManaged {\n    struct AccessManagedStorage {\n        address _authority;\n        bool _consumingSchedule;\n    }\n\n    // keccak256(abi.encode(uint256(keccak256(\"openzeppelin.storage.AccessManaged\")) - 1)) & ~bytes32(uint256(0xff))\n    bytes32 private constant AccessManagedStorageLocation =\n        0xf3177357ab46d8af007ab3fdb9af81da189e1068fefdc0073dca88a2cab40a00;\n\n    function Storage() internal pure returns (AccessManagedStorage storage fs) {\n        bytes32 position = AccessManagedStorageLocation;\n        assembly {\n            fs.slot := position\n        }\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false,
+      "runs": 1
+    },
+    "evmVersion": "paris",
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
