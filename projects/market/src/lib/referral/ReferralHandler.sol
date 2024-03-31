@@ -48,7 +48,7 @@ library ReferralHandler {
         }
     }
 
-    function setTier(uint256 _tierId, uint256 _totalRebate, uint256 _discountShare) external {
+    function setTier(uint256 _tierId, uint256 _totalRebate, uint256 _discountShare) internal {
         require(_totalRebate <= BASIS_POINTS, "Referral: invalid totalRebate");
         require(_discountShare <= BASIS_POINTS, "Referral: invalid discountShare");
 
@@ -59,19 +59,19 @@ library ReferralHandler {
         emit SetTier(_tierId, _totalRebate, _discountShare);
     }
 
-    function setReferrerTier(address _referrer, uint256 _tierId) external {
+    function setReferrerTier(address _referrer, uint256 _tierId) internal {
         Storage().referrerTiers[_referrer] = _tierId;
         emit SetReferrerTier(_referrer, _tierId);
     }
 
-    function setReferrerDiscountShare(address _account, uint256 _discountShare) external {
+    function setReferrerDiscountShare(address _account, uint256 _discountShare) internal {
         require(_discountShare <= BASIS_POINTS, "Referral: invalid discountShare");
 
         Storage().referrerDiscountShares[_account] = _discountShare;
         emit SetReferrerDiscountShare(_account, _discountShare);
     }
 
-    function registerCode(bytes32 _code) external {
+    function registerCode(bytes32 _code) internal {
         require(_code != bytes32(0), "Referral: invalid _code");
         require(Storage().codeOwners[_code] == address(0), "Referral: code already exists");
 
@@ -90,13 +90,13 @@ library ReferralHandler {
      * Only the original owner of the code has the authority to change the owner
      * address of the code.
      */
-    function setCodeOwner(bytes32 _code, address _newAccount) external onlyCodeOwner(_code) {
+    function setCodeOwner(bytes32 _code, address _newAccount) internal onlyCodeOwner(_code) {
         require(_code != bytes32(0), "Referral: invalid _code");
         Storage().codeOwners[_code] = _newAccount;
         emit SetCodeOwner(msg.sender, _newAccount, _code);
     }
 
-    function govSetCodeOwner(bytes32 _code, address _newAccount) external {
+    function govSetCodeOwner(bytes32 _code, address _newAccount) internal {
         require(_code != bytes32(0), "Referral: invalid _code");
         Storage().codeOwners[_code] = _newAccount;
         emit GovSetCodeOwner(_code, _newAccount);
@@ -128,7 +128,7 @@ library ReferralHandler {
         return owners;
     }
 
-    function updatePositionCallback(bytes calldata _data) external {
+    function updatePositionCallback(bytes memory _data) internal {
         MarketCbStruct.UpdatePositionEvent memory _event = abi.decode(_data, (MarketCbStruct.UpdatePositionEvent));
         (bytes32 referralCode, address referrer) = getTraderReferralInfo(_event.inputs.account);
 

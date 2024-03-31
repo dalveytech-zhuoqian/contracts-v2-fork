@@ -6,7 +6,7 @@ pragma abicoder v2;
 library Order {
     using Order for Props;
 
-    uint8 public constant STRUCT_VERSION = 0x01;
+    uint8 internal constant STRUCT_VERSION = 0x01;
 
     struct Props {
         //====0

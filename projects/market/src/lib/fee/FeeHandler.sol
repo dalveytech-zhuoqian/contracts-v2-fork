@@ -83,8 +83,12 @@ library FeeHandler {
         }
     }
 
+    function getOrderFees(bytes memory params) internal view returns (int256 fees) {
+        //todo
+    }
+
     function collectFees(uint16 market, address account, address token, int256[] memory fees, uint256 fundfeeLoss)
-        external
+        internal
     {
         uint256 _amount = IERC20(token).allowance(msg.sender, address(this));
         // todo 会存在这种现象嘛 如果存在要不要更新event
@@ -101,8 +105,20 @@ library FeeHandler {
         emit UpdateFee(account, market, fees, _amount);
     }
 
-    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) external {
+    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) internal {
         // TODO too much to do
+    }
+
+    function getExecFee(uint16 market) external view returns (uint256) {
+        //todo
+    }
+
+    function payoutFees(address account, address token, int256[] memory fees, uint256 feesTotal) internal {
+        // todo
+    }
+
+    function getFundingRate(uint16 market, bool isLong) internal view returns (int256) {
+        // todo
     }
 
     /**
@@ -114,6 +130,7 @@ library FeeHandler {
         view
         returns (int256[] memory fees)
     {
+        // todo merge with feeAndRates?
         fees = new int256[](uint8(FeeType.T.Counter));
 
         fees[uint8(FeeType.T.FundFee)] = _fundFee;
@@ -207,8 +224,20 @@ library FeeHandler {
         if (_interval == 0) return FundingRateCalculator.MIN_FUNDING_INTERVAL_3600;
     }
 
-    function maxFRatePerDay(uint16 market) public view returns (uint256) {
+    function maxFRatePerDay(uint16 market) internal view returns (uint256) {
         FeeStorage storage fs = Storage();
         return fs.configs[market][uint8(ConfigType.MaxFRatePerDay)];
+    }
+
+    function getCalFundingRates(address market) internal view returns (int256, int256) {
+        //todo
+    }
+
+    function getFundingFee(address market, uint256 size, int256 entryFundingRate, bool isLong)
+        internal
+        view
+        returns (int256)
+    {
+        //todo
     }
 }

@@ -7,7 +7,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 library TransferHelper {
-    uint8 public constant usdDecimals = 18; //数量精度
+    uint8 internal constant usdDecimals = 18; //数量精度
 
     using SafeERC20 for IERC20;
 

@@ -1,40 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import {IAccessManaged} from "@openzeppelin/contracts/access/manager/IAccessManaged.sol";
 import {LibAccessManaged} from "./LibAccessManaged.sol";
-import {LibDiamond} from "../diamond/contracts/libraries/LibDiamond.sol";
+import {IAccessManaged} from "@openzeppelin/contracts/access/manager/IAccessManaged.sol";
 
-contract AccessManagedFacet is Context, IAccessManaged {
-    /// @inheritdoc IAccessManaged
-    function authority() public view virtual returns (address) {
-        return LibDiamond.contractOwner();
-    }
+contract AccessManagedFacet {
+    event AuthorityUpdated(address authority);
 
-    /// @inheritdoc IAccessManaged
-    function setAuthority(address newAuthority) public virtual {
-        address caller = _msgSender();
-        if (caller != authority()) {
-            revert AccessManagedUnauthorized(caller);
-        }
-        if (newAuthority.code.length == 0) {
-            revert AccessManagedInvalidAuthority(newAuthority);
-        }
-        _setAuthority(newAuthority);
-    }
-
-    /// @inheritdoc IAccessManaged
-    function isConsumingScheduledOp() public view returns (bytes4) {
-        return LibAccessManaged.Storage().consumingSchedule ? this.isConsumingScheduledOp.selector : bytes4(0);
-    }
-
-    /**
-     * @dev Transfers control to a new authority. Internal function with no access restriction. Allows bypassing the
-     * permissions set by the current authority.
-     */
-    function _setAuthority(address newAuthority) internal virtual {
-        LibDiamond.setContractOwner(newAuthority);
+    function setAuthority(address newAuthority) public {
+        require(LibAccessManaged.Storage()._authority == address(0), "AccessManagedFacet: authority already set");
+        require(newAuthority != address(0), "AccessManagedFacet: new authority is the zero address");
+        LibAccessManaged.Storage()._authority = newAuthority;
         emit AuthorityUpdated(newAuthority);
+    }
+
+    function authority() public view returns (address) {
+        return LibAccessManaged.Storage()._authority;
     }
 }

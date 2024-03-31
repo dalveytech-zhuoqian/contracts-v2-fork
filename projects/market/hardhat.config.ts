@@ -30,6 +30,8 @@ const config: HardhatUserConfig = {
 	namedAccounts: {
 		deployer: 10,
 		simpleERC20Beneficiary: 11,
+		diamondAdmin: 10,
+		accessManagerAdmin: 10
 	},
 	networks: addForkConfiguration({
 		hardhat: {
@@ -38,6 +40,15 @@ const config: HardhatUserConfig = {
 		localhost: {
 			url: node_url('localhost'),
 			accounts: accounts(),
+		},
+		fantom_test: {
+			url: node_url('fantom_test'),
+			accounts: accounts(),
+			verify: {
+				etherscan: {
+					apiKey: process.env.ETHERSCAN_API_KEY_FANTOM
+				}
+			}
 		},
 		staging: {
 			url: node_url('rinkeby'),
@@ -89,7 +100,7 @@ const config: HardhatUserConfig = {
 		: undefined,
 
 	tenderly: {
-		project: 'template-ethereum-contracts',
+		project: process.env.TENDERLY_PROJECT as string,
 		username: process.env.TENDERLY_USERNAME as string,
 	},
 }

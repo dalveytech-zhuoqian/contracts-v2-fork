@@ -12,10 +12,10 @@ library FundingRateCalculator {
     using FundingRateCalculator for FundFeeStorageMemory;
     using FundingRateCalculator for FundFeeVars;
 
-    uint256 public constant MIN_FUNDING_INTERVAL_3600 = 1 hours; // 8hours
-    uint256 public constant ONE_WITH_8_DECIMALS = 10 ** 8; //0.0001666666*100000000
-    uint256 public constant BASIS_INTERVAL_HOUR_24 = 24;
-    uint256 public constant DEFAULT_RATE_DIVISOR_100 = 100;
+    uint256 internal constant MIN_FUNDING_INTERVAL_3600 = 1 hours; // 8hours
+    uint256 internal constant ONE_WITH_8_DECIMALS = 10 ** 8; //0.0001666666*100000000
+    uint256 internal constant BASIS_INTERVAL_HOUR_24 = 24;
+    uint256 internal constant DEFAULT_RATE_DIVISOR_100 = 100;
 
     /**
      * 计算最大单位资金费限制

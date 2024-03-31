@@ -25,6 +25,10 @@ contract MarketReaderFacet is IFee {
         // LibMarketValid.validateLiquidation(market, pnl, fees, liquidateFee, collateral, size, raise);
     }
 
+    function markeConfig(uint16 market) external view returns (MarketHandler.Props memory _config) {
+        _config = MarketHandler.Storage().config[market];
+    }
+
     function getGlobalPnl(address vault) public view returns (int256) {
         EnumerableSet.UintSet storage marketIds = MarketHandler.Storage().marketIds[vault];
         uint256[] memory _markets = marketIds.values();
@@ -39,7 +43,9 @@ contract MarketReaderFacet is IFee {
         return pnl;
     }
 
-    function availableLiquidity(address market, address account, bool isLong) external view returns (uint256) {}
+    function availableLiquidity(address market, address account, bool isLong) external view returns (uint256) {
+        // todo for front end
+    }
 
     function getMarket(uint16 market) external view returns (bytes memory result) {}
 
@@ -129,7 +135,6 @@ contract MarketReaderFacet is IFee {
         // TODO
         // return MarketHandler.getGlobalOpenInterest(market);
     }
-
     // =================================================================================
     // read only
     // =================================================================================
@@ -140,6 +145,7 @@ contract MarketReaderFacet is IFee {
         override
         returns (uint256[] memory fees, int256[] memory fundingRates, int256[] memory _cumulativeFundingRates)
     {
+        //todo merge with getfees?
         fees = new uint256[](uint8(FeeType.T.Counter));
         for (uint8 i = 0; i < uint8(FeeType.T.Counter); i++) {
             fees[i] = FeeHandler.Storage().feeAndRates[market][i];

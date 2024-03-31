@@ -37,7 +37,7 @@ library PositionHandler {
         }
     }
 
-    function storageKey(uint16 market, bool isLong) public pure returns (bytes32 orderKey) {
+    function storageKey(uint16 market, bool isLong) internal pure returns (bytes32 orderKey) {
         return bytes32(abi.encodePacked(isLong, market));
     }
 
@@ -55,7 +55,7 @@ library PositionHandler {
         Position.Props globalPosition;
     }
 
-    function increasePosition(bytes calldata _data) external returns (Position.Props memory result) {
+    function increasePosition(bytes memory _data) internal returns (Position.Props memory result) {
         Cache memory cache;
         (
             cache.market,
@@ -95,7 +95,7 @@ library PositionHandler {
         result.collateral = cache.position.collateral;
     }
 
-    function decreasePosition(bytes calldata _data) external returns (Position.Props memory result) {
+    function decreasePosition(bytes memory _data) internal returns (Position.Props memory result) {
         Cache memory cache;
         (cache.market, cache.account, cache.collateralDelta, cache.sizeDelta, cache.fundingRate, cache.isLong) =
             abi.decode(_data, (uint16, address, int256, uint256, int256, bool));
@@ -121,7 +121,7 @@ library PositionHandler {
         }
     }
 
-    function liquidatePosition(bytes calldata _data) external returns (Position.Props memory result) {
+    function liquidatePosition(bytes memory _data) internal returns (Position.Props memory result) {
         Cache memory cache;
         (cache.market, cache.account, cache.markPrice, cache.isLong) =
             abi.decode(_data, (uint16, address, uint256, bool));
@@ -145,7 +145,7 @@ library PositionHandler {
     //           view only
     // =====================================================
     function getPNL(Position.Props memory _position, uint256 sizeDelta, uint256 markPrice)
-        public
+        internal
         pure
         returns (int256)
     {
@@ -161,7 +161,7 @@ library PositionHandler {
         return _hasProfit ? int256(_pnl) : -int256(_pnl);
     }
 
-    function getMarketPNL(uint16 market, uint256 longPrice, uint256 shortPrice) external view returns (int256) {
+    function getMarketPNL(uint16 market, uint256 longPrice, uint256 shortPrice) internal view returns (int256) {
         int256 _totalPNL = _getMarketPNL(market, longPrice, true);
         _totalPNL += _getMarketPNL(market, shortPrice, false);
         return _totalPNL;

@@ -24,7 +24,7 @@ library OrderFinder {
         bytes32 storageKey;
     }
 
-    function getExecutableOrdersByPrice(bytes calldata _data) external view returns (Order.Props[] memory _orders) {
+    function getExecutableOrdersByPrice(bytes memory _data) internal view returns (Order.Props[] memory _orders) {
         Cache memory cache;
         (cache.market, cache.isLong, cache.isIncrease, cache.start, cache.end, cache.isOpen, cache.oraclePrice) =
             abi.decode(_data, (uint16, bool, bool, uint256, uint256, bool, uint256));

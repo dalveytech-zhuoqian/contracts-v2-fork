@@ -8,5 +8,8 @@
 		"HARDHAT_CONFIG": "hardhat.config.ts",
 		"HARDHAT_COMPILE": "true"
 	},
-	"mochaExplorer.require": ["ts-node/register/transpile-only"]
+	"mochaExplorer.require": [
+		"ts-node/register/transpile-only"
+	],
+	"solidity.compileUsingRemoteVersion": "v0.8.20+commit.a1b79de6"
 }

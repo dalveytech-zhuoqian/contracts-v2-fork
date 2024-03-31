@@ -90,7 +90,7 @@ library OrderHandler { /* is IOrderBook, Ac */
     }
 
     function remove(uint16 market, bool isIncrease, bool isLong, address account, uint256 orderID)
-        public
+        internal
         returns (Order.Props[] memory _orders)
     {
         bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);

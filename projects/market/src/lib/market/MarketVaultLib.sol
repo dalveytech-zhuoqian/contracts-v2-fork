@@ -8,7 +8,7 @@ import {MarketHandler} from "./MarketHandler.sol";
 library MarketVaultLib {
     using EnumerableSet for EnumerableSet.UintSet;
 
-    function getGlobalOpenInterest(uint16 market) public view returns (uint256) {
+    function getGlobalOpenInterest(uint16 market) internal view returns (uint256) {
         MarketHandler.StorageStruct storage $ = MarketHandler.Storage();
         uint256 openInterest = 0;
         EnumerableSet.UintSet storage marketIds = $.marketIds[address(0)];
