@@ -1,9 +1,10 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
-import { parseEther } from 'ethers'
+import { BaseContract } from 'ethers'
+import { BlexAccessManager } from '../typechain-types'
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-	const { deployments, getNamedAccounts } = hre
+	const { deployments, getNamedAccounts, ethers } = hre
 	const { deploy } = deployments
 
 	const { deployer, accessManagerAdmin } = await getNamedAccounts()
@@ -23,6 +24,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		log: true,
 		autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
 	})
+
+	const BlexAccessManager = await ethers.getContract<BlexAccessManager>('BlexAccessManager')
+	const deployerSigner = await ethers.getSigner(deployer)
+	await BlexAccessManager.connect(deployerSigner).grantRole(
+		1,
+		deployer,
+		0
+	)
+
 }
 export default func
 func.tags = ['BlexAccessManager']
