@@ -6,13 +6,34 @@ import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
+import {IFeeFacet} from "../interfaces/IFeeFacet.sol";
+import {FeeType} from "../lib/types/FeeType.sol";
 
-contract FeeFacet is IAccessManaged {
+contract FeeFacet is IAccessManaged, IFeeFacet {
     // uint256 public constant FEE_RATE_PRECISION = LibFundFee.PRECISION;
 
+    function feeAndRates(uint16 market)
+        external
+        view
+        override
+        returns (uint256[] memory fees, int256[] memory fundingRates, int256[] memory _cumulativeFundingRates)
+    {
+        //todo merge with getfees?
+        fees = new uint256[](uint8(FeeType.T.Counter));
+        for (uint8 i = 0; i < uint8(FeeType.T.Counter); i++) {
+            fees[i] = FeeHandler.Storage().feeAndRates[market][i];
+        }
+        fundingRates = new int256[](2);
+        fundingRates[0] = FeeHandler.Storage().fundingRates[market][true];
+        fundingRates[1] = FeeHandler.Storage().fundingRates[market][false];
+        _cumulativeFundingRates = new int256[](2);
+        _cumulativeFundingRates[0] = FeeHandler.Storage().cumulativeFundingRates[market][true];
+        _cumulativeFundingRates[1] = FeeHandler.Storage().cumulativeFundingRates[market][false];
+    }
     //================================================
     // Fee Router外部函数
     //================================================
+
     function feeWithdraw(uint16 market, address to, uint256 amount) external restricted {
         // TODO
         address token = MarketHandler.Storage().token[market];
@@ -82,6 +103,10 @@ contract FeeFacet is IAccessManaged {
 
     function getExecFee(uint16 market) external view returns (uint256) {
         return FeeHandler.getExecFee(market);
+    }
+
+    function getFees(bytes calldata data) external view override returns (int256[] memory) {
+        return FeeHandler.getFees(data);
     }
 
     function getFundingRate(uint16 market, bool isLong) internal view returns (int256) {

@@ -2,29 +2,48 @@
 pragma solidity ^0.8.20;
 pragma abicoder v2;
 
-import {MarketDataTypes} from "../lib/types/MarketDataTypes.sol";
-import {Order} from "../lib/types/OrderStruct.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {StringsPlus} from "../lib/utils/Strings.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+//===============
+// interfaces
+import {IFeeFacet} from "../interfaces/IFeeFacet.sol";
+import {IMarketInternal} from "../interfaces/IMarketInternal.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
-import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
-import {GValidHandler} from "../lib/globalValid/GValidHandler.sol";
+import {IVault} from "../interfaces/IVault.sol";
+import {IPrice} from "../interfaces/IPrice.sol";
+//===============
+// data types
+import {Order} from "../lib/types/OrderStruct.sol";
+
 import {GDataTypes} from "../lib/types/GDataTypes.sol";
+import {Position} from "../lib/types/PositionStruct.sol";
+import {MarketDataTypes} from "../lib/types/MarketDataTypes.sol";
+//===============
+// handlers
+import {GValidHandler} from "../lib/globalValid/GValidHandler.sol";
 import {PositionHandler} from "../lib/position/PositionHandler.sol";
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {OrderHandler} from "../lib/order/OrderHandler.sol";
-import {StringsPlus} from "../lib/utils/Strings.sol";
-import {IVault} from "../interfaces/IVault.sol";
-import {TransferHelper} from "../lib/utils/TransferHelper.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Position} from "../lib/types/PositionStruct.sol";
-import {FeeHandler} from "../lib/fee/FeeHandler.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 contract PositionAddFacet is IAccessManaged {
     using Order for Order.Props;
     using SafeCast for int256;
     using SafeCast for uint256;
+
+    function _feeFacet() internal view returns (IFeeFacet) {
+        return IFeeFacet(address(this));
+    }
+
+    function _marketFacet() internal view returns (IMarketInternal) {
+        return IMarketInternal(address(this));
+    }
+
+    function _priceFacet() internal view returns (IPrice) {
+        return IPrice(address(this));
+    }
 
     function commitIncreasePosition(MarketDataTypes.Cache memory _params, int256 collD, int256 fr)
         private
@@ -39,7 +58,7 @@ contract PositionAddFacet is IAccessManaged {
             address collateralToken = MarketHandler.collateralToken(_params.market);
             IVault(vault).borrowFromVault(
                 _params.market,
-                TransferHelper.formatCollateral(_params.sizeDelta, IERC20Metadata(collateralToken).decimals())
+                _marketFacet().formatCollateral(_params.sizeDelta, IERC20Metadata(collateralToken).decimals())
             );
             result = PositionHandler.increasePosition(
                 abi.encode(_params.account, collD, _params.sizeDelta, _params.oraclePrice, fr, _params.isLong)
@@ -83,7 +102,7 @@ contract PositionAddFacet is IAccessManaged {
     }
 
     function _execIncreaseOrderKey(Order.Props memory order, MarketDataTypes.Cache memory _params) private {
-        _params.oraclePrice = OracleHandler.getPrice(_params.market, _params.isLong);
+        _params.oraclePrice = _priceFacet().getPrice(_params.market, _params.isLong);
         require(order.account != address(0), "PositionAddMgr:!account");
         validateIncreasePosition(_params);
 
@@ -112,10 +131,10 @@ contract PositionAddFacet is IAccessManaged {
     }
 
     function validateIncreasePosition(MarketDataTypes.Cache memory _inputs) private view {
-        // GDataTypes.ValidParams memory params;
-        // params.market = _inputs.market;
+        GDataTypes.ValidParams memory params;
+        params.market = _inputs.market;
+        params.isLong = _inputs.isLong;
         // params.sizeDelta = _inputs.sizeDelta;
-        // params.isLong = _inputs.isLong;
 
         // (params.globalLongSizes, params.globalShortSizes) = getGlobalSize();
         // (params.userLongSizes, params.userShortSizes) = getAccountSizeOfMarkets(params.market, _inputs.account);
@@ -138,7 +157,7 @@ contract PositionAddFacet is IAccessManaged {
             _inputs.slippage = 30;
         }
 
-        _inputs.oraclePrice = OracleHandler.getPrice(_inputs.market, _inputs.isLong);
+        _inputs.oraclePrice = _priceFacet().getPrice(_inputs.market, _inputs.isLong);
         Position.Props memory _position = PositionHandler.getPosition(
             _inputs.account, _inputs.market, _inputs.sizeDelta == 0 ? 0 : _inputs.oraclePrice, _inputs.isLong
         );
@@ -209,7 +228,7 @@ contract PositionAddFacet is IAccessManaged {
     ) private view returns (MarketDataTypes.Cache memory _createVars) {
         _createVars.market = _inputs.market;
         _createVars.isLong = _inputs.isLong;
-        _createVars.oraclePrice = OracleHandler.getPrice(_inputs.market, !_inputs.isLong);
+        _createVars.oraclePrice = _priceFacet().getPrice(_inputs.market, !_inputs.isLong);
         _createVars.isCreate = true;
 
         _createVars.fromOrder = _inputs.fromOrder;
@@ -232,7 +251,7 @@ contract PositionAddFacet is IAccessManaged {
     {
         (uint256 _longSize, uint256 _shortSize) = PositionHandler.getMarketSizes(_params.market);
         _feeFacet().updateCumulativeFundingRate(_params.market, _longSize, _shortSize); //1
-        int256[] memory _fees = FeeHandler.getFees(_params, _position);
+        int256[] memory _fees = _feeFacet().getFees(abi.encode(_params, _position));
         int256 _totalfee = MarketHandler.totoalFees(_fees);
 
         if (_params.sizeDelta > 0) {
@@ -242,10 +261,10 @@ contract PositionAddFacet is IAccessManaged {
                 abi.encode(2, _position.collateral, _params.collateralDelta, _position.size, 0, _totalfee)
             );
         }
-        int256 _fundingRate = FeeHandler.Storage().cumulativeFundingRates[_params.market][_params.isLong];
+        int256 _fundingRate = _feeFacet().cumulativeFundingRates(_params.market, _params.isLong);
         collD = _params.collateralDelta.toInt256() - _totalfee;
         commitIncreasePosition(_params, collD, _fundingRate);
-        // validLiq(_params.account, _params.isLong);
+        (_params.account, _params.isLong);
 
         // _transationsFees(_params.account, collateralToken, _fees, _totalfee); // 手续费转账
 

@@ -118,11 +118,10 @@ library FeeHandler {
         // todo
     }
 
-    function getFees(MarketDataTypes.Cache memory params, Position.Props memory _position)
-        internal
-        view
-        returns (int256[] memory)
-    {
+    function getFees(bytes calldata data) internal view returns (int256[] memory) {
+        (MarketDataTypes.Cache memory params, Position.Props memory _position) =
+            abi.decode(data, (MarketDataTypes.Cache, Position.Props));
+
         //todo
     }
 

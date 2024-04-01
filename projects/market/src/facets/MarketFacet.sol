@@ -7,9 +7,62 @@ import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IMarketInternal} from "../interfaces/IMarketInternal.sol";
 
-contract MarketFacet is IAccessManaged {
+contract MarketFacet is IAccessManaged, IMarketInternal {
     using EnumerableSet for EnumerableSet.UintSet;
+
+    using SafeERC20 for IERC20;
+
+    uint8 internal constant usdDecimals = 18; //数量精度
+
+    function getUSDDecimals() external pure override returns (uint8) {
+        return usdDecimals;
+    }
+
+    function formatCollateral(uint256 amount, uint8 collateralTokenDigits) public pure override returns (uint256) {
+        return (amount * (10 ** uint256(collateralTokenDigits))) / (10 ** usdDecimals);
+    }
+
+    function parseVaultAsset(uint256 amount, uint8 originDigits) external pure override returns (uint256) {
+        return (amount * (10 ** uint256(usdDecimals))) / (10 ** originDigits);
+    }
+
+    function parseVaultAssetSigned(int256 amount, uint8 collateralTokenDigits)
+        external
+        pure
+        override
+        returns (int256)
+    {
+        return (amount * int256(10 ** uint256(collateralTokenDigits))) / int256(10 ** uint256(usdDecimals));
+    }
+
+    function transferIn(address tokenAddress, address _from, address _to, uint256 _tokenAmount)
+        external
+        override
+        onlySelf
+    {
+        // If the token amount is 0, return.
+        if (_tokenAmount == 0) return;
+        // Retrieve the token contract.
+        IERC20 coll = IERC20(tokenAddress);
+        // Format the collateral amount based on the token's decimals and transfer the tokens.
+        coll.safeTransferFrom(_from, _to, formatCollateral(_tokenAmount, IERC20Metadata(tokenAddress).decimals()));
+    }
+
+    function transferOut(address tokenAddress, address _to, uint256 _tokenAmount) external override onlySelf {
+        // If the token amount is 0, return.
+        if (_tokenAmount == 0) return;
+        // Retrieve the token contract.
+        IERC20 coll = IERC20(tokenAddress);
+        // Format the collateral amount based on the token's decimals.
+        _tokenAmount = formatCollateral(_tokenAmount, IERC20Metadata(tokenAddress).decimals());
+        // Transfer the tokens to the specified address.
+        coll.safeTransfer(_to, _tokenAmount);
+    }
 
     function setConf(uint16 market, MarketHandler.Props memory data) external restricted {
         // //TODO 查一下当前 market balance

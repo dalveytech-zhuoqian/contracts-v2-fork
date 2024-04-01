@@ -1,19 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface IMarketExternal {
-    function collectFees(bytes calldata _data) external;
-    function getGlobalPnl(address vault) external view returns (int256);
-}
+import {IMarketInternal} from "./IMarketInternal.sol";
+import {IMarketExternal} from "./IMarketExternal.sol";
 
-interface IFee {
-    function feeAndRates(uint16 market)
-        external
-        view
-        returns (uint256[] memory fees, int256[] memory fundingRates, int256[] memory _cumulativeFundingRates);
-}
-
-interface IMarket is IMarketExternal {
+interface IMarket is IMarketExternal, IMarketInternal {
     //================================================================================================
     // market view only
     //================================================================================================
