@@ -1,23 +1,14 @@
-cache/
-artifacts/
-
-coverage*
-typechain-types/
-
-.vscode/*
-!.vscode/settings.json.default
-!.vscode/launch.json.default
-!.vscode/extensions.json.default
-
-node_modules/
+node_modules
 .env
 
-.prettierrc.js
-pnpm-lock.yaml
-package.json
+# Hardhat files
+/cache
+/artifacts
 
-contractsInfo.json
-deployments/hardhat
-deployments/localhost
+# TypeChain files
+/typechain
+/typechain-types
 
-/.dapp
+# solidity-coverage files
+/coverage
+/coverage.json
