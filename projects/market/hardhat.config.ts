@@ -46,7 +46,8 @@ const config: HardhatUserConfig = {
 			accounts: accounts(),
 			verify: {
 				etherscan: {
-					apiKey: process.env.ETHERSCAN_API_KEY_FANTOM
+					apiKey: process.env.ETHERSCAN_API_KEY_FANTOM,
+					apiUrl: 'https://api-testnet.ftmscan.com',
 				}
 			}
 		},
