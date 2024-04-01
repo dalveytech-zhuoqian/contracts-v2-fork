@@ -15,6 +15,35 @@ library OrderHandler { /* is IOrderBook, Ac */
 
     bytes32 constant OB_STORAGE_POSITION = keccak256("blex.orderbook.storage");
 
+    event UpdateOrder(
+        address indexed account,
+        bool isLong,
+        bool isIncrease,
+        uint256 orderID,
+        address market,
+        uint256 size,
+        uint256 collateral,
+        uint256 triggerPrice,
+        bool triggerAbove,
+        uint256 tp,
+        uint256 sl,
+        uint128 fromOrder,
+        bool isKeepLev,
+        MarketDataTypes.Cache params
+    );
+
+    event DeleteOrder(
+        address indexed account,
+        bool isLong,
+        bool isIncrease,
+        uint256 orderID,
+        uint16 market,
+        uint8 reason,
+        string reasonStr,
+        uint256 price,
+        int256 dPNL
+    );
+
     struct OrderStorage {
         mapping(bytes32 => mapping(bytes32 => Order.Props)) orders; // keyorder
         mapping(bytes32 => mapping(address => uint256)) ordersIndex; // orderID
@@ -170,6 +199,11 @@ library OrderHandler { /* is IOrderBook, Ac */
 
     function getKeys(bytes32 sk, uint256 start, uint256 end) internal view returns (bytes32[] memory) {
         return Storage().orderKeys[sk].valuesAt(start, end);
+    }
+
+    function orderNum(uint16 market, bool isLong, bool isIncrease, address account) internal view returns (uint256) {
+        bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
+        return Storage().orderNum[sk][account];
     }
 
     //===============================================================

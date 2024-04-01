@@ -37,6 +37,31 @@ library PositionHandler {
         }
     }
 
+    function getPosition(address account, uint16 market, uint256 oraclePrice, bool isLong)
+        internal
+        view
+        returns (Position.Props memory)
+    {
+        //todo
+        return Storage().positions[storageKey(market, isLong)][account];
+    }
+
+    function getMarketSizes(uint16 market) internal view returns (uint256 globalSizeLong, uint256 globalSizeShort) {
+        PositionStorage storage ps = Storage();
+        globalSizeLong = ps.globalPositions[storageKey(market, true)].size;
+        globalSizeShort = ps.globalPositions[storageKey(market, false)].size;
+    }
+
+    function getAccountSize(uint16 market, address account)
+        internal
+        view
+        returns (uint256 sizeLong, uint256 sizeShort)
+    {
+        PositionStorage storage ps = Storage();
+        sizeLong = ps.positions[storageKey(market, true)][account].size;
+        sizeShort = ps.positions[storageKey(market, false)][account].size;
+    }
+
     function storageKey(uint16 market, bool isLong) internal pure returns (bytes32 orderKey) {
         return bytes32(abi.encodePacked(isLong, market));
     }

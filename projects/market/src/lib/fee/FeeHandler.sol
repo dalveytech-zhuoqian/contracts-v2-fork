@@ -8,6 +8,7 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {FundingRateCalculator} from "./FundingRateCalculator.sol";
+import {Position} from "../types/PositionStruct.sol";
 
 library FeeHandler {
     using SafeCast for int256;
@@ -105,10 +106,6 @@ library FeeHandler {
         emit UpdateFee(account, market, fees, _amount);
     }
 
-    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) internal {
-        // TODO too much to do
-    }
-
     function getExecFee(uint16 market) external view returns (uint256) {
         //todo
     }
@@ -119,6 +116,14 @@ library FeeHandler {
 
     function getFundingRate(uint16 market, bool isLong) internal view returns (int256) {
         // todo
+    }
+
+    function getFees(MarketDataTypes.Cache memory params, Position.Props memory _position)
+        internal
+        view
+        returns (int256[] memory)
+    {
+        //todo
     }
 
     /**

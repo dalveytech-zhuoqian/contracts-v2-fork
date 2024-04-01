@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.20;
 
-library GlobalDataTypes {
+library GDataTypes {
     struct ValidParams {
         uint128 sizeDelta;
         uint128 globalLongSizes;

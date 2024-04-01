@@ -14,6 +14,7 @@ library MarketDataTypes {
         uint256 sizeDelta;
         uint256 price;
         uint256 collateralDelta;
+        uint256 collateral;
         uint256 tp;
         uint256 sl;
         uint64 orderId;

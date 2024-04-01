@@ -27,6 +27,10 @@ contract FeeFacet is IAccessManaged {
     //================================================
     // fundfee外部函数
     //================================================
+    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) external onlySelf {
+        // TODO too much to do
+    }
+
     function setFundingRates(uint16 market, bool isLong, int256 fundingRate, int256 cumulativeFundingRate)
         external
         restricted
