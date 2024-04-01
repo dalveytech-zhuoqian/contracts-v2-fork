@@ -26,7 +26,6 @@ contract RewardDistributorFactory is IRewardDistributorFactory, AccessManagedUpg
         _parameters = p;
         BeaconProxy beaconProxy = new BeaconProxy{salt: keccak256(abi.encode(
             p.rewardToken, 
-            p.rewardTracker, 
             block.timestamp
             ))}(beacon, bytes(""));
         proxy = address(beaconProxy);

@@ -5,6 +5,7 @@ import {IVaultFactory} from "../interfaces/IVaultFactory.sol";
 import {IVaultRewardFactory} from "../interfaces/IVaultRewardFactory.sol";
 import {IRewardDistributorFactory} from "../interfaces/IRewardDistributorFactory.sol";
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
+import {IRewardDistributor} from "../interfaces/IRewardDistributor.sol";
 
 contract VaultBuilder is AccessManagedUpgradeable {
     address public vaultFactory;
@@ -37,22 +38,25 @@ contract VaultBuilder is AccessManagedUpgradeable {
     }
 
     function deploy(Parameters calldata p) external restricted {
-        IVaultFactory.Parameters memory vfp =
-            IVaultFactory.Parameters({asset: p.asset, market: p.market, name: p.name, symbol: p.symbol, auth: p.auth});
+        address vault = IVaultFactory(vaultFactory).deploy(
+            IVaultFactory.Parameters({asset: p.asset, market: p.market, name: p.name, symbol: p.symbol, auth: p.auth})
+        );
 
-        IVaultRewardFactory.Parameters memory rfp = IVaultRewardFactory.Parameters({
-            rewardToken: p.asset,
-            rewardDistributor: address(0),
-            auth: p.auth
+        address vaultRewardDistributor = IRewardDistributorFactory(rewardDistributorFactory).deploy(
+            IRewardDistributorFactory.Parameters({rewardToken: p.asset, auth: p.auth})
+        );
 
-            
-            
-        });
+        address vaultReward = IVaultRewardFactory(vaultRewardFactory).deploy(
+            IVaultRewardFactory.Parameters({
+                vault: vault,
+                market: p.market,
+                distributor: vaultRewardDistributor,
+                authority: p.auth
+            })
+        );
 
-        IRewardDistributorFactory.Parameters memory rdp;
-        address vault = IVaultFactory(vaultFactory).deploy(vfp);
-        address vaultReward = IVaultRewardFactory(vaultRewardFactory).deploy(rfp);
-        address vaultRewardDistributor = IRewardDistributorFactory(rewardDistributorFactory).deploy(rdp);
+        IRewardDistributor(vaultRewardDistributor).setRewardTracker(vaultReward);
+
         emit NewBuild(vault, vaultReward, vaultRewardDistributor);
     }
 }

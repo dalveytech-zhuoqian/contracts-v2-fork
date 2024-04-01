@@ -10,4 +10,6 @@ interface IRewardDistributor {
     function distribute() external returns (uint256);
 
     function tokensPerInterval() external view returns (uint256);
+
+    function setRewardTracker(address _rewardTracker) external;
 }
