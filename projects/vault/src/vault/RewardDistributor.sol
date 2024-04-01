@@ -40,14 +40,17 @@ contract RewardDistributor is AccessManagedUpgradeable, IRewardDistributor {
         _;
     }
 
+    function setRewardTracker(address _rewardTracker) external {
+        require(_getStorage().rewardTracker == address(0), "RewardDistributor: reward tracker already set");
+        _getStorage().rewardTracker = _rewardTracker;
+    }
+
     function initialize() external override initializer {
         IRewardDistributorFactory.Parameters memory p = IRewardDistributorFactory(msg.sender).parameters();
         require(p.rewardToken != address(0));
-        require(p.rewardTracker != address(0));
         require(p.auth != address(0));
         super.__AccessManaged_init(p.auth);
         _getStorage().rewardToken = p.rewardToken;
-        _getStorage().rewardTracker = p.rewardTracker;
     }
 
     /**
