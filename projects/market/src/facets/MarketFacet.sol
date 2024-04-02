@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {MarketHandler} from "../lib/market/MarketHandler.sol";
-import {IAccessManaged} from "../ac/IAccessManaged.sol";
-// import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+//================================================================
+//handlers
+import {MarketHandler} from "../lib/market/MarketHandler.sol";
+//================================================================
+//interfaces
+import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IMarketInternal} from "../interfaces/IMarketInternal.sol";
@@ -15,7 +17,7 @@ import {IMarketInternal} from "../interfaces/IMarketInternal.sol";
 contract MarketFacet is IAccessManaged, IMarketInternal {
     using EnumerableSet for EnumerableSet.UintSet;
 
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Metadata;
 
     uint8 internal constant usdDecimals = 18; //数量精度
 
@@ -48,7 +50,7 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
         // If the token amount is 0, return.
         if (_tokenAmount == 0) return;
         // Retrieve the token contract.
-        IERC20 coll = IERC20(tokenAddress);
+        IERC20Metadata coll = IERC20Metadata(tokenAddress);
         // Format the collateral amount based on the token's decimals and transfer the tokens.
         coll.safeTransferFrom(_from, _to, formatCollateral(_tokenAmount, IERC20Metadata(tokenAddress).decimals()));
     }
@@ -57,7 +59,7 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
         // If the token amount is 0, return.
         if (_tokenAmount == 0) return;
         // Retrieve the token contract.
-        IERC20 coll = IERC20(tokenAddress);
+        IERC20Metadata coll = IERC20Metadata(tokenAddress);
         // Format the collateral amount based on the token's decimals.
         _tokenAmount = formatCollateral(_tokenAmount, IERC20Metadata(tokenAddress).decimals());
         // Transfer the tokens to the specified address.

@@ -21,12 +21,12 @@ import {Order} from "../lib/types/OrderStruct.sol";
 import {Position} from "../lib/types/PositionStruct.sol";
 import {MarketDataTypes} from "../lib/types/MarketDataTypes.sol";
 
+import {FeeType} from "../lib/types/FeeType.sol";
 //===============
 // handlers
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
 import {OrderHandler} from "../lib/order/OrderHandler.sol";
 import {PositionFacetBase} from "./PositionFacetBase.sol";
-import {FeeType} from "../lib/types/FeeType.sol";
 import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
 
 contract PositionSubFacet is IAccessManaged, PositionFacetBase {

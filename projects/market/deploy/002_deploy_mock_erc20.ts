@@ -5,14 +5,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployments, getNamedAccounts } = hre
     const { deploy } = deployments
     const { deployer } = await getNamedAccounts()
-    await deploy('MockVault', {
+    await deploy('MockERC20', {
         from: deployer,
-        proxy: true,
+        proxy: {
+            execute: {
+                init: {
+                    methodName: 'initialize',
+                    args: ["Mock BLP token", "MockBLP", deployer, "1000000000000000000000000000"],
+                },
+            },
+        },
         log: true,
         autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     })
 }
 export default func
-func.tags = ['Vault']
-func.dependencies = ['ERC20']
-
+func.tags = ['ERC20']

@@ -1,15 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
+//================================================================
+//handlers
 import {FeeHandler} from "../lib/fee/FeeHandler.sol";
 import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
-import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
+import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
+//================================================================
+//interfaces
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {IFeeFacet} from "../interfaces/IFeeFacet.sol";
-import {FeeType} from "../lib/types/FeeType.sol";
-import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+//================================================================
+//data types
+import {FeeType} from "../lib/types/FeeType.sol";
 
 contract FeeFacet is IAccessManaged, IFeeFacet {
     // uint256 public constant FEE_RATE_PRECISION = LibFundFee.PRECISION;
