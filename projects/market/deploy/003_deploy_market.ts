@@ -47,7 +47,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             // "OracleFacet",
             // "OrderFacet",
             "PositionAddFacet",
-            // "PositionSubFacet",
+            "PositionSubFacet",
             // "ReferralFacet",
             // "MarketReaderFacet"
         ], // will prepend TestDiamond_facet_ to each facet name

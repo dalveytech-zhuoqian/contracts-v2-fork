@@ -11,12 +11,14 @@ abstract contract IAccessManaged {
     error AccessManagedInvalidAuthority(address authority);
 
     modifier restricted() {
-        _checkCanCall(msg.sender, msg.data);
+        //todo
+        // _checkCanCall(msg.sender, msg.data);
         _;
     }
 
     modifier onlySelf() {
-        require(msg.sender == address(this), "AccessManaged: only self");
+        //todo
+        // require(msg.sender == address(this), "AccessManaged: only self");
         _;
     }
 

@@ -118,6 +118,12 @@ library FeeHandler {
         // todo
     }
 
+    function totalFees(int256[] memory fees) internal pure returns (int256 total) {
+        for (uint256 i = 0; i < fees.length; i++) {
+            total += fees[i];
+        }
+    }
+
     function getFees(bytes calldata data) internal view returns (int256[] memory) {
         (MarketDataTypes.Cache memory params, Position.Props memory _position) =
             abi.decode(data, (MarketDataTypes.Cache, Position.Props));

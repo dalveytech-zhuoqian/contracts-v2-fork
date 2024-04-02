@@ -7,13 +7,8 @@ import {StringsPlus} from "../lib/utils/Strings.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 //===============
 // interfaces
-import {IFeeFacet} from "../interfaces/IFeeFacet.sol";
-import {IMarketInternal} from "../interfaces/IMarketInternal.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
-import {IVault} from "../interfaces/IVault.sol";
-import {IPrice} from "../interfaces/IPrice.sol";
 //===============
 // data types
 import {Order} from "../lib/types/OrderStruct.sol";
@@ -27,23 +22,12 @@ import {GValidHandler} from "../lib/globalValid/GValidHandler.sol";
 import {PositionHandler} from "../lib/position/PositionHandler.sol";
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
 import {OrderHandler} from "../lib/order/OrderHandler.sol";
+import {PositionFacetBase} from "./PositionFacetBase.sol";
 
-contract PositionAddFacet is IAccessManaged {
+contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     using Order for Order.Props;
     using SafeCast for int256;
     using SafeCast for uint256;
-
-    function _feeFacet() internal view returns (IFeeFacet) {
-        return IFeeFacet(address(this));
-    }
-
-    function _marketFacet() internal view returns (IMarketInternal) {
-        return IMarketInternal(address(this));
-    }
-
-    function _priceFacet() internal view returns (IPrice) {
-        return IPrice(address(this));
-    }
 
     function commitIncreasePosition(MarketDataTypes.Cache memory _params, int256 collD, int256 fr)
         private
@@ -54,9 +38,9 @@ contract PositionAddFacet is IAccessManaged {
                 abi.encode(_params.account, uint256(-collD), _params.sizeDelta, fr, _params.isLong)
             );
         } else {
-            address vault = MarketHandler.Storage().vault[_params.market];
             address collateralToken = MarketHandler.collateralToken(_params.market);
-            IVault(vault).borrowFromVault(
+
+            vault(_params.market).borrowFromVault(
                 _params.market,
                 _marketFacet().formatCollateral(_params.sizeDelta, IERC20Metadata(collateralToken).decimals())
             );
@@ -75,8 +59,8 @@ contract PositionAddFacet is IAccessManaged {
     }
 
     function getMarketsOfMarket(uint16 market) internal view returns (uint256[] memory) {
-        address vault = MarketHandler.Storage().vault[market];
-        return EnumerableSet.values(MarketHandler.Storage().marketIds[vault]);
+        address _vault = MarketHandler.Storage().vault[market];
+        return EnumerableSet.values(MarketHandler.Storage().marketIds[_vault]);
     }
 
     function getGlobalSize(uint16 market) public view returns (uint256 sizesLong, uint256 sizesShort) {
@@ -140,8 +124,9 @@ contract PositionAddFacet is IAccessManaged {
         (params.userLongSizes, params.userShortSizes) = getAccountSizeOfMarkets(params.market, _inputs.account);
         (params.marketLongSizes, params.marketShortSizes) = PositionHandler.getMarketSizes(params.market);
         address _collateralToken = MarketHandler.collateralToken(_inputs.market);
-        address vault = MarketHandler.Storage().vault[_inputs.market];
-        params.aum = _marketFacet().parseVaultAsset(IVault(vault).getAUM(), IERC20Metadata(_collateralToken).decimals());
+
+        params.aum =
+            _marketFacet().parseVaultAsset(vault(_inputs.market).getAUM(), IERC20Metadata(_collateralToken).decimals());
         require(GValidHandler.isIncreasePosition(params), "mr:gv");
     }
 
@@ -246,10 +231,9 @@ contract PositionAddFacet is IAccessManaged {
         private
         returns (int256 collD)
     {
-        (uint256 _longSize, uint256 _shortSize) = PositionHandler.getMarketSizes(_params.market);
-        _feeFacet().updateCumulativeFundingRate(_params.market, _longSize, _shortSize); //1
-        int256[] memory _fees = _feeFacet().getFees(abi.encode(_params, _position));
-        int256 _totalfee = MarketHandler.totoalFees(_fees);
+        _updateCumulativeFundingRate(_params.market);
+
+        (int256[] memory _fees, int256 _totalfee) = _feeFacet().getFees(abi.encode(_params, _position));
 
         if (_params.sizeDelta > 0) {
             MarketHandler.validPosition(abi.encode(_params, _position, _fees));

@@ -45,6 +45,10 @@ library MarketHandler { /* is IOrderBook, Ac */
         mapping(address vault => EnumerableSet.UintSet) marketIds;
     }
 
+    function vault(uint16 market) internal view returns (address) {
+        return MarketHandler.Storage().vault[market];
+    }
+
     function Storage() internal pure returns (StorageStruct storage fs) {
         bytes32 position = STORAGE_POSITION;
         assembly {
@@ -96,11 +100,11 @@ library MarketHandler { /* is IOrderBook, Ac */
 
     function getDecreaseOrderValidation(uint16 market, uint256 decrOrderCount) internal view returns (bool isValid) {}
 
-    // function validateLiquidation(uint16 market, int256 fees, int256 liquidateFee, bool raise)
-    //     internal
-    //     view
-    //     returns (uint8)
-    // {}
+    function validateLiquidation(uint16 market, int256 fees, int256 liquidateFee, bool raise)
+        internal
+        view
+        returns (uint8)
+    {}
     // //================================================================================================
     // // internal
     // //================================================================================================
@@ -124,11 +128,5 @@ library MarketHandler { /* is IOrderBook, Ac */
     }
     function validPay(uint16 market, uint256 pay) internal view {
         //todo
-    }
-
-    function totoalFees(int256[] memory fees) internal pure returns (int256 total) {
-        for (uint256 i = 0; i < fees.length; i++) {
-            total += fees[i];
-        }
     }
 }

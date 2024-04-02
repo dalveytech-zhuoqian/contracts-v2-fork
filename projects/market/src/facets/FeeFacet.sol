@@ -105,8 +105,9 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         return FeeHandler.getExecFee(market);
     }
 
-    function getFees(bytes calldata data) external view override returns (int256[] memory) {
-        return FeeHandler.getFees(data);
+    function getFees(bytes calldata data) external view override returns (int256[] memory fees, int256 totalFee) {
+        fees = FeeHandler.getFees(data);
+        totalFee = FeeHandler.totalFees(fees);
     }
 
     function getFundingRate(uint16 market, bool isLong) internal view returns (int256) {
