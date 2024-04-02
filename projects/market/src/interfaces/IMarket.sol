@@ -9,7 +9,6 @@ interface IMarket is IMarketExternal, IMarketInternal {
     // market view only
     //================================================================================================
 
-    function getGlobalOpenInterest() external view returns (uint256 _globalSize);
     function availableLiquidity(address market, address account, bool isLong) external view returns (uint256);
 
     // =================================================================================

@@ -137,11 +137,6 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
 
     function getMarkets() external view returns (bytes memory result) {}
 
-    function getGlobalOpenInterest(uint16 market) public view returns (uint256 _globalSize) {
-        // TODO
-        // return MarketHandler.getGlobalOpenInterest(market);
-    }
-
     function formatCollateral(uint256 amount, uint8 collateralTokenDigits) public pure override returns (uint256) {
         return (amount * (10 ** uint256(collateralTokenDigits))) / (10 ** usdDecimals);
     }

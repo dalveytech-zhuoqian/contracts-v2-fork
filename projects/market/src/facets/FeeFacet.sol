@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
+import {MarketVaultLib} from "../lib/market/MarketVaultLib.sol";
 //================================================================
 //handlers
 import {FeeHandler} from "../lib/fee/FeeHandler.sol";
@@ -133,8 +134,9 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         return FeeHandler.getFundingFee(market, size, entryFundingRate, isLong);
     }
 
-    function getGlobalOpenInterest() public view returns (uint256 _globalSize) {
+    function getGlobalOpenInterest(uint16 market) public view returns (uint256 _globalSize) {
         //todo
+        return MarketVaultLib.getGlobalOpenInterest(market);
     }
 
     function feeAndRates(uint16 market)

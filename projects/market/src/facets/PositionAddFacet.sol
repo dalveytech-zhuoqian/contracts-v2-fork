@@ -23,6 +23,7 @@ import {PositionStorage} from "../lib/position/PositionStorage.sol";
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
 import {OrderHandler} from "../lib/order/OrderHandler.sol";
 import {PositionFacetBase} from "./PositionFacetBase.sol";
+import {MarketVaultLib} from "../lib/market/MarketVaultLib.sol";
 
 contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     using Order for Order.Props;
@@ -113,9 +114,9 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         (params.userLongSizes, params.userShortSizes) = getAccountSizeOfMarkets(params.market, _inputs.account);
         (params.marketLongSizes, params.marketShortSizes) = PositionStorage.getMarketSizes(params.market);
         address _collateralToken = MarketHandler.collateralToken(_inputs.market);
-
-        params.aum =
-            _marketFacet().parseVaultAsset(vault(_inputs.market).getAUM(), IERC20Metadata(_collateralToken).decimals());
+        params.aum = _marketFacet().parseVaultAsset(
+            MarketVaultLib.getAum(_inputs.market), IERC20Metadata(_collateralToken).decimals()
+        );
         require(GValidHandler.isIncreasePosition(params), "mr:gv");
     }
 
