@@ -8,6 +8,8 @@ import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {IFeeFacet} from "../interfaces/IFeeFacet.sol";
 import {FeeType} from "../lib/types/FeeType.sol";
+import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
+import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract FeeFacet is IAccessManaged, IFeeFacet {
     // uint256 public constant FEE_RATE_PRECISION = LibFundFee.PRECISION;
@@ -95,10 +97,22 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         FeeHandler.initialize(market);
     }
 
-    function collectFees(bytes calldata _data) external onlySelfOrRestricted {
+    function collectFees(bytes calldata _data) external onlySelf {
         (address account, address token, int256[] memory fees, uint256 fundfeeLoss, uint16 market) =
             abi.decode(_data, (address, address, int256[], uint256, uint16));
-        FeeHandler.collectFees(market, account, token, fees, fundfeeLoss);
+        uint256 _amount = IERC20(token).allowance(msg.sender, address(this));
+        // todo 会存在这种现象嘛 如果存在要不要更新event
+        //if (_amount == 0 && fundfeeLoss == 0) return;
+        if (_amount != 0) {
+            BalanceHandler.marketToFee(market, account, _amount);
+        }
+        if (fundfeeLoss > 0) {
+            uint256 _before = FeeHandler.Storage().fundFeeLoss[market];
+            FeeHandler.Storage().fundFeeLoss[market] += fundfeeLoss;
+            BalanceHandler.feeToMarket(market, account, fees, fundfeeLoss);
+            // emit AddNegativeFeeLoss(market, account, _before, Storage().fundFeeLoss[market]);
+        }
+        emit FeeHandler.UpdateFee(account, market, fees, _amount);
     }
 
     function getExecFee(uint16 market) external view returns (uint256) {

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {BalanceHandler} from "../balance/BalanceHandler.sol";
 import {MarketDataTypes} from "../types/MarketDataTypes.sol";
 import {FeeType} from "../types/FeeType.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
@@ -86,24 +85,6 @@ library FeeHandler {
 
     function getOrderFees(bytes memory params) internal view returns (int256 fees) {
         //todo
-    }
-
-    function collectFees(uint16 market, address account, address token, int256[] memory fees, uint256 fundfeeLoss)
-        internal
-    {
-        uint256 _amount = IERC20(token).allowance(msg.sender, address(this));
-        // todo 会存在这种现象嘛 如果存在要不要更新event
-        //if (_amount == 0 && fundfeeLoss == 0) return;
-        if (_amount != 0) {
-            BalanceHandler.marketToFee(market, account, _amount);
-        }
-        if (fundfeeLoss > 0) {
-            uint256 _before = Storage().fundFeeLoss[market];
-            Storage().fundFeeLoss[market] += fundfeeLoss;
-            BalanceHandler.feeToMarket(market, account, fees, fundfeeLoss);
-            // emit AddNegativeFeeLoss(market, account, _before, Storage().fundFeeLoss[market]);
-        }
-        emit UpdateFee(account, market, fees, _amount);
     }
 
     function getExecFee(uint16 market) external view returns (uint256) {

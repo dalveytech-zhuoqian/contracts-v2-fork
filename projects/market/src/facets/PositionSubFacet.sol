@@ -5,7 +5,6 @@ pragma abicoder v2;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {StringsPlus} from "../lib/utils/Strings.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {MarketHelper} from "../lib/market/MarketHelper.sol";
 import {PositionSubMgrLib} from "../lib/market/PositionSubMgrLib.sol";
 //===============
 // interfaces
@@ -65,7 +64,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
             _positionFacet().getPosition(_params.market, order.account, _params.oraclePrice, _params.isLong);
 
         if (order.size > 0) {
-            _params.collateralDelta = MarketHelper.getDecreaseDeltaCollateral(
+            _params.collateralDelta = PositionSubMgrLib.getDecreaseDeltaCollateral(
                 order.isKeepLev, _position.size, order.size, _position.collateral
             );
         }

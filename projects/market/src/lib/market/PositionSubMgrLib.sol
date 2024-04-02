@@ -174,4 +174,20 @@ library PositionSubMgrLib {
     ) internal pure returns (bool) {
         return (_params.liqState != 1 || _params.liqState != 2) && _params.sizeDelta != _position.size;
     }
+
+    /**
+     * @dev Calculates the delta collateral for decreasing a position.
+     * @return deltaCollateral The calculated delta collateral.
+     */
+    function getDecreaseDeltaCollateral(bool isKeepLev, uint256 size, uint256 dSize, uint256 collateral)
+        internal
+        pure
+        returns (uint256 deltaCollateral)
+    {
+        if (isKeepLev) {
+            deltaCollateral = (collateral * dSize) / size;
+        } else {
+            deltaCollateral = 0;
+        }
+    }
 }
