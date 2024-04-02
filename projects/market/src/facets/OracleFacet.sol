@@ -10,6 +10,10 @@ import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
 import {IPrice} from "../interfaces/IPrice.sol";
 
 contract OracleFacet is IAccessManaged, IPrice {
+    //================================================================
+    //   ADMIN functions
+    //================================================================
+
     function initDefaultOracleConfig() external restricted {
         OracleHandler.ConfigStruct memory _config = OracleHandler.ConfigStruct({
             maxDeviationBP: 100, //超过 1% 进行比价

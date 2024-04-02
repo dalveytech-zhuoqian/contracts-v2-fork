@@ -34,6 +34,18 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
     using SafeCast for int256;
     using SafeCast for uint256;
     using PositionSubMgrLib for MarketDataTypes.Cache;
+    //==========================================================================================
+    //       external functions
+    //==========================================================================================
+
+    //==========================================================================================
+    //       self functions
+    //==========================================================================================
+
+    //==========================================================================================
+    //       admin functions
+    //==========================================================================================
+    function liquidate(uint16 market, address accounts, bool _isLong) external restricted {}
 
     function execSubOrderKey(Order.Props memory order, MarketDataTypes.Cache memory _params) external restricted {
         order.validOrderAccountAndID();
@@ -45,14 +57,16 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         MarketHandler.validateLiquidation(_params.market, totalFee, fees[uint8(FeeType.T.LiqFee)], true);
         decreasePositionFromOrder(order, _params);
     }
+    //==========================================================================================
+    //       view functions
+    //==========================================================================================
 
     function validLiq(address acc, bool _isLong) private view {}
 
-    function liquidate(uint16 market, address accounts, bool _isLong) external restricted {}
+    //==========================================================================================
+    //       private functions
+    //==========================================================================================
 
-    //========================================================================
-    // private functions
-    //========================================================================
     function _getClosePrice(uint16 market, bool _isLong) private view returns (uint256 p) {
         return _priceFacet().getPrice(market, !_isLong);
     }

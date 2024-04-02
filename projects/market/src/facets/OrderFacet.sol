@@ -7,6 +7,10 @@ import {Order} from "../lib/types/OrderStruct.sol";
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
 
 contract OrderFacet is IAccessManaged {
+    //==========================================================================================
+    //       external functions
+    //==========================================================================================
+
     function updateOrder(bytes calldata data) external payable {
         (MarketDataTypes.Cache memory _inputs) = abi.decode(data, (MarketDataTypes.Cache));
         if (_inputs.isCreate) {
@@ -21,14 +25,16 @@ contract OrderFacet is IAccessManaged {
         _cancelOrder(msg.sender, markets, isIncrease, orderID, isLong);
     }
 
-    function sysCancelOrder(address user, address markets, bool isIncrease, uint256 orderID, bool isLong)
-        external
-        restricted
-    {
+    //==========================================================================================
+    //       admin/self functions
+    //==========================================================================================
+
+    function sysCancelOrder(address user, address markets, bool isIncrease, uint256 orderID, bool isLong) external {
         if (msg.sender == address(this)) {
             // called by market
         } else {
             // system cancel
+            _checkCanCall(msg.sender, msg.data);
         }
         _cancelOrder(user, markets, isIncrease, orderID, isLong);
     }

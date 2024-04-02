@@ -6,6 +6,9 @@ import {ReferralHandler} from "../lib/referral/ReferralHandler.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable {
+    //==========================================================================================
+    //       external functions
+    //==========================================================================================
     function setTraderReferralCodeByUser(bytes32 _code) external nonReentrant {
         ReferralHandler._setTraderReferralCode(msg.sender, _code);
     }
@@ -18,6 +21,9 @@ contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable {
         ReferralHandler.setCodeOwner(_code, _newAccount);
     }
 
+    //==========================================================================================
+    //       admin functions
+    //==========================================================================================
     function govSetCodeOwner(bytes32 _code, address _newAccount) external restricted {
         ReferralHandler.govSetCodeOwner(_code, _newAccount);
     }
@@ -37,10 +43,14 @@ contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable {
     function setTraderReferralCode(address _account, bytes32 _code) external restricted {
         // ReferralHandler._setTraderReferralCode(_account, _code);
     }
-    //========================================================================
-    //      view functions
-    //========================================================================
 
+    //==========================================================================================
+    //       self functions
+    //==========================================================================================
+
+    //==========================================================================================
+    //       view functions
+    //==========================================================================================
     function getTraderReferralInfo(address _account) internal view returns (bytes32, address) {
         // return ReferralHandler.getTraderReferralInfo(_account);
     }
@@ -48,4 +58,7 @@ contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable {
     function getCodeOwners(bytes32 _code) external view returns (address) {
         // return ReferralHandler.codeOwners(_code);
     }
+    //==========================================================================================
+    //       private functions
+    //==========================================================================================
 }

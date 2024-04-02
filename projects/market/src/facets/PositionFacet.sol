@@ -18,20 +18,33 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
     using EnumerableValues for EnumerableSet.AddressSet;
     using EnumerableValues for EnumerableSet.UintSet;
 
-    function getAccountSize(uint16 market, address account) external view returns (uint256, uint256) {
-        PositionHandler.PositionStorage storage ps = PositionHandler.Storage();
-        return (
-            ps.positions[PositionHandler.storageKey(market, true)][account].size,
-            ps.positions[PositionHandler.storageKey(market, false)][account].size
-        );
-    }
-
+    //==========================================================================================
+    //       external functions
+    //==========================================================================================
     function increasePosition(bytes memory _data) external override onlySelf returns (Position.Props memory result) {
         result = PositionHandler.increasePosition(_data);
     }
 
     function decreasePosition(bytes memory _data) external onlySelf returns (Position.Props memory result) {
         result = PositionHandler.decreasePosition(_data);
+    }
+    //==========================================================================================
+    //       admin functions
+    //==========================================================================================
+
+    //==========================================================================================
+    //       self functions
+    //==========================================================================================
+
+    //==========================================================================================
+    //       view functions
+    //==========================================================================================
+    function getAccountSize(uint16 market, address account) external view returns (uint256, uint256) {
+        PositionHandler.PositionStorage storage ps = PositionHandler.Storage();
+        return (
+            ps.positions[PositionHandler.storageKey(market, true)][account].size,
+            ps.positions[PositionHandler.storageKey(market, false)][account].size
+        );
     }
 
     function getPosition(uint16 market, address account, uint256 markPrice, bool isLong)
@@ -107,4 +120,8 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
         //     PositionHandler.getMarketPNL(market, longPrice, shortPrice), collateralTokenDigits
         // );
     }
+
+    //==========================================================================================
+    //       private functions
+    //==========================================================================================
 }

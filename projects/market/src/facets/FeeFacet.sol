@@ -20,27 +20,38 @@ import {FeeType} from "../lib/types/FeeType.sol";
 contract FeeFacet is IAccessManaged, IFeeFacet {
     // uint256 public constant FEE_RATE_PRECISION = LibFundFee.PRECISION;
 
-    function feeAndRates(uint16 market)
-        external
-        view
-        override
-        returns (uint256[] memory fees, int256[] memory fundingRates, int256[] memory _cumulativeFundingRates)
-    {
-        //todo merge with getfees?
-        fees = new uint256[](uint8(FeeType.T.Counter));
-        for (uint8 i = 0; i < uint8(FeeType.T.Counter); i++) {
-            fees[i] = FeeHandler.Storage().feeAndRates[market][i];
+    //================================================================
+    // only self
+    //================================================================
+
+    function collectFees(bytes calldata _data) external onlySelf {
+        (address account, address token, int256[] memory fees, uint256 fundfeeLoss, uint16 market) =
+            abi.decode(_data, (address, address, int256[], uint256, uint16));
+        uint256 _amount = IERC20(token).allowance(msg.sender, address(this));
+        // todo 会存在这种现象嘛 如果存在要不要更新event
+        //if (_amount == 0 && fundfeeLoss == 0) return;
+        if (_amount != 0) {
+            BalanceHandler.marketToFee(market, account, _amount);
         }
-        fundingRates = new int256[](2);
-        fundingRates[0] = FeeHandler.Storage().fundingRates[market][true];
-        fundingRates[1] = FeeHandler.Storage().fundingRates[market][false];
-        _cumulativeFundingRates = new int256[](2);
-        _cumulativeFundingRates[0] = FeeHandler.Storage().cumulativeFundingRates[market][true];
-        _cumulativeFundingRates[1] = FeeHandler.Storage().cumulativeFundingRates[market][false];
+        if (fundfeeLoss > 0) {
+            uint256 _before = FeeHandler.Storage().fundFeeLoss[market];
+            FeeHandler.Storage().fundFeeLoss[market] += fundfeeLoss;
+            BalanceHandler.feeToMarket(market, account, fees, fundfeeLoss);
+            // emit AddNegativeFeeLoss(market, account, _before, Storage().fundFeeLoss[market]);
+        }
+        emit FeeHandler.UpdateFee(account, market, fees, _amount);
     }
-    //================================================
-    // Fee Router外部函数
-    //================================================
+
+    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) external onlySelf {
+        // TODO too much to do
+    }
+    //================================================================
+    // ADMIN
+    //================================================================
+
+    function initFeeFacet(uint16 market) external onlySelfOrRestricted {
+        FeeHandler.initialize(market);
+    }
 
     function feeWithdraw(uint16 market, address to, uint256 amount) external restricted {
         // TODO
@@ -51,13 +62,6 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
     function setFeeAndRates(uint16 market, uint8 feeType, uint256 feeAndRate) external restricted {
         // TODO
         FeeHandler.Storage().feeAndRates[market][feeType] = feeAndRate;
-    }
-
-    //================================================
-    // fundfee外部函数
-    //================================================
-    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) external onlySelf {
-        // TODO too much to do
     }
 
     function setFundingRates(uint16 market, bool isLong, int256 fundingRate, int256 cumulativeFundingRate)
@@ -97,29 +101,8 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
     }
 
     //================================================
-    // fee router 通用函数
+    // view functions
     //================================================
-    function initFeeFacet(uint16 market) external onlySelfOrRestricted {
-        FeeHandler.initialize(market);
-    }
-
-    function collectFees(bytes calldata _data) external onlySelf {
-        (address account, address token, int256[] memory fees, uint256 fundfeeLoss, uint16 market) =
-            abi.decode(_data, (address, address, int256[], uint256, uint16));
-        uint256 _amount = IERC20(token).allowance(msg.sender, address(this));
-        // todo 会存在这种现象嘛 如果存在要不要更新event
-        //if (_amount == 0 && fundfeeLoss == 0) return;
-        if (_amount != 0) {
-            BalanceHandler.marketToFee(market, account, _amount);
-        }
-        if (fundfeeLoss > 0) {
-            uint256 _before = FeeHandler.Storage().fundFeeLoss[market];
-            FeeHandler.Storage().fundFeeLoss[market] += fundfeeLoss;
-            BalanceHandler.feeToMarket(market, account, fees, fundfeeLoss);
-            // emit AddNegativeFeeLoss(market, account, _before, Storage().fundFeeLoss[market]);
-        }
-        emit FeeHandler.UpdateFee(account, market, fees, _amount);
-    }
 
     function getExecFee(uint16 market) external view returns (uint256) {
         return FeeHandler.getExecFee(market);
@@ -152,5 +135,24 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
 
     function getGlobalOpenInterest() public view returns (uint256 _globalSize) {
         //todo
+    }
+
+    function feeAndRates(uint16 market)
+        external
+        view
+        override
+        returns (uint256[] memory fees, int256[] memory fundingRates, int256[] memory _cumulativeFundingRates)
+    {
+        //todo merge with getfees?
+        fees = new uint256[](uint8(FeeType.T.Counter));
+        for (uint8 i = 0; i < uint8(FeeType.T.Counter); i++) {
+            fees[i] = FeeHandler.Storage().feeAndRates[market][i];
+        }
+        fundingRates = new int256[](2);
+        fundingRates[0] = FeeHandler.Storage().fundingRates[market][true];
+        fundingRates[1] = FeeHandler.Storage().fundingRates[market][false];
+        _cumulativeFundingRates = new int256[](2);
+        _cumulativeFundingRates[0] = FeeHandler.Storage().cumulativeFundingRates[market][true];
+        _cumulativeFundingRates[1] = FeeHandler.Storage().cumulativeFundingRates[market][false];
     }
 }
