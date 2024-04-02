@@ -79,7 +79,8 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
         } else {
             MarketHandler.Storage().token[market] = token;
         }
-        MarketHandler.Storage().marketIds[vault].add(uint256(market));
+        bool suc = MarketHandler.Storage().marketIds[vault].add(uint256(market));
+        require(suc, "MarketFacet: market already exists");
         MarketHandler.Storage().vault[market] = vault;
         MarketHandler.Storage().config[market] = MarketHandler.Props({
             isSuspended: false,

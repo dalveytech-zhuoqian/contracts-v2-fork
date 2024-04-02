@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction, DeploymentsExtension } from 'hardhat-deploy/types'
 import { ethers } from 'hardhat'
-import { AccessManagedFacet } from '../typechain-types'
+import { AccessManagedFacet, MarketFacet } from '../typechain-types'
 import { BaseContract } from 'ethers'
 
 async function setupUser<T extends { [contractName: string]: BaseContract }>(
