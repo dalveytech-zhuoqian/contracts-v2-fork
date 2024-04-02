@@ -14,6 +14,9 @@ import 'hardhat-deploy-tenderly'
 import { node_url, accounts, addForkConfiguration } from './utils/network'
 
 const config: HardhatUserConfig = {
+	typechain: {
+		externalArtifacts: ['deployments/localhost/MarketDiamond.json']
+	},
 	solidity: {
 		compilers: [
 			{

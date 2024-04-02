@@ -1,6 +1,6 @@
 
 import { getNamedAccounts, ethers } from 'hardhat'
-import { MarketFacet } from '../typechain-types'
+import { MarketDiamond } from '../typechain-types'
 async function waitFor<T>(p: Promise<{ wait: () => Promise<T> }>): Promise<T> {
     const tx = await p
     try {
@@ -10,7 +10,7 @@ async function waitFor<T>(p: Promise<{ wait: () => Promise<T> }>): Promise<T> {
 }
 
 async function main() {
-    const MarketFacet = await ethers.getContract<MarketFacet>('MarketDiamond')
+    const MarketFacet = await ethers.getContract<MarketDiamond>('MarketDiamond')
     console.log("MarketFacet", MarketFacet.target)
     const { deployer } = await getNamedAccounts()
     const deployerSigner = await ethers.getSigner(deployer)

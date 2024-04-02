@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction, DeploymentsExtension } from 'hardhat-deploy/types'
 import { ethers } from 'hardhat'
-import { AccessManagedFacet, MarketFacet } from '../typechain-types'
+import { MarketDiamond } from '../typechain-types'
 import { BaseContract } from 'ethers'
 import { waitFor } from '../utils/wait'
 
@@ -21,8 +21,8 @@ async function setAccessManagerAddress(deployments: DeploymentsExtension, deploy
 
     // set AccessManager address in MarketDiamond
     const accessManagerAddress = (await deployments.get('BlexAccessManager')).address
-    const marketDiamondAccessManagedFacet = await ethers.getContract<AccessManagedFacet>('MarketDiamond')
-    const deployerDeployments = await setupUser(deployer, { MarketDiamond: marketDiamondAccessManagedFacet })
+    const marketDiamond = await ethers.getContract<MarketDiamond>('MarketDiamond')
+    const deployerDeployments = await setupUser(deployer, { MarketDiamond: marketDiamond })
     const authority = await deployerDeployments.MarketDiamond.authority()
     console.log('authority', authority)
     if (authority === ethers.ZeroAddress) {
