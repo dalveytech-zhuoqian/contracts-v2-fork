@@ -28,6 +28,7 @@ import {MarketHandler} from "../lib/market/MarketHandler.sol";
 import {OrderHandler} from "../lib/order/OrderHandler.sol";
 import {PositionFacetBase} from "./PositionFacetBase.sol";
 import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
+import {PositionStorage} from "../lib/position/PositionStorage.sol";
 
 contract PositionSubFacet is IAccessManaged, PositionFacetBase {
     using Order for Order.Props;
@@ -52,7 +53,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         require(_params.isOpen == false, "PositionSubMgr:invalid isOpen");
         uint256 oraclePrice;
         Position.Props memory _position =
-            _positionFacet().getPosition(_params.market, order.account, oraclePrice, _params.isLong);
+            PositionStorage.getPosition(_params.market, order.account, oraclePrice, _params.isLong);
         (int256[] memory fees, int256 totalFee) = _feeFacet().getFees(abi.encode(_params, _position));
         MarketHandler.validateLiquidation(_params.market, totalFee, fees[uint8(FeeType.T.LiqFee)], true);
         decreasePositionFromOrder(order, _params);
@@ -75,7 +76,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         _params.oraclePrice = _getClosePrice(_params.market, _params.isLong);
 
         Position.Props memory _position =
-            _positionFacet().getPosition(_params.market, order.account, _params.oraclePrice, _params.isLong);
+            PositionStorage.getPosition(_params.market, order.account, _params.oraclePrice, _params.isLong);
 
         if (order.size > 0) {
             _params.collateralDelta = PositionSubMgrLib.getDecreaseDeltaCollateral(

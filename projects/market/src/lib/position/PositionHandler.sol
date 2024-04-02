@@ -6,6 +6,7 @@ import "../utils/EnumerableValues.sol";
 import {Position} from "./../types/PositionStruct.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {PositionStorage} from "./PositionStorage.sol";
 
 library PositionHandler {
     using Position for Position.Props;
@@ -16,55 +17,8 @@ library PositionHandler {
     using SafeCast for int128;
     using SafeCast for uint128;
 
-    bytes32 constant POS_STORAGE_POSITION = keccak256("blex.position.storage");
-
-    struct PositionStorage {
-        // save user position, address -> position
-        mapping(bytes32 => mapping(address => Position.Props)) positions;
-        // set of position address
-        mapping(bytes32 => EnumerableSet.AddressSet) positionKeys;
-        // global position
-        mapping(bytes32 => Position.Props) globalPositions;
-    }
-
     event UpdatePosition(address indexed account, uint256 size, uint256 collateral);
     event RemovePosition(address indexed account, uint256 size, uint256 collateral);
-
-    function Storage() internal pure returns (PositionStorage storage fs) {
-        bytes32 position = POS_STORAGE_POSITION;
-        assembly {
-            fs.slot := position
-        }
-    }
-
-    function getPosition(address account, uint16 market, uint256 oraclePrice, bool isLong)
-        internal
-        view
-        returns (Position.Props memory)
-    {
-        //todo
-        return Storage().positions[storageKey(market, isLong)][account];
-    }
-
-    function getMarketSizes(uint16 market) internal view returns (uint256 globalSizeLong, uint256 globalSizeShort) {
-        PositionStorage storage ps = Storage();
-        globalSizeLong = ps.globalPositions[storageKey(market, true)].size;
-        globalSizeShort = ps.globalPositions[storageKey(market, false)].size;
-    }
-
-    function getAccountSize(uint16 market, address account)
-        internal
-        view
-        returns (uint256 sizeLong, uint256 sizeShort)
-    {
-        PositionStorage storage ps = Storage();
-        sizeLong = ps.positions[storageKey(market, true)][account].size;
-        sizeShort = ps.positions[storageKey(market, false)][account].size;
-    }
-
-    function storageKey(uint16 market, bool isLong) internal pure returns (bytes32 orderKey) {
-        return bytes32(abi.encodePacked(isLong, market));
-    }
 
     struct Cache {
         uint16 market;
@@ -92,8 +46,8 @@ library PositionHandler {
             cache.isLong
         ) = abi.decode(_data, (uint16, address, int256, uint256, uint256, int256, bool));
         cache.isOpen = true;
-        cache.sk = storageKey(cache.market, cache.isLong);
-        cache.position = Storage().positions[cache.sk][cache.account];
+        cache.sk = PositionStorage.storageKey(cache.market, cache.isLong);
+        cache.position = PositionStorage.Storage().positions[cache.sk][cache.account];
 
         if (cache.position.size == 0) cache.position.averagePrice = uint128(cache.markPrice);
 
@@ -125,8 +79,8 @@ library PositionHandler {
         (cache.market, cache.account, cache.collateralDelta, cache.sizeDelta, cache.fundingRate, cache.isLong) =
             abi.decode(_data, (uint16, address, int256, uint256, int256, bool));
         cache.isOpen = false;
-        cache.sk = storageKey(cache.market, cache.isLong);
-        cache.position = Storage().positions[cache.sk][cache.account];
+        cache.sk = PositionStorage.storageKey(cache.market, cache.isLong);
+        cache.position = PositionStorage.Storage().positions[cache.sk][cache.account];
         require(cache.position.lastTime != uint32(block.timestamp), "pb:same block");
         require(cache.position.isValid(), "positionBook: invalid position");
         if (cache.collateralDelta > 0) {
@@ -151,8 +105,8 @@ library PositionHandler {
         (cache.market, cache.account, cache.markPrice, cache.isLong) =
             abi.decode(_data, (uint16, address, uint256, bool));
         cache.isOpen = false;
-        cache.sk = storageKey(cache.market, cache.isLong);
-        cache.position = Storage().positions[cache.sk][cache.account];
+        cache.sk = PositionStorage.storageKey(cache.market, cache.isLong);
+        cache.position = PositionStorage.Storage().positions[cache.sk][cache.account];
         require(cache.position.isExist(), "positionBook: position does not exist");
 
         if (cache.markPrice != 0) {
@@ -167,55 +121,11 @@ library PositionHandler {
     }
 
     // =====================================================
-    //           view only
+    //           private only
     // =====================================================
-    function getPNL(Position.Props memory _position, uint256 sizeDelta, uint256 markPrice)
-        internal
-        pure
-        returns (int256)
-    {
-        if (_position.size == 0) {
-            return 0;
-        }
-
-        (bool _hasProfit, uint256 _pnl) = Position.getPNL(_position, markPrice);
-        if (sizeDelta != 0) {
-            _pnl = (sizeDelta * _pnl) / _position.size;
-        }
-
-        return _hasProfit ? int256(_pnl) : -int256(_pnl);
-    }
-
-    function getMarketPNL(uint16 market, uint256 longPrice, uint256 shortPrice) internal view returns (int256) {
-        int256 _totalPNL = _getMarketPNL(market, longPrice, true);
-        _totalPNL += _getMarketPNL(market, shortPrice, false);
-        return _totalPNL;
-    }
-
-    function _getMarketPNL(uint16 market, uint256 markPrice, bool isLong) private view returns (int256) {
-        Position.Props memory _position = _getGlobalPosition(storageKey(market, isLong));
-        if (_position.size == 0) {
-            return 0;
-        }
-
-        (bool _hasProfit, uint256 _pnl) = _getPNL(_position, markPrice);
-        return _hasProfit ? int256(_pnl) : -int256(_pnl);
-    }
-
-    function _getPNL(Position.Props memory position, uint256 markPrice)
-        private
-        pure
-        returns (bool _hasProfit, uint256 _realisedPnl)
-    {
-        (_hasProfit, _realisedPnl) = position.getPNL(markPrice);
-    }
-
-    function _getGlobalPosition(bytes32 sk) private view returns (Position.Props memory _position) {
-        _position = Storage().globalPositions[sk];
-    }
 
     function _calGlobalPosition(Cache memory cache) private view returns (Position.Props memory) {
-        Position.Props memory _position = Storage().globalPositions[cache.sk];
+        Position.Props memory _position = PositionStorage.Storage().globalPositions[cache.sk];
         if (cache.isOpen) {
             uint256 _averagePrice = _getGlobalAveragePrice(_position, cache.sizeDelta, cache.markPrice);
             require(_averagePrice > 100, "pb:invalid global position");
@@ -252,18 +162,18 @@ library PositionHandler {
 
     function set(Cache memory cache) private {
         cache.globalPosition = _calGlobalPosition(cache);
-        Storage().positions[cache.sk][cache.account] = cache.position;
-        Storage().globalPositions[cache.sk] = cache.globalPosition;
-        Storage().positionKeys[cache.sk].add(cache.account);
+        PositionStorage.Storage().positions[cache.sk][cache.account] = cache.position;
+        PositionStorage.Storage().globalPositions[cache.sk] = cache.globalPosition;
+        PositionStorage.Storage().positionKeys[cache.sk].add(cache.account);
         emit UpdatePosition(cache.account, cache.position.size, cache.position.collateral);
     }
 
     function remove(Cache memory cache) private {
-        bool has = Storage().positionKeys[cache.sk].contains(cache.account);
+        bool has = PositionStorage.Storage().positionKeys[cache.sk].contains(cache.account);
         require(has, "position does not exist");
-        Storage().globalPositions[cache.sk] = cache.globalPosition;
-        delete Storage().positions[cache.sk][cache.account];
-        Storage().positionKeys[cache.sk].remove(cache.account);
+        PositionStorage.Storage().globalPositions[cache.sk] = cache.globalPosition;
+        delete PositionStorage.Storage().positions[cache.sk][cache.account];
+        PositionStorage.Storage().positionKeys[cache.sk].remove(cache.account);
         emit RemovePosition(cache.account, cache.position.size, cache.position.collateral);
     }
 }

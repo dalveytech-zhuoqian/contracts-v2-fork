@@ -1,11 +1,17 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+import "../lib/utils/EnumerableValues.sol";
+import {Position} from "../lib/types/PositionStruct.sol";
+
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 //================================================================
 //handlers
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
+import {PositionStorage} from "../lib/position/PositionStorage.sol";
+import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
+
 //================================================================
 //interfaces
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
@@ -16,6 +22,9 @@ import {IMarketInternal} from "../interfaces/IMarketInternal.sol";
 
 contract MarketFacet is IAccessManaged, IMarketInternal {
     using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableValues for EnumerableSet.AddressSet;
+    using EnumerableValues for EnumerableSet.UintSet;
 
     using SafeERC20 for IERC20Metadata;
 
@@ -98,6 +107,40 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
     //================================================================
     // view only
     //================================================================
+    function isLiquidate(uint16 market, address account, bool isLong) external view {
+        // LibMarketValid.validateLiquidation(market, pnl, fees, liquidateFee, collateral, size, raise);
+    }
+
+    function markeConfig(uint16 market) external view returns (MarketHandler.Props memory _config) {
+        _config = MarketHandler.Storage().config[market];
+    }
+
+    function getGlobalPnl(address vault) public view returns (int256) {
+        EnumerableSet.UintSet storage marketIds = MarketHandler.Storage().marketIds[vault];
+        uint256[] memory _markets = marketIds.values();
+        int256 pnl = 0;
+        for (uint256 i = 0; i < _markets.length; i++) {
+            uint16 market = uint16(_markets[i]);
+            pnl = pnl
+                + PositionStorage.getMarketPNL(
+                    market, OracleHandler.getPrice(market, true), OracleHandler.getPrice(market, false)
+                );
+        }
+        return pnl;
+    }
+
+    function availableLiquidity(address market, address account, bool isLong) external view returns (uint256) {
+        // todo for front end
+    }
+
+    function getMarket(uint16 market) external view returns (bytes memory result) {}
+
+    function getMarkets() external view returns (bytes memory result) {}
+
+    function getGlobalOpenInterest(uint16 market) public view returns (uint256 _globalSize) {
+        // TODO
+        // return MarketHandler.getGlobalOpenInterest(market);
+    }
 
     function formatCollateral(uint256 amount, uint8 collateralTokenDigits) public pure override returns (uint256) {
         return (amount * (10 ** uint256(collateralTokenDigits))) / (10 ** usdDecimals);

@@ -9,7 +9,8 @@ import {IMarketInternal} from "../interfaces/IMarketInternal.sol";
 import {IPositionFacet} from "../interfaces/IPositionFacet.sol";
 import {IVault} from "../interfaces/IVault.sol";
 //================================================
-import {PositionHandler} from "../lib/position/PositionHandler.sol";
+// handlers
+import {PositionStorage} from "../lib/position/PositionStorage.sol";
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
 
 abstract contract PositionFacetBase {
@@ -34,7 +35,7 @@ abstract contract PositionFacetBase {
     }
 
     function _updateCumulativeFundingRate(uint16 market) internal {
-        (uint256 _longSize, uint256 _shortSize) = PositionHandler.getMarketSizes(market);
+        (uint256 _longSize, uint256 _shortSize) = PositionStorage.getMarketSizes(market);
         _feeFacet().updateCumulativeFundingRate(market, _longSize, _shortSize); //1
     }
 }
