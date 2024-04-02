@@ -7,6 +7,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployer } = await getNamedAccounts()
     await deploy('MockVault', {
         from: deployer,
+        proxy: true,
         log: true,
         autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     })
