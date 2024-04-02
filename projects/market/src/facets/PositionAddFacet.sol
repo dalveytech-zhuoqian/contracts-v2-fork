@@ -134,16 +134,15 @@ contract PositionAddFacet is IAccessManaged {
         GDataTypes.ValidParams memory params;
         params.market = _inputs.market;
         params.isLong = _inputs.isLong;
-        // params.sizeDelta = _inputs.sizeDelta;
+        params.sizeDelta = _inputs.sizeDelta;
 
-        // (params.globalLongSizes, params.globalShortSizes) = getGlobalSize();
-        // (params.userLongSizes, params.userShortSizes) = getAccountSizeOfMarkets(params.market, _inputs.account);
-        // (params.marketLongSizes, params.marketShortSizes) = PositionHandler.getMarketSizes(params.market);
-        // address _collateralToken = MarketHandler.collateralToken(_inputs.market);
-        // address vault = MarketHandler.Storage().vault[_inputs.market];
-        // params.aum = TransferHelper.parseVaultAsset(IVault(vault).getAUM(), IERC20Metadata(_collateralToken).decimals());
-
-        // require(GValidHandler.isIncreasePosition(params), "mr:gv");
+        (params.globalLongSizes, params.globalShortSizes) = getGlobalSize(_inputs.market);
+        (params.userLongSizes, params.userShortSizes) = getAccountSizeOfMarkets(params.market, _inputs.account);
+        (params.marketLongSizes, params.marketShortSizes) = PositionHandler.getMarketSizes(params.market);
+        address _collateralToken = MarketHandler.collateralToken(_inputs.market);
+        address vault = MarketHandler.Storage().vault[_inputs.market];
+        params.aum = _marketFacet().parseVaultAsset(IVault(vault).getAUM(), IERC20Metadata(_collateralToken).decimals());
+        require(GValidHandler.isIncreasePosition(params), "mr:gv");
     }
 
     function increasePositionWithOrders(MarketDataTypes.Cache memory _inputs) public {
@@ -162,8 +161,6 @@ contract PositionAddFacet is IAccessManaged {
             _inputs.account, _inputs.market, _inputs.sizeDelta == 0 ? 0 : _inputs.oraclePrice, _inputs.isLong
         );
 
-        //
-        //int256 collateralChanged =
         int256 collateralChanged = _increasePosition(_inputs, _position);
         if (collateralChanged < 0) collateralChanged = 0;
 
