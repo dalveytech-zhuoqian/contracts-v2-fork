@@ -3,6 +3,7 @@ import { DeployFunction, DeploymentsExtension } from 'hardhat-deploy/types'
 import { ethers } from 'hardhat'
 import { AccessManagedFacet, MarketFacet } from '../typechain-types'
 import { BaseContract } from 'ethers'
+import { waitFor } from '../utils/wait'
 
 async function setupUser<T extends { [contractName: string]: BaseContract }>(
     address: string,
@@ -25,7 +26,7 @@ async function setAccessManagerAddress(deployments: DeploymentsExtension, deploy
     const authority = await deployerDeployments.MarketDiamond.authority()
     console.log('authority', authority)
     if (authority === ethers.ZeroAddress) {
-        await deployerDeployments.MarketDiamond.setAuthority(accessManagerAddress)
+        await waitFor(deployerDeployments.MarketDiamond.setAuthority(accessManagerAddress))
         console.log('authority set to', accessManagerAddress)
     } else {
         console.log('WARNING: authority already set to', authority)

@@ -11,9 +11,11 @@ async function waitFor<T>(p: Promise<{ wait: () => Promise<T> }>): Promise<T> {
 
 async function main() {
     const MarketFacet = await ethers.getContract<MarketFacet>('MarketDiamond')
+    console.log("MarketFacet", MarketFacet.target)
     const { deployer } = await getNamedAccounts()
     const deployerSigner = await ethers.getSigner(deployer)
-    await waitFor(MarketFacet.connect(deployerSigner).addMarket("")) // todo
+    console.log("add market")
+    //await waitFor(MarketFacet.connect(deployerSigner).addMarket("")) // todo
 }
 
 main()

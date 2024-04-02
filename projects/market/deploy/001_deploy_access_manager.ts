@@ -2,6 +2,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
 import { BaseContract } from 'ethers'
 import { BlexAccessManager } from '../typechain-types'
+import { waitFor } from '../utils/wait'
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	const { deployments, getNamedAccounts, ethers } = hre
@@ -27,11 +28,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	const BlexAccessManager = await ethers.getContract<BlexAccessManager>('BlexAccessManager')
 	const deployerSigner = await ethers.getSigner(deployer)
-	await BlexAccessManager.connect(deployerSigner).grantRole(
+	await waitFor(BlexAccessManager.connect(deployerSigner).grantRole(
 		1,
 		deployer,
 		0
-	)
+	))
 
 }
 export default func
