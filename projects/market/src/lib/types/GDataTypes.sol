@@ -3,7 +3,9 @@ pragma solidity ^0.8.20;
 
 library GDataTypes {
     struct ValidParams {
+        uint16 market;
         uint256 sizeDelta;
+        bool isLong;
         uint256 globalLongSizes;
         uint256 globalShortSizes;
         uint256 userLongSizes;
@@ -11,7 +13,5 @@ library GDataTypes {
         uint256 marketLongSizes;
         uint256 marketShortSizes;
         uint256 aum;
-        bool isLong;
-        uint16 market;
     }
 }
