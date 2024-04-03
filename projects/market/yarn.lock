@@ -532,6 +532,13 @@
     debug "^4.1.1"
     lodash.isequal "^4.5.0"
 
+"@nomicfoundation/hardhat-foundry@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.npmmirror.com/@nomicfoundation/hardhat-foundry/-/hardhat-foundry-1.1.1.tgz"
+  integrity sha512-cXGCBHAiXas9Pg9MhMOpBVQCkWRYoRFG7GJJAph+sdQsfd22iRs5U5Vs9XmpGEQd1yEvYISQZMeE68Nxj65iUQ==
+  dependencies:
+    chalk "^2.4.2"
+
 "@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.1":
   version "0.1.1"
   resolved "https://registry.npmmirror.com/@nomicfoundation/solidity-analyzer-darwin-arm64/-/solidity-analyzer-darwin-arm64-0.1.1.tgz"
@@ -2248,7 +2255,7 @@ hardhat-gas-reporter@^1.0.9:
     eth-gas-reporter "^0.2.25"
     sha1 "^1.1.1"
 
-hardhat@^2.0.0, hardhat@^2.0.2, hardhat@^2.11.0, hardhat@^2.16.0, hardhat@^2.9.4, hardhat@^2.9.9:
+hardhat@^2.0.0, hardhat@^2.0.2, hardhat@^2.11.0, hardhat@^2.16.0, hardhat@^2.17.2, hardhat@^2.9.4, hardhat@^2.9.9:
   version "2.22.2"
   resolved "https://registry.npmmirror.com/hardhat/-/hardhat-2.22.2.tgz"
   integrity sha512-0xZ7MdCZ5sJem4MrvpQWLR3R3zGDoHw5lsR+pBFimqwagimIOn3bWuZv69KA+veXClwI1s/zpqgwPwiFrd4Dxw==

@@ -52,6 +52,7 @@
     "tenderly:push": "node ./_scripts.js tenderly:push"
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-foundry": "^1.1.1",
     "@openzeppelin/contracts-upgradeable": "^5.0.2"
   }
 }

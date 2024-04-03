@@ -1,16 +1,34 @@
-# Boilerplate for ethereum solidity smart contract development
+# Boilerplate for ethereum solidity smart contract
+
+文件夹目录
+
+- artifacts: hardhat 编译后的 abi
+- cache: hardhat 缓存
+- cache_forge: foundry 缓存
+- deploy: deploy scripts for hardhat-deploy
+- deployments: 部署之后生成的地址和 abi, 以及用于验证合约的 metadata
+- etherscan_requests: 以太坊浏览器的 debug 文件
+- lib/forge-std: foundry 标准库
+- node_modules: 依赖包
+- out_forge: foundry 输出的编译 abi(单元测试使用)
+- scripts: 脚本
+- src: 合约源代码
+- test: 功能测试
+- test_forge: 单元测试脚本
+- typechains: typechain 编译生成的 ts 接口兼容文件
+- utils: 框架自带的与部署相关的文件(不要动)
 
 ## INSTALL
 
 ```bash
-yarn
+git submodule update --init --recursive && yarn
 ```
 
 ## TEST
 
 There are 3 flavors of tests: hardhat, dapptools and forge
 
-### hardhat
+### hardhat 功能测试
 
 - One using hardhat that can leverage hardhat-deploy to reuse deployment procedures and named accounts:
 
@@ -18,36 +36,10 @@ There are 3 flavors of tests: hardhat, dapptools and forge
 yarn test
 ```
 
-### [dapptools](https://dapp.tools)
+### forge 单元测试
 
 ```bash
-dapp test
-```
-
-The latter requires additional step to set up your machine:
-
-Install dapptools (Following instruction [here](https://github.com/dapphub/dapptools#installation)):
-
-```bash
-# user must be in sudoers
-curl -L https://nixos.org/nix/install | sh
-
-# Run this or login again to use Nix
-. "$HOME/.nix-profile/etc/profile.d/nix.sh"
-
-curl https://dapp.tools/install | sh
-```
-
-Then install solc with the correct version:
-
-```bash
-nix-env -f https://github.com/dapphub/dapptools/archive/master.tar.gz -iA solc-static-versions.solc_0_8_9
-```
-
-### forge
-
-```bash
-forge test
+forge build && forge test
 ```
 
 This require the installation of forge (see [foundry](https://github.com/gakonst/foundry))
