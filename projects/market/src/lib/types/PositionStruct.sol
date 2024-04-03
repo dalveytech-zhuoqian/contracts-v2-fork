@@ -21,6 +21,7 @@ library Position {
     }
 
     function createPositionFromOrder(Order.Props memory order) internal view returns (Props memory result) {
+        // new added
         result.size = order.size;
         result.collateral = order.collateral;
         result.isLong = order.isLong;

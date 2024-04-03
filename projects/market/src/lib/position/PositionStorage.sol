@@ -58,9 +58,8 @@ library PositionStorage {
         view
         returns (uint256 sizeLong, uint256 sizeShort)
     {
-        StorageStruct storage ps = Storage();
-        sizeLong = ps.positions[storageKey(market, true)][account].size;
-        sizeShort = ps.positions[storageKey(market, false)][account].size;
+        sizeLong = _getPosition(market, account, true).size;
+        sizeShort = _getPosition(market, account, false).size;
     }
 
     function getPositions(uint16 market, address account)
@@ -94,6 +93,10 @@ library PositionStorage {
         return _hasProfit ? int256(_pnl) : -int256(_pnl);
     }
 
+    function getGlobalPosition(uint16 market, bool isLong) internal view returns (Position.Props memory) {
+        return _getGlobalPosition(storageKey(market, isLong));
+    }
+
     function getMarketPNL(uint16 market, uint256 longPrice, uint256 shortPrice) internal view returns (int256) {
         int256 _totalPNL = _getMarketPNL(market, longPrice, true);
         _totalPNL += _getMarketPNL(market, shortPrice, false);
@@ -101,6 +104,7 @@ library PositionStorage {
     }
 
     function _getMarketPNL(uint16 market, uint256 markPrice, bool isLong) private view returns (int256) {
+        // DONE
         Position.Props memory _position = _getGlobalPosition(storageKey(market, isLong));
         if (_position.size == 0) {
             return 0;
@@ -115,9 +119,16 @@ library PositionStorage {
         view
         returns (int256)
     {
-        //todo
         Position.Props memory _position = getPosition(market, account, markPrice, isLong);
         return PositionStorage.getPNL(_position, sizeDelta, markPrice);
+    }
+
+    //==========================================================
+    //    private
+    //==========================================================
+    function _getPosition(uint16 market, address account, bool isLong) internal view returns (Position.Props memory) {
+        // DONE
+        return Storage().positions[storageKey(market, isLong)][account];
     }
 
     function _getPNL(Position.Props memory position, uint256 markPrice)
@@ -125,15 +136,33 @@ library PositionStorage {
         pure
         returns (bool _hasProfit, uint256 _realisedPnl)
     {
-        (_hasProfit, _realisedPnl) = position.getPNL(markPrice);
+        // DONE
+        return position.getPNL(markPrice);
     }
 
     function _getGlobalPosition(bytes32 sk) private view returns (Position.Props memory _position) {
+        // DONE
         _position = Storage().globalPositions[sk];
     }
 
-    function getGlobalPosition(uint16 market, bool isLong) internal view returns (Position.Props memory) {
-        StorageStruct storage ps = Storage();
-        return ps.globalPositions[storageKey(market, isLong)];
+    function _getPositionData(uint16 market, address account, uint256 markPrice, bool isLong)
+        private
+        view
+        returns (Position.Props memory)
+    {
+        // DONE
+        Position.Props memory _position = _getPosition(market, account, isLong);
+
+        if (markPrice == 0) {
+            return _position;
+        }
+
+        if (_position.size != 0) {
+            (bool _hasProfit, uint256 _realisedPnl) = _getPNL(_position, markPrice);
+            int256 _pnl = _hasProfit ? int256(_realisedPnl) : -int256(_realisedPnl);
+            _position.realisedPnl = _pnl;
+        }
+
+        return _position;
     }
 }

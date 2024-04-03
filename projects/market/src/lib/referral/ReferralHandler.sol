@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {MarketPositionCallBackIntl, MarketCallBackIntl} from "../IMarketCallBackIntl.sol";
-import {MarketCbStruct} from "../MarketCbStruct.sol";
+import {ReferralType} from "../types/ReferralType.sol";
 import {FeeType} from "../types/FeeType.sol";
 
 library ReferralHandler {
@@ -128,8 +127,7 @@ library ReferralHandler {
         return owners;
     }
 
-    function updatePositionCallback(bytes memory _data) internal {
-        MarketCbStruct.UpdatePositionEvent memory _event = abi.decode(_data, (MarketCbStruct.UpdatePositionEvent));
+    function updatePositionCallback(ReferralType.UpdatePositionEvent calldata _event) internal {
         (bytes32 referralCode, address referrer) = getTraderReferralInfo(_event.inputs.account);
 
         if (referralCode == bytes32(0)) {

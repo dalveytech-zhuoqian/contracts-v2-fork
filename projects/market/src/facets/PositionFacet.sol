@@ -72,8 +72,15 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
         view
         returns (address[] memory)
     {
+        // DONE
         PositionStorage.StorageStruct storage ps = PositionStorage.Storage();
-        return ps.positionKeys[PositionStorage.storageKey(market, isLong)].valuesAt(start, end);
+        bytes32 k = PositionStorage.storageKey(market, isLong);
+        uint256 len = ps.positionKeys[k].length();
+        if (len == 0) {
+            return new address[](0);
+        }
+        if (end > len) end = len;
+        return ps.positionKeys[k].valuesAt(start, end);
     }
 
     function getPositionCount(uint16 market, bool isLong) external view returns (uint256) {

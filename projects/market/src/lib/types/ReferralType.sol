@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {MarketDataTypes} from "./types/MarketDataTypes.sol";
-import {Position} from "./types/PositionStruct.sol";
-import {Order} from "./types/OrderStruct.sol";
+import {MarketDataTypes} from "./MarketDataTypes.sol";
+import {Position} from "./PositionStruct.sol";
+import {Order} from "./OrderStruct.sol";
 
-library MarketCbStruct {
+library ReferralType {
     struct UpdatePositionEvent {
         MarketDataTypes.Cache inputs;
         Position.Props position;
