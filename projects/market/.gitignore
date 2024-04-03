@@ -19,5 +19,6 @@ package.json
 contractsInfo.json
 deployments/hardhat
 deployments/localhost
-
+out_forge/
+cache_forge/
 /.dapp
