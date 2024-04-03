@@ -9,15 +9,15 @@ import "src/lib/globalvalid/GValidHandler.sol";
 contract GValidHandlerTest is Test {
     function setUp() public {}
 
-    function testSetMaxSizeLimit() public {
-        uint256 testLimit = 16;
+    function testSetMaxSizeLimit(uint256 testLimit) public {
         vm.assume(testLimit > 0);
-        // set should revert if limit is 0
+        vm.assume(testLimit < GValidHandler.BASIS_POINTS_DIVISOR);
         GValidHandler.setMaxSizeLimit(testLimit);
         assertEq(GValidHandler.maxSizeLimit(), testLimit, "not equal");
     }
 
     function testFailSetMaxSizeLimitZero() public {
+        // set should revert if limit is 0
         GValidHandler.setMaxSizeLimit(0);
     }
 }
