@@ -43,11 +43,11 @@ interface IMarket is IMarketExternal, IMarketInternal {
     //================================================================================================
 
     function getOrderByAccount(address account) external view returns (bytes memory returnData);
-    function getByIndex(uint256 index) external view returns (bytes memory returnData);
+    function getOrderByIndex(uint256 index) external view returns (bytes memory returnData);
     function containsKey(bytes32 key) external view returns (bool);
-    function getCount() external view returns (uint256);
-    function getKey(bytes calldata data) external view returns (bytes32);
-    function getKeys(bytes calldata data) external view returns (bytes32[] memory);
+    function getOrderCount() external view returns (uint256);
+    function getKeyByIndex(bytes calldata data) external view returns (bytes32);
+    function getKeysInRange(bytes calldata data) external view returns (bytes32[] memory);
     function getExecutableOrdersByPrice(bytes calldata data) external view returns (bytes memory returnData);
 
     //================================================================================================

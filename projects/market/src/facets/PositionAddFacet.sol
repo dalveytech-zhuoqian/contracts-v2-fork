@@ -198,7 +198,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         if (collateralChanged < 0) collateralChanged = 0;
 
         bool shouldCreateDecreaseOrder = MarketHandler.getDecreaseOrderValidation(
-            _inputs.market, OrderHandler.orderNum(_inputs.market, _inputs.isLong, _inputs.isOpen, _inputs.account)
+            _inputs.market, OrderHandler.getOrderNum(_inputs.market, _inputs.isLong, _inputs.isOpen, _inputs.account)
         );
 
         if (false == shouldCreateDecreaseOrder || _inputs.sizeDelta == 0) {

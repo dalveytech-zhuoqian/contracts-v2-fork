@@ -95,7 +95,7 @@ library OrderHandler { /* is IOrderBook, Ac */
         bytes32 okey = OrderHelper.getKey(_vars.account, _vars.orderId);
         bytes32 sk = OrderHelper.storageKey(_vars.market, _vars.isLong, _vars.isOpen);
         require(containsKey(sk, okey), "OrderBook:invalid orderKey");
-        _order = orders(sk, okey);
+        _order = getOrders(sk, okey);
         require(_order.version == Order.STRUCT_VERSION, "OrderBook:wrong version"); // ，
         _order.price = _vars.price;
 
@@ -169,11 +169,11 @@ library OrderHandler { /* is IOrderBook, Ac */
     //===============================================================
     // view only
     //===============================================================
-    function orders(bytes32 storageKey, bytes32 orderKey) internal view returns (Order.Props memory _orders) {
-        return Storage().orders[storageKey][orderKey];
+    function containsKey(bytes32 sk, bytes32 key) internal view returns (bool) {
+        return Storage().orderKeys[sk].contains(key);
     }
 
-    function getByIndex(uint16 market, bool isLong, bool isIncrease, uint256 index)
+    function getOrderByIndex(uint16 market, bool isLong, bool isIncrease, uint256 index)
         internal
         view
         returns (Order.Props memory)
@@ -183,25 +183,33 @@ library OrderHandler { /* is IOrderBook, Ac */
         return Storage().orders[sk][key];
     }
 
-    function containsKey(bytes32 sk, bytes32 key) internal view returns (bool) {
-        return Storage().orderKeys[sk].contains(key);
-    }
-
-    function getCount(uint16 market, bool isLong, bool isIncrease) internal view returns (uint256) {
+    function getOrderCount(uint16 market, bool isLong, bool isIncrease) internal view returns (uint256) {
         bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
         return Storage().orderKeys[sk].length();
     }
 
-    function getKey(uint16 market, bool isLong, bool isIncrease, uint256 _index) internal view returns (bytes32) {
+    function getKeyByIndex(uint16 market, bool isLong, bool isIncrease, uint256 _index)
+        internal
+        view
+        returns (bytes32)
+    {
         bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
         return Storage().orderKeys[sk].at(_index);
     }
 
-    function getKeys(bytes32 sk, uint256 start, uint256 end) internal view returns (bytes32[] memory) {
+    function getKeysInRange(bytes32 sk, uint256 start, uint256 end) internal view returns (bytes32[] memory) {
         return Storage().orderKeys[sk].valuesAt(start, end);
     }
 
-    function orderNum(uint16 market, bool isLong, bool isIncrease, address account) internal view returns (uint256) {
+    function getOrders(bytes32 storageKey, bytes32 orderKey) internal view returns (Order.Props memory _orders) {
+        return Storage().orders[storageKey][orderKey];
+    }
+
+    function getOrderNum(uint16 market, bool isLong, bool isIncrease, address account)
+        internal
+        view
+        returns (uint256)
+    {
         bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
         return Storage().orderNum[sk][account];
     }

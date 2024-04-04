@@ -30,12 +30,12 @@ library OrderFinder {
             abi.decode(_data, (uint16, bool, bool, uint256, uint256, bool, uint256));
         cache.storageKey = OrderHelper.storageKey(cache.market, cache.isLong, cache.isIncrease);
         require(cache.oraclePrice > 0, "oraclePrice zero");
-        bytes32[] memory keys = OrderHandler.getKeys(cache.storageKey, cache.start, cache.end);
+        bytes32[] memory keys = OrderHandler.getKeysInRange(cache.storageKey, cache.start, cache.end);
         uint256 _listCount;
         uint256 _len = keys.length;
         for (uint256 index; index < _len;) {
             bytes32 key = keys[index];
-            Order.Props memory _open = OrderHandler.orders(cache.storageKey, key);
+            Order.Props memory _open = OrderHandler.getOrders(cache.storageKey, key);
             if ((_open.isMarkPriceValid(cache.oraclePrice) && key != bytes32(0)) || _open.isFromMarket) {
                 unchecked {
                     ++_listCount;
@@ -50,7 +50,7 @@ library OrderFinder {
         uint256 _orderKeysIdx;
         for (uint256 index; index < _len;) {
             bytes32 key = keys[index];
-            Order.Props memory _open = OrderHandler.orders(cache.storageKey, key);
+            Order.Props memory _open = OrderHandler.getOrders(cache.storageKey, key);
             if ((_open.isMarkPriceValid(cache.oraclePrice) && key != bytes32(0)) || _open.isFromMarket) {
                 _orders[_orderKeysIdx] = _open;
                 unchecked {
