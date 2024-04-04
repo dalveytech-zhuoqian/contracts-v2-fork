@@ -122,7 +122,7 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
         for (uint256 i = 0; i < _markets.length; i++) {
             uint16 market = uint16(_markets[i]);
             pnl = pnl
-                + PositionStorage.getMarketPNL(
+                + PositionStorage.getMarketPNLInBoth(
                     market, OracleHandler.getPrice(market, true), OracleHandler.getPrice(market, false)
                 );
         }

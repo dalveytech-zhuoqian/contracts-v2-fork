@@ -35,7 +35,7 @@ abstract contract PositionFacetBase {
     }
 
     function _updateCumulativeFundingRate(uint16 market) internal {
-        (uint256 _longSize, uint256 _shortSize) = PositionStorage.getMarketSizes(market);
+        (uint256 _longSize, uint256 _shortSize) = PositionStorage.getMarketSizesForBothDirections(market);
         _feeFacet().updateCumulativeFundingRate(market, _longSize, _shortSize); //1
     }
 }

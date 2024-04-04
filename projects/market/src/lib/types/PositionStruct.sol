@@ -48,11 +48,11 @@ library Position {
         return (markPrice * _size) / _netSize;
     }
 
-    function getLeverage(Props memory position) internal pure returns (uint256) {
+    function calLeverage(Props memory position) internal pure returns (uint256) {
         return position.size / position.collateral;
     }
 
-    function getPNL(Props memory position, uint256 price) internal pure returns (bool, uint256) {
+    function calPNL(Props memory position, uint256 price) internal pure returns (bool, uint256) {
         uint256 _priceDelta =
             position.averagePrice > price ? position.averagePrice - price : price - position.averagePrice;
         uint256 _pnl = (position.size * _priceDelta) / position.averagePrice;

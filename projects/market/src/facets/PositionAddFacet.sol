@@ -52,7 +52,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     function getGlobalSize(uint16 market) public view returns (uint256 sizesLong, uint256 sizesShort) {
         uint256[] memory ids = getMarketsOfMarket(market);
         for (uint256 i = 0; i < ids.length; i++) {
-            (uint256 l, uint256 s) = PositionStorage.getMarketSizes(uint16(ids[i]));
+            (uint256 l, uint256 s) = PositionStorage.getMarketSizesForBothDirections(uint16(ids[i]));
             sizesLong += l;
             sizesShort += s;
         }
@@ -65,7 +65,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     {
         uint256[] memory ids = getMarketsOfMarket(market);
         for (uint256 i = 0; i < ids.length; i++) {
-            (uint256 l, uint256 s) = PositionStorage.getAccountSize(uint16(ids[i]), account);
+            (uint256 l, uint256 s) = PositionStorage.getAccountSizesForBothDirections(uint16(ids[i]), account);
             sizesL += l;
             sizesS += s;
         }
@@ -112,7 +112,8 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
 
         (params.globalLongSizes, params.globalShortSizes) = getGlobalSize(_inputs.market);
         (params.userLongSizes, params.userShortSizes) = getAccountSizeOfMarkets(params.market, _inputs.account);
-        (params.marketLongSizes, params.marketShortSizes) = PositionStorage.getMarketSizes(params.market);
+        (params.marketLongSizes, params.marketShortSizes) =
+            PositionStorage.getMarketSizesForBothDirections(params.market);
         address _collateralToken = MarketHandler.collateralToken(_inputs.market);
         params.aum = _marketFacet().parseVaultAsset(
             MarketVaultLib.getAum(_inputs.market), IERC20Metadata(_collateralToken).decimals()
