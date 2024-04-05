@@ -24,7 +24,6 @@ async function setAccessManagerAddress(deployments: DeploymentsExtension, deploy
     const marketDiamond = await ethers.getContract<MarketDiamond>('MarketDiamond')
     const deployerDeployments = await setupUser(deployer, { MarketDiamond: marketDiamond })
     const authority = await deployerDeployments.MarketDiamond.authority()
-    console.log('authority', authority)
     if (authority === ethers.ZeroAddress) {
         await waitFor(deployerDeployments.MarketDiamond.setAuthority(accessManagerAddress))
         console.log('authority set to', accessManagerAddress)
@@ -43,13 +42,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         facets: [
             "MarketFacet",
             "AccessManagedFacet",
-            // "FeeFacet",
-            // "OracleFacet",
-            // "OrderFacet",
+            "DiamondEtherscanFacet",
+            "OracleFacet",
+            "OrderFacet",
             "PositionAddFacet",
             "PositionSubFacet",
-            // "ReferralFacet",
-            // "MarketReaderFacet"
+            "ReferralFacet",
+            // "FeeFacet",
         ], // will prepend TestDiamond_facet_ to each facet name
         log: true,
         autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
