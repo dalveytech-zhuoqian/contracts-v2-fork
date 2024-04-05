@@ -2,16 +2,13 @@
 pragma solidity ^0.8.17;
 pragma abicoder v2;
 
-import {Position} from "../types/PositionStruct.sol";
-import {MarketDataTypes} from "../types/MarketDataTypes.sol";
-import {FeeType} from "../types/FeeType.sol";
+import "../types/Types.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 
 library PositionSubMgrLib {
     using SafeCast for int256;
     using SafeCast for uint256;
-    using MarketDataTypes for int256[];
 
     error TotalFeesLtZero();
 
@@ -25,13 +22,13 @@ library PositionSubMgrLib {
         pure
         returns (int256 withdrawFromFeeVault, int256[] memory afterFees)
     {
-        int256 fundFee = _originFees[uint8(FeeType.T.FundFee)];
+        int256 fundFee = _originFees[uint8(FeeType.FundFee)];
         if (fundFee >= 0) return (0, _originFees);
         afterFees = new int256[](_originFees.length);
         for (uint256 i = 0; i < _originFees.length; i++) {
             afterFees[i] = _originFees[i];
         }
-        afterFees[uint8(FeeType.T.FundFee)] = 0;
+        afterFees[uint8(FeeType.FundFee)] = 0;
         return (-fundFee, afterFees);
     }
 
@@ -42,7 +39,7 @@ library PositionSubMgrLib {
      * @param fees 原始费用数据
      */
     function calculateTransToFeeVault(
-        Position.Props memory _position, // 仓位属性
+        PositionProps memory _position, // 仓位属性
         int256 dPNL, // 盈亏
         int256 fees // 手续费
     ) internal pure returns (int256 transferToFeeVaultAmount) {
@@ -57,8 +54,8 @@ library PositionSubMgrLib {
     }
 
     function calculateTransToUser(
-        MarketDataTypes.Cache memory _params, // 定义更新仓位所需的参数
-        Position.Props memory _position, // 定义当前仓位的属性
+        MarketCache memory _params, // 定义更新仓位所需的参数
+        PositionProps memory _position, // 定义当前仓位的属性
         int256 dPNL, // 变动盈亏
         int256 fees // 手续费
     ) internal pure returns (int256) {
@@ -79,8 +76,8 @@ library PositionSubMgrLib {
     }
 
     function calculateNewCollateral(
-        MarketDataTypes.Cache memory _params,
-        Position.Props memory _position,
+        MarketCache memory _params,
+        PositionProps memory _position,
         int256 dPNL,
         int256 fees
     ) internal pure returns (uint256) {
@@ -106,8 +103,8 @@ library PositionSubMgrLib {
         int256 pnl, // 盈亏金额
         int256[] memory fs // 手续费数组
     ) internal pure returns (uint256 fundFeeLoss) {
-        int256 fFee = fs[uint8(FeeType.T.FundFee)]; // 资金费用
-        int256 remain = -fs[uint8(FeeType.T.CloseFee)] + coll + pnl; // 剩余资金
+        int256 fFee = fs[uint8(FeeType.FundFee)]; // 资金费用
+        int256 remain = -fs[uint8(FeeType.CloseFee)] + coll + pnl; // 剩余资金
         if (fFee > 0 && fFee > remain) {
             return uint256(fFee - SignedMath.max(remain, 0));
         } // 计算资金费用亏损
@@ -129,8 +126,8 @@ library PositionSubMgrLib {
     }
 
     function calDecreaseTransactionValues(
-        MarketDataTypes.Cache memory _params,
-        Position.Props memory _position,
+        MarketCache memory _params,
+        PositionProps memory _position,
         int256 dPNL,
         int256[] memory _originFees
     ) internal pure returns (DecreaseTransactionOuts memory outs) {
@@ -169,8 +166,8 @@ library PositionSubMgrLib {
     }
 
     function isClearPos(
-        MarketDataTypes.Cache memory _params, // 定义更新仓位所需的参数
-        Position.Props memory _position // 定义当前仓位的属性
+        MarketCache memory _params, // 定义更新仓位所需的参数
+        PositionProps memory _position // 定义当前仓位的属性
     ) internal pure returns (bool) {
         return (_params.liqState != 1 || _params.liqState != 2) && _params.sizeDelta != _position.size;
     }

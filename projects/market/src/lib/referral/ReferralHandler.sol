@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ReferralType} from "../types/ReferralType.sol";
-import {FeeType} from "../types/FeeType.sol";
+import {FeeType} from "../types/Types.sol";
 
 library ReferralHandler {
     bytes32 constant STORAGE_POSITION = keccak256("blex.referral.storage");
@@ -141,7 +141,7 @@ library ReferralHandler {
             emit IncreasePositionReferral(
                 _event.inputs.account,
                 _event.inputs.sizeDelta,
-                uint256(_event.fees[uint8(FeeType.T.OpenFee)]),
+                uint256(_event.fees[uint8(FeeType.OpenFee)]),
                 referralCode,
                 referrer
             );
@@ -149,7 +149,7 @@ library ReferralHandler {
             emit DecreasePositionReferral(
                 _event.inputs.account,
                 _event.inputs.sizeDelta,
-                uint256(_event.fees[uint8(FeeType.T.CloseFee)]),
+                uint256(_event.fees[uint8(FeeType.CloseFee)]),
                 referralCode,
                 referrer
             );

@@ -2,8 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "../lib/utils/EnumerableValues.sol";
-import {Position} from "../lib/types/PositionStruct.sol";
-
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 //================================================================
@@ -61,7 +59,7 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
     // ADMIN
     //================================================================
 
-    function setConf(uint16 market, MarketHandler.Props memory data) external restricted {
+    function setMarketConf(uint16 market, MarketHandler.Props memory data) external restricted {
         // //TODO 查一下当前 market balance
         MarketHandler.Storage().config[market] = data;
     }

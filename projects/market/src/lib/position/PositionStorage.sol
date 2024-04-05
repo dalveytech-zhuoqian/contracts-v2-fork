@@ -3,12 +3,26 @@ pragma solidity ^0.8.20;
 pragma abicoder v2;
 
 import "../utils/EnumerableValues.sol";
-import {Position} from "./../types/PositionStruct.sol";
+import "./../types/PositionStruct.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
+struct PositionCache {
+    uint16 market;
+    address account;
+    int256 collateralDelta;
+    uint256 sizeDelta;
+    uint256 markPrice;
+    int256 fundingRate;
+    bool isLong;
+    bool isOpen;
+    bytes32 sk;
+    PositionProps position;
+    PositionProps globalPosition;
+}
+
 library PositionStorage {
-    using Position for Position.Props;
+    using Position for PositionProps;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableValues for EnumerableSet.AddressSet;
     using SafeCast for uint256;
@@ -23,25 +37,11 @@ library PositionStorage {
 
     struct StorageStruct {
         // save user position, address -> position
-        mapping(bytes32 => mapping(address => Position.Props)) positions;
+        mapping(bytes32 => mapping(address => PositionProps)) positions;
         // set of position address
         mapping(bytes32 => EnumerableSet.AddressSet) positionKeys;
         // global position
-        mapping(bytes32 => Position.Props) globalPositions;
-    }
-
-    struct Cache {
-        uint16 market;
-        address account;
-        int256 collateralDelta;
-        uint256 sizeDelta;
-        uint256 markPrice;
-        int256 fundingRate;
-        bool isLong;
-        bool isOpen;
-        bytes32 sk;
-        Position.Props position;
-        Position.Props globalPosition;
+        mapping(bytes32 => PositionProps) globalPositions;
     }
 
     function Storage() internal pure returns (StorageStruct storage fs) {
@@ -59,14 +59,14 @@ library PositionStorage {
     //           write
     // =====================================================
 
-    function set(Cache memory cache) internal {
+    function set(PositionCache memory cache) internal {
         Storage().positions[cache.sk][cache.account] = cache.position;
         Storage().globalPositions[cache.sk] = cache.globalPosition;
         Storage().positionKeys[cache.sk].add(cache.account);
         emit UpdatePosition(cache.account, cache.position.size, cache.position.collateral);
     }
 
-    function remove(Cache memory cache) internal {
+    function remove(PositionCache memory cache) internal {
         bool has = Storage().positionKeys[cache.sk].contains(cache.account);
         require(has, "position does not exist");
         Storage().globalPositions[cache.sk] = cache.globalPosition;
@@ -87,7 +87,7 @@ library PositionStorage {
         sizeShort = _getPosition(market, account, false).size;
     }
 
-    function getGlobalPosition(uint16 market, bool isLong) internal view returns (Position.Props memory) {
+    function getGlobalPosition(uint16 market, bool isLong) internal view returns (PositionProps memory) {
         return _getGlobalPosition(storageKey(market, isLong));
     }
 
@@ -110,7 +110,7 @@ library PositionStorage {
     function getPosition(uint16 market, address account, uint256 markPrice, bool isLong)
         internal
         view
-        returns (Position.Props memory)
+        returns (PositionProps memory)
     {
         //todo
         return Storage().positions[storageKey(market, isLong)][account];
@@ -119,7 +119,7 @@ library PositionStorage {
     function getPositionsForBothDirections(uint16 market, address account)
         internal
         view
-        returns (Position.Props memory posLong, Position.Props memory posShort)
+        returns (PositionProps memory posLong, PositionProps memory posShort)
     {
         StorageStruct storage ps = Storage();
         posLong = ps.positions[storageKey(market, true)][account];
@@ -131,7 +131,7 @@ library PositionStorage {
         view
         returns (int256)
     {
-        Position.Props memory _position = getPosition(market, account, markPrice, isLong);
+        PositionProps memory _position = getPosition(market, account, markPrice, isLong);
         return _calPNL(_position, sizeDelta, markPrice);
     }
 
@@ -139,14 +139,14 @@ library PositionStorage {
     //    private
     //==========================================================
 
-    function _getGlobalPosition(bytes32 sk) private view returns (Position.Props memory _position) {
+    function _getGlobalPosition(bytes32 sk) private view returns (PositionProps memory _position) {
         // DONE
         _position = Storage().globalPositions[sk];
     }
 
     function _getMarketPNL(uint16 market, uint256 markPrice, bool isLong) private view returns (int256) {
         // DONE
-        Position.Props memory _position = _getGlobalPosition(storageKey(market, isLong));
+        PositionProps memory _position = _getGlobalPosition(storageKey(market, isLong));
         if (_position.size == 0) {
             return 0;
         }
@@ -155,7 +155,7 @@ library PositionStorage {
         return _hasProfit ? int256(_pnl) : -int256(_pnl);
     }
 
-    function _getPosition(uint16 market, address account, bool isLong) internal view returns (Position.Props memory) {
+    function _getPosition(uint16 market, address account, bool isLong) internal view returns (PositionProps memory) {
         // DONE
         return Storage().positions[storageKey(market, isLong)][account];
     }
@@ -163,10 +163,10 @@ library PositionStorage {
     function _getPositionAndCalcPNL(uint16 market, address account, uint256 markPrice, bool isLong)
         private
         view
-        returns (Position.Props memory)
+        returns (PositionProps memory)
     {
         // DONE
-        Position.Props memory _position = _getPosition(market, account, isLong);
+        PositionProps memory _position = _getPosition(market, account, isLong);
 
         if (markPrice == 0) {
             return _position;
@@ -181,7 +181,7 @@ library PositionStorage {
         return _position;
     }
 
-    function _calPNL(Position.Props memory _position, uint256 sizeDelta, uint256 markPrice)
+    function _calPNL(PositionProps memory _position, uint256 sizeDelta, uint256 markPrice)
         private
         pure
         returns (int256)

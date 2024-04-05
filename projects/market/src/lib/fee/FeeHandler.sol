@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {MarketDataTypes} from "../types/MarketDataTypes.sol";
-import {FeeType} from "../types/FeeType.sol";
+import "../types/Types.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {FundingRateCalculator} from "./FundingRateCalculator.sol";
-import {Position} from "../types/PositionStruct.sol";
 
 library FeeHandler {
     using SafeCast for int256;
@@ -106,8 +104,7 @@ library FeeHandler {
     }
 
     function getFees(bytes calldata data) internal view returns (int256[] memory) {
-        (MarketDataTypes.Cache memory params, Position.Props memory _position) =
-            abi.decode(data, (MarketDataTypes.Cache, Position.Props));
+        (MarketCache memory params, PositionProps memory _position) = abi.decode(data, (MarketCache, PositionProps));
 
         //todo
     }
@@ -115,16 +112,11 @@ library FeeHandler {
     /**
      * 只是获取根据当前仓位获取各种费用应该收取多少, 并不包含收费顺序和是否能收得到
      */
-
-    function getFees(MarketDataTypes.Cache memory params, int256 _fundFee)
-        internal
-        view
-        returns (int256[] memory fees)
-    {
+    function getFees(MarketCache memory params, int256 _fundFee) internal view returns (int256[] memory fees) {
         // todo merge with feeAndRates?
-        fees = new int256[](uint8(FeeType.T.Counter));
+        fees = new int256[](uint8(FeeType.Counter));
 
-        fees[uint8(FeeType.T.FundFee)] = _fundFee;
+        fees[uint8(FeeType.FundFee)] = _fundFee;
 
         if (params.sizeDelta == 0 && params.collateralDelta != 0) {
             return fees;
@@ -132,23 +124,23 @@ library FeeHandler {
 
         // open position
         if (params.isOpen) {
-            fees[uint8(FeeType.T.OpenFee)] = int256(getFee(params.market, params.sizeDelta, uint8(FeeType.T.OpenFee)));
+            fees[uint8(FeeType.OpenFee)] = int256(getFee(params.market, params.sizeDelta, uint8(FeeType.OpenFee)));
         } else {
             // close position
-            fees[uint8(FeeType.T.CloseFee)] = int256(getFee(params.market, params.sizeDelta, uint8(FeeType.T.CloseFee)));
+            fees[uint8(FeeType.CloseFee)] = int256(getFee(params.market, params.sizeDelta, uint8(FeeType.CloseFee)));
 
             // liquidate position
             if (params.liqState == 1) {
-                uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.T.LiqFee)];
-                fees[uint8(FeeType.T.LiqFee)] = int256(_fee);
+                uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.LiqFee)];
+                fees[uint8(FeeType.LiqFee)] = int256(_fee);
             }
         }
         if (params.execNum > 0) {
             // exec fee
-            uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.T.ExecFee)];
+            uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.ExecFee)];
             _fee = _fee * params.execNum;
 
-            fees[uint8(FeeType.T.ExecFee)] = int256(_fee);
+            fees[uint8(FeeType.ExecFee)] = int256(_fee);
         }
         return fees;
     }

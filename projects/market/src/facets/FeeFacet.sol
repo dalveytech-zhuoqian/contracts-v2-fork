@@ -16,7 +16,7 @@ import {IFeeFacet} from "../interfaces/IFeeFacet.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 //================================================================
 //data types
-import {FeeType} from "../lib/types/FeeType.sol";
+import "../lib/types/Types.sol";
 
 contract FeeFacet is IAccessManaged, IFeeFacet {
     // uint256 public constant FEE_RATE_PRECISION = LibFundFee.PRECISION;
@@ -77,7 +77,7 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         FeeHandler.Storage().fundingIntervals[market] = interval;
     }
 
-    function setConfigs(uint16 market, uint8 configType, uint256 value) external restricted {
+    function setFeeConfigs(uint16 market, uint8 configType, uint256 value) external restricted {
         FeeHandler.Storage().configs[market][configType] = value;
     }
 
@@ -146,8 +146,8 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         returns (uint256[] memory fees, int256[] memory fundingRates, int256[] memory _cumulativeFundingRates)
     {
         //todo merge with getfees?
-        fees = new uint256[](uint8(FeeType.T.Counter));
-        for (uint8 i = 0; i < uint8(FeeType.T.Counter); i++) {
+        fees = new uint256[](uint8(FeeType.Counter));
+        for (uint8 i = 0; i < uint8(FeeType.Counter); i++) {
             fees[i] = FeeHandler.Storage().feeAndRates[market][i];
         }
         fundingRates = new int256[](2);

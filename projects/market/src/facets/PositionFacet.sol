@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../lib/utils/EnumerableValues.sol";
-import {Position} from "../lib/types/PositionStruct.sol";
+import {PositionProps} from "../lib/types/Types.sol";
 import {IPrice} from "../interfaces/IPrice.sol";
 
 import {IPositionFacet} from "../interfaces/IPositionFacet.sol";
@@ -10,7 +10,7 @@ import {IAccessManaged} from "../ac/IAccessManaged.sol";
 //==========================================================================================
 // hanlders
 import {PositionHandler} from "../lib/position/PositionHandler.sol";
-import {PositionStorage} from "../lib/position/PositionStorage.sol";
+import {PositionStorage, PositionCache} from "../lib/position/PositionStorage.sol";
 
 contract PositionFacet is IPositionFacet, IAccessManaged {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -21,8 +21,8 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
     //==========================================================================================
     //       self functions
     //==========================================================================================
-    function increasePosition(bytes memory _data) external override onlySelf returns (Position.Props memory result) {
-        PositionStorage.Cache memory cache;
+    function increasePosition(bytes memory _data) external override onlySelf returns (PositionProps memory result) {
+        PositionCache memory cache;
         (
             cache.market,
             cache.account,
@@ -35,15 +35,15 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
         return PositionHandler.increasePosition(cache);
     }
 
-    function decreasePosition(bytes memory _data) external onlySelf returns (Position.Props memory result) {
-        PositionStorage.Cache memory cache;
+    function decreasePosition(bytes memory _data) external onlySelf returns (PositionProps memory result) {
+        PositionCache memory cache;
         (cache.market, cache.account, cache.collateralDelta, cache.sizeDelta, cache.fundingRate, cache.isLong) =
             abi.decode(_data, (uint16, address, int256, uint256, int256, bool));
         return PositionHandler.decreasePosition(cache);
     }
 
-    function liquidatePosition(bytes memory _data) external onlySelf returns (Position.Props memory result) {
-        PositionStorage.Cache memory cache;
+    function liquidatePosition(bytes memory _data) external onlySelf returns (PositionProps memory result) {
+        PositionCache memory cache;
         (cache.market, cache.account, cache.markPrice, cache.isLong) =
             abi.decode(_data, (uint16, address, uint256, bool));
         return PositionHandler.liquidatePosition(cache);
@@ -61,7 +61,7 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
         public
         view
         override
-        returns (Position.Props memory)
+        returns (PositionProps memory)
     {
         return PositionStorage.getPosition(market, account, markPrice, isLong);
     }
@@ -73,12 +73,12 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
     function getPositions(uint16 market, address account)
         external
         view
-        returns (Position.Props memory posLong, Position.Props memory posShort)
+        returns (PositionProps memory posLong, PositionProps memory posShort)
     {
         return PositionStorage.getPositionsForBothDirections(market, account);
     }
 
-    function getGlobalPosition(uint16 market, bool isLong) external view returns (Position.Props memory) {
+    function getGlobalPosition(uint16 market, bool isLong) external view returns (PositionProps memory) {
         return PositionStorage.getGlobalPosition(market, isLong);
     }
 

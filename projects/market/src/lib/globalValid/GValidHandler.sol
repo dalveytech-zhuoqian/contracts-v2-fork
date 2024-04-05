@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.20;
 
-import "../types/GDataTypes.sol";
+import "../types/Types.sol";
 
 library GValidHandler {
     uint256 internal constant BASIS_POINTS_DIVISOR = 10 ** 18;
@@ -66,7 +66,7 @@ library GValidHandler {
      * @param params The ValidParams struct containing the valid parameters.
      * @return A boolean indicating whether the position should be increased.
      */
-    function isIncreasePosition(GDataTypes.ValidParams memory params) internal view returns (bool) {
+    function isIncreasePosition(GValid memory params) internal view returns (bool) {
         if (params.sizeDelta == 0) {
             return true;
         }
@@ -85,7 +85,7 @@ library GValidHandler {
      * @param params The ValidParams struct containing the valid parameters.
      * @return The maximum increase in position size as a uint256 value.
      */
-    function getMaxIncreasePositionSize(GDataTypes.ValidParams memory params) internal view returns (uint256) {
+    function getMaxIncreasePositionSize(GValid memory params) internal view returns (uint256) {
         return _getMaxIncreasePositionSize(params);
     }
 
@@ -94,7 +94,7 @@ library GValidHandler {
      * @param params The ValidParams struct containing the valid parameters.
      * @return The maximum increase in position size as a uint256 value.
      */
-    function _getMaxIncreasePositionSize(GDataTypes.ValidParams memory params) private view returns (uint256) {
+    function _getMaxIncreasePositionSize(GValid memory params) private view returns (uint256) {
         uint256 _min =
             _getMaxUseableGlobalSize(params.globalLongSizes, params.globalShortSizes, params.aum, params.isLong);
         if (_min == 0) return 0;

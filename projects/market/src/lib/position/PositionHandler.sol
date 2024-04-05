@@ -3,13 +3,13 @@ pragma solidity ^0.8.20;
 pragma abicoder v2;
 
 import "../utils/EnumerableValues.sol";
-import {Position} from "./../types/PositionStruct.sol";
+import {Position, PositionProps} from "./../types/PositionStruct.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {PositionStorage} from "./PositionStorage.sol";
+import {PositionStorage, PositionCache} from "./PositionStorage.sol";
 
 library PositionHandler {
-    using Position for Position.Props;
+    using Position for PositionProps;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableValues for EnumerableSet.AddressSet;
     using SafeCast for uint256;
@@ -17,7 +17,7 @@ library PositionHandler {
     using SafeCast for int128;
     using SafeCast for uint128;
 
-    function increasePosition(PositionStorage.Cache memory cache) internal returns (Position.Props memory result) {
+    function increasePosition(PositionCache memory cache) internal returns (PositionProps memory result) {
         cache.isOpen = true;
         cache.sk = PositionStorage.storageKey(cache.market, cache.isLong);
         cache.position = PositionStorage.Storage().positions[cache.sk][cache.account];
@@ -48,7 +48,7 @@ library PositionHandler {
         result.collateral = cache.position.collateral;
     }
 
-    function decreasePosition(PositionStorage.Cache memory cache) internal returns (Position.Props memory result) {
+    function decreasePosition(PositionCache memory cache) internal returns (PositionProps memory result) {
         cache.isOpen = false;
         cache.sk = PositionStorage.storageKey(cache.market, cache.isLong);
         cache.position = PositionStorage.Storage().positions[cache.sk][cache.account];
@@ -72,7 +72,7 @@ library PositionHandler {
         }
     }
 
-    function liquidatePosition(PositionStorage.Cache memory cache) internal returns (Position.Props memory result) {
+    function liquidatePosition(PositionCache memory cache) internal returns (PositionProps memory result) {
         cache.isOpen = false;
         cache.sk = PositionStorage.storageKey(cache.market, cache.isLong);
         cache.position = PositionStorage.Storage().positions[cache.sk][cache.account];
@@ -92,8 +92,8 @@ library PositionHandler {
     //           private only
     // =====================================================
 
-    function _calGlobalPosition(PositionStorage.Cache memory cache) private view returns (Position.Props memory) {
-        Position.Props memory _position = PositionStorage.Storage().globalPositions[cache.sk];
+    function _calGlobalPosition(PositionCache memory cache) private view returns (PositionProps memory) {
+        PositionProps memory _position = PositionStorage.Storage().globalPositions[cache.sk];
         if (cache.isOpen) {
             uint256 _averagePrice = _calGlobalAveragePrice(_position, cache.sizeDelta, cache.markPrice);
             require(_averagePrice > 100, "pb:invalid global position");
@@ -112,7 +112,7 @@ library PositionHandler {
         return _position;
     }
 
-    function _calGlobalAveragePrice(Position.Props memory position, uint256 sizeDelta, uint256 markPrice)
+    function _calGlobalAveragePrice(PositionProps memory position, uint256 sizeDelta, uint256 markPrice)
         private
         pure
         returns (uint256)

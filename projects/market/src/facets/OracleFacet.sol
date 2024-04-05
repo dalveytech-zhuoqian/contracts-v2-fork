@@ -26,7 +26,7 @@ contract OracleFacet is IAccessManaged, IPrice {
         store.config = _config;
     }
 
-    function setConfig(bytes calldata _data) external restricted {
+    function setOracleConfig(bytes calldata _data) external restricted {
         (OracleHandler.ConfigStruct memory _config) = abi.decode(_data, (OracleHandler.ConfigStruct));
         OracleHandler.StorageStruct storage store = OracleHandler.Storage();
         store.config = _config;

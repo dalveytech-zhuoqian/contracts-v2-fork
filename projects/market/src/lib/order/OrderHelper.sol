@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import {Order} from "../types/OrderStruct.sol";
+import "../types/Types.sol";
 
 library OrderHelper {
     function getKey(address account, uint64 orderID) internal pure returns (bytes32) {
@@ -13,7 +13,7 @@ library OrderHelper {
         return bytes32(abi.encodePacked(isLong, isIncrease, market));
     }
 
-    function getPairKey(Order.Props memory order) internal pure returns (bytes32) {
-        return OrderHelper.getKey(order.account, order.pairId);
+    function getPairKey(OrderProps memory order) internal pure returns (bytes32) {
+        return getKey(order.account, order.pairId);
     }
 }

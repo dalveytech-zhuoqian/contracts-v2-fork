@@ -8,6 +8,7 @@ import {IPrice} from "../interfaces/IPrice.sol";
 import {IMarketInternal} from "../interfaces/IMarketInternal.sol";
 import {IPositionFacet} from "../interfaces/IPositionFacet.sol";
 import {IVault} from "../interfaces/IVault.sol";
+import {IOrderFacet} from "../interfaces/IOrderFacet.sol";
 //================================================
 // handlers
 import {PositionStorage} from "../lib/position/PositionStorage.sol";
@@ -28,6 +29,10 @@ abstract contract PositionFacetBase {
 
     function _positionFacet() internal view returns (IPositionFacet) {
         return IPositionFacet(address(this));
+    }
+
+    function _orderFacet() internal view returns (IOrderFacet) {
+        return IOrderFacet(address(this));
     }
 
     function vault(uint16 market) internal view returns (IVault) {

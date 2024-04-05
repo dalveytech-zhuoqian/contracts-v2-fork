@@ -12,10 +12,8 @@ import {IAccessManaged} from "../ac/IAccessManaged.sol";
 //===============
 // data types
 import {Order} from "../lib/types/OrderStruct.sol";
-
-import {GDataTypes} from "../lib/types/GDataTypes.sol";
-import {Position} from "../lib/types/PositionStruct.sol";
-import {MarketDataTypes} from "../lib/types/MarketDataTypes.sol";
+import "../lib/types/Types.sol";
+import {Event} from "../lib/types/Event.sol";
 //===============
 // handlers
 import {GValidHandler} from "../lib/globalValid/GValidHandler.sol";
@@ -26,7 +24,7 @@ import {PositionFacetBase} from "./PositionFacetBase.sol";
 import {MarketVaultLib} from "../lib/market/MarketVaultLib.sol";
 
 contract PositionAddFacet is IAccessManaged, PositionFacetBase {
-    using Order for Order.Props;
+    using Order for OrderProps;
     using SafeCast for int256;
     using SafeCast for uint256;
 
@@ -34,7 +32,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     //       admin functions
     //==========================================================================================
 
-    function execAddOrderKey(Order.Props memory exeOrder, MarketDataTypes.Cache memory _params) external restricted {
+    function execAddOrderKey(OrderProps memory exeOrder, MarketCache memory _params) external restricted {
         Order.validOrderAccountAndID(exeOrder);
         require(_params.isOpen, "PositionAddMgr:invalid isopen");
         _execIncreaseOrderKey(exeOrder, _params);
@@ -75,12 +73,12 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     //       private functions
     //==========================================================================================
 
-    function _execIncreaseOrderKey(Order.Props memory order, MarketDataTypes.Cache memory _params) private {
+    function _execIncreaseOrderKey(OrderProps memory order, MarketCache memory _params) private {
         _params.oraclePrice = _priceFacet().getPrice(_params.market, _params.isLong);
         require(order.account != address(0), "PositionAddMgr:!account");
         validateIncreasePosition(_params);
 
-        OrderHandler.remove(_params.market, _params.isOpen, _params.isLong, order.account, order.orderID);
+        _orderFacet().cancelOrder(order.account, _params.market, _params.isOpen, order.orderID, _params.isLong);
         _params.execNum += 1;
         require(
             order.isMarkPriceValid(_params.oraclePrice),
@@ -89,7 +87,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
 
         require(_params.collateralDelta == order.collateral, "PositionAddMgr: insufficient collateral");
 
-        emit OrderHandler.DeleteOrder(
+        emit Event.DeleteOrder(
             order.account,
             _params.isLong,
             _params.isOpen,
@@ -104,8 +102,8 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         _increasePositionWithOrders(_params);
     }
 
-    function validateIncreasePosition(MarketDataTypes.Cache memory _inputs) private view {
-        GDataTypes.ValidParams memory params;
+    function validateIncreasePosition(MarketCache memory _inputs) private view {
+        GValid memory params;
         params.market = _inputs.market;
         params.isLong = _inputs.isLong;
         params.sizeDelta = _inputs.sizeDelta;
@@ -122,11 +120,11 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     }
 
     function _buildDecreaseVars(
-        MarketDataTypes.Cache memory _inputs,
+        MarketCache memory _inputs,
         uint256 collateralIncreased,
         uint256 triggerPrice,
         bool isTP
-    ) private view returns (MarketDataTypes.Cache memory _createVars) {
+    ) private view returns (MarketCache memory _createVars) {
         _createVars.market = _inputs.market;
         _createVars.isLong = _inputs.isLong;
         _createVars.oraclePrice = _priceFacet().getPrice(_inputs.market, !_inputs.isLong);
@@ -146,7 +144,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         _createVars.refCode = _inputs.refCode;
     }
 
-    function _increasePosition(MarketDataTypes.Cache memory _params, Position.Props memory _position)
+    function _increasePosition(MarketCache memory _params, PositionProps memory _position)
         private
         returns (int256 collD)
     {
@@ -179,7 +177,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         // );
     }
 
-    function _increasePositionWithOrders(MarketDataTypes.Cache memory _inputs) public {
+    function _increasePositionWithOrders(MarketCache memory _inputs) public {
         // if (false == _inputs.isValid()) {
         //     if (_inputs.isExec) return;
         //     else revert("PositionAddMgr:invalid params");
@@ -191,7 +189,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         }
 
         _inputs.oraclePrice = _priceFacet().getPrice(_inputs.market, _inputs.isLong);
-        Position.Props memory _position = PositionStorage.getPosition(
+        PositionProps memory _position = PositionStorage.getPosition(
             _inputs.market, _inputs.account, _inputs.sizeDelta == 0 ? 0 : _inputs.oraclePrice, _inputs.isLong
         );
 
@@ -210,10 +208,10 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
 
         bool placeSl = _inputs.sl != 0 && (_inputs.isLong == _inputs.price > _inputs.sl || _inputs.price == _inputs.sl);
 
-        MarketDataTypes.Cache[] memory _vars;
+        MarketCache[] memory _vars;
         uint256 ordersCount = placeTp && placeSl ? 2 : (placeTp || placeSl ? 1 : 0);
         if (ordersCount > 0) {
-            _vars = new MarketDataTypes.Cache[](ordersCount);
+            _vars = new MarketCache[](ordersCount);
             _vars[0] =
                 _buildDecreaseVars(_inputs, uint256(collateralChanged), placeTp ? _inputs.tp : _inputs.sl, placeTp);
 
@@ -224,10 +222,10 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
             return;
         }
 
-        // Order.Props[] memory _os = (_inputs.isLong ? orderBookLong : orderBookShort).add(_vars);
+        // OrderProps[] memory _os = (_inputs.isLong ? orderBookLong : orderBookShort).add(_vars);
         // uint256[] memory inputs = new uint256[](0);
         // for (uint256 i; i < _os.length;) {
-        //     Order.Props memory _order = _os[i];
+        //     OrderProps memory _order = _os[i];
 
         //     MarketLib.afterUpdateOrder(
         //         MarketDataTypes.UpdateOrderInputs({
@@ -251,9 +249,9 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         // }
     }
 
-    function commitIncreasePosition(MarketDataTypes.Cache memory _params, int256 collD, int256 fr)
+    function commitIncreasePosition(MarketCache memory _params, int256 collD, int256 fr)
         private
-        returns (Position.Props memory result)
+        returns (PositionProps memory result)
     {
         if (_params.sizeDelta == 0 && collD < 0) {
             result = _positionFacet().decreasePosition(
@@ -270,7 +268,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
                 abi.encode(_params.account, collD, _params.sizeDelta, _params.oraclePrice, fr, _params.isLong)
             );
         }
-        //Position.Props
+        //PositionProps
         MarketHandler.validLev(_params.market, result.size, result.collateral);
     }
 }

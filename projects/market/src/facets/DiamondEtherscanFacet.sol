@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/StorageSlot.sol";
-import "hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond.sol";
+import {LibDiamond} from "hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond.sol";
 
 library LibDiamondEtherscan {
     event Upgraded(address indexed implementation);

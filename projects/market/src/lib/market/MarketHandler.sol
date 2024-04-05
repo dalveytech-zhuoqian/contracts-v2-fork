@@ -18,6 +18,7 @@ library MarketHandler { /* is IOrderBook, Ac */
         Canceled, //5
         SysCancel, //6invalid order
         LeverageLiquidation //7
+
     }
 
     struct Props {
@@ -71,7 +72,7 @@ library MarketHandler { /* is IOrderBook, Ac */
         //         validCollateralDelta(data);
         //     }
         //     // MarketDataTypes.UpdatePositionInputs memory params,
-        //     // Position.Props memory position,
+        //     // PositionProps memory position,
         //     // int256[] memory fees
     }
 

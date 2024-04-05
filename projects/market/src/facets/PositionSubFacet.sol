@@ -18,10 +18,7 @@ import {IVault} from "../interfaces/IVault.sol";
 // data types
 import {Order} from "../lib/types/OrderStruct.sol";
 
-import {Position} from "../lib/types/PositionStruct.sol";
-import {MarketDataTypes} from "../lib/types/MarketDataTypes.sol";
-
-import {FeeType} from "../lib/types/FeeType.sol";
+import "../lib/types/Types.sol";
 //===============
 // handlers
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
@@ -31,10 +28,10 @@ import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
 import {PositionStorage} from "../lib/position/PositionStorage.sol";
 
 contract PositionSubFacet is IAccessManaged, PositionFacetBase {
-    using Order for Order.Props;
+    using Order for OrderProps;
     using SafeCast for int256;
     using SafeCast for uint256;
-    using PositionSubMgrLib for MarketDataTypes.Cache;
+    using PositionSubMgrLib for MarketCache;
     //==========================================================================================
     //       external functions
     //==========================================================================================
@@ -48,14 +45,14 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
     //==========================================================================================
     function liquidate(uint16 market, address accounts, bool _isLong) external restricted {}
 
-    function execSubOrderKey(Order.Props memory order, MarketDataTypes.Cache memory _params) external restricted {
+    function execSubOrderKey(OrderProps memory order, MarketCache memory _params) external restricted {
         order.validOrderAccountAndID();
         require(_params.isOpen == false, "PositionSubMgr:invalid isOpen");
         uint256 oraclePrice;
-        Position.Props memory _position =
+        PositionProps memory _position =
             PositionStorage.getPosition(_params.market, order.account, oraclePrice, _params.isLong);
         (int256[] memory fees, int256 totalFee) = _feeFacet().getFees(abi.encode(_params, _position));
-        MarketHandler.validateLiquidation(_params.market, totalFee, fees[uint8(FeeType.T.LiqFee)], true);
+        MarketHandler.validateLiquidation(_params.market, totalFee, fees[uint8(FeeType.LiqFee)], true);
         decreasePositionFromOrder(order, _params);
     }
     //==========================================================================================
@@ -72,10 +69,10 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         return _priceFacet().getPrice(market, !_isLong);
     }
 
-    function decreasePositionFromOrder(Order.Props memory order, MarketDataTypes.Cache memory _params) private {
+    function decreasePositionFromOrder(OrderProps memory order, MarketCache memory _params) private {
         _params.oraclePrice = _getClosePrice(_params.market, _params.isLong);
 
-        Position.Props memory _position =
+        PositionProps memory _position =
             PositionStorage.getPosition(_params.market, order.account, _params.oraclePrice, _params.isLong);
 
         if (order.size > 0) {
@@ -84,13 +81,13 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
             );
         }
 
-        Order.Props[] memory ods =
-            OrderHandler.remove(_params.market, _params.isOpen, _params.isLong, order.account, order.orderID);
+        OrderProps[] memory ods =
+            _orderFacet().sysCancelOrder(_params.account, _params.market, _params.isOpen, order.orderID, _params.isLong);
         require(ods[0].account != address(0), "PositionSubMgr:!account");
 
         // , emit
         for (uint256 i = 0; i < ods.length; i++) {
-            Order.Props memory od = ods[i];
+            OrderProps memory od = ods[i];
             if (address(0) == od.account) continue;
             // MarketLib.afterDeleteOrder(
             //     MarketOrderCallBackIntl.DeleteOrderEvent(
@@ -119,7 +116,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         _decreasePosition(_params, _position);
     }
 
-    function _decreasePosition(MarketDataTypes.Cache memory _params, Position.Props memory _position) private {
+    function _decreasePosition(MarketCache memory _params, PositionProps memory _position) private {
         // Return if the position size is zero or the account is invalid
         if (_position.size == 0 || _params.account == address(0)) return;
 
@@ -139,12 +136,12 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
             }
 
             // Remove orders associated with the account
-            Order.Props[] memory _ordersDeleted =
+            OrderProps[] memory _ordersDeleted =
                 OrderHandler.removeByAccount(_params.market, false, _params.isLong, _params.account);
 
             // Iterate over the deleted orders and perform necessary actions
             for (uint256 i = 0; i < _ordersDeleted.length; i++) {
-                Order.Props memory _orderDeleted = _ordersDeleted[i];
+                OrderProps memory _orderDeleted = _ordersDeleted[i];
                 if (_orderDeleted.account == address(0)) {
                     continue;
                 }
@@ -207,7 +204,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
             _params.market,
             _marketFacet().formatCollateral(_params.sizeDelta, IERC20Metadata(colleteralToken).decimals())
         );
-        Position.Props memory result = _positionFacet().decreasePosition(
+        PositionProps memory result = _positionFacet().decreasePosition(
             abi.encode(_params.account, _outs.collateralDecreased, _params.sizeDelta, _nowFundRate, _params.isLong)
         );
         // <<<<<<<<<<<<<<<<<<仓位修改
@@ -230,8 +227,8 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
     }
 
     function _decreaseTransaction(
-        MarketDataTypes.Cache memory _params,
-        Position.Props memory _position,
+        MarketCache memory _params,
+        PositionProps memory _position,
         int256 dPNL,
         int256[] memory _originFees
     ) private returns (PositionSubMgrLib.DecreaseTransactionOuts memory _outs) {
