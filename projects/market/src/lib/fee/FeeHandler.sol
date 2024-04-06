@@ -6,13 +6,14 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {FundingRateCalculator} from "./FundingRateCalculator.sol";
+import {PercentageMath} from "../utils/PercentageMath.sol";
 
 library FeeHandler {
     using SafeCast for int256;
     using SafeERC20 for IERC20;
+    using PercentageMath for uint256;
 
     bytes32 constant FEE_STORAGE_POSITION = keccak256("blex.fee.storage");
-    uint256 constant PRECISION = 10 ** 18;
 
     enum ConfigType {
         SkipTime,
@@ -67,8 +68,8 @@ library FeeHandler {
 
     function initialize(uint16 market) internal {
         FeeStorage storage fs = Storage();
-        fs.configs[market][uint8(ConfigType.MaxFRatePerDay)] = PRECISION;
-        fs.configs[market][uint8(ConfigType.FRateFactor)] = PRECISION;
+        fs.configs[market][uint8(ConfigType.MaxFRatePerDay)] = PercentageMath.PERCENTAGE_FACTOR;
+        fs.configs[market][uint8(ConfigType.FRateFactor)] = PercentageMath.PERCENTAGE_FACTOR;
         fs.configs[market][uint8(ConfigType.MinFRate)] = 1250;
         fs.configs[market][uint8(ConfigType.MinFundingInterval)] = 1 hours;
         fs.configs[market][uint8(ConfigType.FundingFeeLossOffLimit)] = 1e7;
@@ -157,13 +158,8 @@ library FeeHandler {
             return 0;
         }
 
-        uint256 _point = Storage().feeAndRates[market][kind];
-        if (_point == 0) {
-            _point = PRECISION;
-        }
-
-        uint256 _size = (sizeDelta * (PRECISION - _point)) / PRECISION;
-        return sizeDelta - _size;
+        uint256 _point = PercentageMath.maxPctIfZero(Storage().feeAndRates[market][kind]);
+        return sizeDelta.percentMul(_point);
     }
 
     //==========================================================================================
