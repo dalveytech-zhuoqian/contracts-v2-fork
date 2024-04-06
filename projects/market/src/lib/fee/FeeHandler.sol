@@ -72,7 +72,7 @@ library FeeHandler {
         fs.configs[market][uint8(ConfigType.FRateFactor)] = PercentageMath.PERCENTAGE_FACTOR;
         fs.configs[market][uint8(ConfigType.MinFRate)] = 1250;
         fs.configs[market][uint8(ConfigType.MinFundingInterval)] = 1 hours;
-        fs.configs[market][uint8(ConfigType.FundingFeeLossOffLimit)] = 1e7;
+        fs.configs[market][uint8(ConfigType.FundingFeeLossOffLimit)] = 0.1e7;
     }
 
     function Storage() internal pure returns (FeeStorage storage fs) {
