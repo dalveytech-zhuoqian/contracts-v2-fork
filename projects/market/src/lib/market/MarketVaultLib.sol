@@ -19,10 +19,4 @@ library MarketVaultLib {
         }
         return openInterest;
     }
-
-    function getAum(uint16 market) internal view returns (uint256) {
-        MarketHandler.StorageStruct storage $ = MarketHandler.Storage();
-        address vault = $.vault[market];
-        return IVault(vault).getAUM();
-    }
 }

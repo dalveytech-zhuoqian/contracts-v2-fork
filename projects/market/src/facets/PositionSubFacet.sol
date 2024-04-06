@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 pragma abicoder v2;
 
+import "./funcs.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {StringsPlus} from "../lib/utils/Strings.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
@@ -22,6 +23,7 @@ import "../lib/types/Types.sol";
 //===============
 // handlers
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
+import {MarketValid} from "../lib/market/MarketValid.sol";
 import {OrderHandler} from "../lib/order/OrderHandler.sol";
 import {PositionFacetBase} from "./PositionFacetBase.sol";
 import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
@@ -52,7 +54,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         PositionProps memory _position =
             PositionStorage.getPosition(_params.market, order.account, oraclePrice, _params.isLong);
         (int256[] memory fees, int256 totalFee) = _feeFacet().getFees(abi.encode(_params, _position));
-        MarketHandler.validateLiquidation(_params.market, totalFee, fees[uint8(FeeType.LiqFee)], true);
+        MarketValid.validateLiquidation(_params.market, totalFee, fees[uint8(FeeType.LiqFee)], true);
         decreasePositionFromOrder(order, _params);
     }
     //==========================================================================================
@@ -128,11 +130,11 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
 
         if (isCloseAll) {
             // Determine the cancellation reason based on the liquidation state
-            MarketHandler.CancelReason reason = MarketHandler.CancelReason.PositionClosed;
+            CancelReason reason = CancelReason.PositionClosed;
             if (_params.liqState == 1) {
-                reason = MarketHandler.CancelReason.Liquidation;
+                reason = CancelReason.Liquidation;
             } else if (_params.liqState == 2) {
-                reason = MarketHandler.CancelReason.LeverageLiquidation;
+                reason = CancelReason.LeverageLiquidation;
             }
 
             // Remove orders associated with the account
@@ -163,9 +165,9 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         if (_params.sizeDelta == 0) {
             uint256 collateral =
                 totalFees <= 0 ? (_position.collateral.toInt256() - totalFees).toUint256() : _position.collateral;
-            MarketHandler.validCollateralDelta(abi.encode(4, collateral, _params.collateralDelta, _position.size, 0, 0));
+            MarketValid.validCollateralDelta(abi.encode(4, collateral, _params.collateralDelta, _position.size, 0, 0));
         } else {
-            MarketHandler.validPosition(abi.encode(_params, _position, _originFees));
+            MarketValid.validPosition(abi.encode(_params, _position, _originFees));
         }
 
         int256 dPnl;
@@ -209,7 +211,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         );
         // <<<<<<<<<<<<<<<<<<仓位修改
 
-        MarketHandler.validLev(_params.market, result.size, result.collateral);
+        MarketValid.validLev(_params.market, result.size, result.collateral);
 
         if (PositionSubMgrLib.isClearPos(_params, _position)) {
             validLiq(_params.account, _params.isLong);

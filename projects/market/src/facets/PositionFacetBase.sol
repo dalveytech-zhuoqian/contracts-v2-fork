@@ -35,10 +35,6 @@ abstract contract PositionFacetBase {
         return IOrderFacet(address(this));
     }
 
-    function vault(uint16 market) internal view returns (IVault) {
-        return IVault(MarketHandler.vault(market));
-    }
-
     function _updateCumulativeFundingRate(uint16 market) internal {
         (uint256 _longSize, uint256 _shortSize) = PositionStorage.getMarketSizesForBothDirections(market);
         _feeFacet().updateCumulativeFundingRate(market, _longSize, _shortSize); //1

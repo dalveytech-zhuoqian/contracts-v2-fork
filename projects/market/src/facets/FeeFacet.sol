@@ -8,7 +8,6 @@ import {MarketVaultLib} from "../lib/market/MarketVaultLib.sol";
 import {FeeHandler} from "../lib/fee/FeeHandler.sol";
 import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
-import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
 //================================================================
 //interfaces
 import {IAccessManaged} from "../ac/IAccessManaged.sol";

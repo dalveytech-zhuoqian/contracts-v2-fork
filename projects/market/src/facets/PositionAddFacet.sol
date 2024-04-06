@@ -5,6 +5,7 @@ pragma abicoder v2;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {StringsPlus} from "../lib/utils/Strings.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import "./funcs.sol";
 //===============
 // interfaces
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -19,9 +20,9 @@ import {Event} from "../lib/types/Event.sol";
 import {GValidHandler} from "../lib/globalValid/GValidHandler.sol";
 import {PositionStorage} from "../lib/position/PositionStorage.sol";
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
+import {MarketValid} from "../lib/market/MarketValid.sol";
 import {OrderHandler} from "../lib/order/OrderHandler.sol";
 import {PositionFacetBase} from "./PositionFacetBase.sol";
-import {MarketVaultLib} from "../lib/market/MarketVaultLib.sol";
 
 contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     using Order for OrderProps;
@@ -93,7 +94,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
             _params.isOpen,
             order.orderID,
             _params.market,
-            uint8(MarketHandler.CancelReason.Executed),
+            uint8(CancelReason.Executed),
             "",
             _params.oraclePrice,
             int256(0)
@@ -113,9 +114,8 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         (params.marketLongSizes, params.marketShortSizes) =
             PositionStorage.getMarketSizesForBothDirections(params.market);
         address _collateralToken = MarketHandler.collateralToken(_inputs.market);
-        params.aum = _marketFacet().parseVaultAsset(
-            MarketVaultLib.getAum(_inputs.market), IERC20Metadata(_collateralToken).decimals()
-        );
+        params.aum =
+            _marketFacet().parseVaultAsset(vault(_inputs.market).getAUM(), IERC20Metadata(_collateralToken).decimals());
         require(GValidHandler.isIncreasePosition(params), "mr:gv");
     }
 
@@ -153,9 +153,9 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         (int256[] memory _fees, int256 _totalfee) = _feeFacet().getFees(abi.encode(_params, _position));
 
         if (_params.sizeDelta > 0) {
-            MarketHandler.validPosition(abi.encode(_params, _position, _fees));
+            MarketValid.validPosition(abi.encode(_params, _position, _fees));
         } else {
-            MarketHandler.validCollateralDelta(
+            MarketValid.validCollateralDelta(
                 abi.encode(2, _position.collateral, _params.collateralDelta, _position.size, 0, _totalfee)
             );
         }
@@ -182,7 +182,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         //     if (_inputs.isExec) return;
         //     else revert("PositionAddMgr:invalid params");
         // }
-        MarketHandler.validPay(_inputs.market, _inputs.collateralDelta);
+        MarketValid.validPay(_inputs.market, _inputs.collateralDelta);
 
         if (_inputs.slippage == 0 && 0 == _inputs.fromOrder) {
             _inputs.slippage = 30;
@@ -269,6 +269,6 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
             );
         }
         //PositionProps
-        MarketHandler.validLev(_params.market, result.size, result.collateral);
+        MarketValid.validLev(_params.market, result.size, result.collateral);
     }
 }

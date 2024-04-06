@@ -1,6 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.17;
 
+enum CancelReason {
+    Padding, //0
+    Liquidation, //1
+    PositionClosed, //2
+    Executed, //3
+    TpAndSlExecuted, //4
+    Canceled, //5
+    SysCancel, //6invalid order
+    LeverageLiquidation //7
+
+}
+
 enum FeeType {
     OpenFee, // 0
     CloseFee, // 1
