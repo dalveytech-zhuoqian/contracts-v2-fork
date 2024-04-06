@@ -67,10 +67,6 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
     //       private functions
     //==========================================================================================
 
-    function _getClosePrice(uint16 market, bool _isLong) private view returns (uint256 p) {
-        return _priceFacet().getPrice(market, !_isLong);
-    }
-
     function decreasePositionFromOrder(OrderProps memory order, MarketCache memory _params) private {
         _params.oraclePrice = _getClosePrice(_params.market, _params.isLong);
 

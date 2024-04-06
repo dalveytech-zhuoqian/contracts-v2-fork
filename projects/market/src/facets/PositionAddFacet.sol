@@ -75,7 +75,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     //==========================================================================================
 
     function _execIncreaseOrderKey(OrderProps memory order, MarketCache memory _params) private {
-        _params.oraclePrice = _priceFacet().getPrice(_params.market, _params.isLong);
+        _params.oraclePrice = _getOpenPrice(_params.market, _params.isLong);
         require(order.account != address(0), "PositionAddMgr:!account");
         validateIncreasePosition(_params);
 
@@ -127,7 +127,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     ) private view returns (MarketCache memory _createVars) {
         _createVars.market = _inputs.market;
         _createVars.isLong = _inputs.isLong;
-        _createVars.oraclePrice = _priceFacet().getPrice(_inputs.market, !_inputs.isLong);
+        _createVars.oraclePrice = _getClosePrice(_inputs.market, _inputs.isLong);
         _createVars.isCreate = true;
 
         _createVars.fromOrder = _inputs.fromOrder;
@@ -188,7 +188,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
             _inputs.slippage = 30;
         }
 
-        _inputs.oraclePrice = _priceFacet().getPrice(_inputs.market, _inputs.isLong);
+        _inputs.oraclePrice = _getOpenPrice(_inputs.market, _inputs.isLong);
         PositionProps memory _position = PositionStorage.getPosition(
             _inputs.market, _inputs.account, _inputs.sizeDelta == 0 ? 0 : _inputs.oraclePrice, _inputs.isLong
         );

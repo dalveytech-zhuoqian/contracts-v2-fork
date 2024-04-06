@@ -23,10 +23,6 @@ abstract contract PositionFacetBase {
         return IMarketInternal(address(this));
     }
 
-    function _priceFacet() internal view returns (IPrice) {
-        return IPrice(address(this));
-    }
-
     function _positionFacet() internal view returns (IPositionFacet) {
         return IPositionFacet(address(this));
     }
@@ -38,5 +34,17 @@ abstract contract PositionFacetBase {
     function _updateCumulativeFundingRate(uint16 market) internal {
         (uint256 _longSize, uint256 _shortSize) = PositionStorage.getMarketSizesForBothDirections(market);
         _feeFacet().updateCumulativeFundingRate(market, _longSize, _shortSize); //1
+    }
+
+    function _getClosePrice(uint16 market, bool _isLong) internal view returns (uint256 p) {
+        return _priceFacet().getPrice(market, !_isLong);
+    }
+
+    function _getOpenPrice(uint16 market, bool _isLong) internal view returns (uint256 p) {
+        return _priceFacet().getPrice(market, _isLong);
+    }
+
+    function _priceFacet() private view returns (IPrice) {
+        return IPrice(address(this));
     }
 }
