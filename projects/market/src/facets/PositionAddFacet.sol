@@ -107,7 +107,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
             return;
         }
 
-        // OrderProps[] memory _os = (_params.isLong ? orderBookLong : orderBookShort).add(_vars);
+        OrderProps[] memory _os = _orderFacet().addOrders(_vars);
         // uint256[] memory inputs = new uint256[](0);
         // for (uint256 i; i < _os.length;) {
         //     OrderProps memory _order = _os[i];

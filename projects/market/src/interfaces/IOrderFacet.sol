@@ -9,4 +9,6 @@ interface IOrderFacet {
     function cancelOrder(address account, uint16 market, bool isIncrease, uint256 orderID, bool isLong)
         external
         returns (OrderProps[] memory _orders);
+
+    function addOrders(MarketCache[] memory _inputs) external returns (OrderProps[] memory _orders);
 }

@@ -31,19 +31,6 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
     // only self
     //================================================================
 
-    function transferIn(address tokenAddress, address _from, address _to, uint256 _tokenAmount)
-        external
-        override
-        onlySelf
-    {
-        // If the token amount is 0, return.
-        if (_tokenAmount == 0) return;
-        // Retrieve the token contract.
-        IERC20Metadata coll = IERC20Metadata(tokenAddress);
-        // Format the collateral amount based on the token's decimals and transfer the tokens.
-        coll.safeTransferFrom(_from, _to, formatCollateral(_tokenAmount, tokenAddress));
-    }
-
     //================================================================
     // ADMIN
     //================================================================
@@ -54,18 +41,18 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
     }
 
     function addMarket(bytes calldata data) external restricted {
-        (uint16 market, string memory name, address vault, address token, MarketHandler.Props memory config) =
+        (uint16 market, string memory name, address _vault, address token, MarketHandler.Props memory config) =
             abi.decode(data, (uint16, string, address, address, MarketHandler.Props));
 
         MarketHandler.Storage().name[market] = name;
         if (token == address(0)) {
-            MarketHandler.Storage().token[market] = IERC4626(vault).asset();
+            MarketHandler.Storage().token[market] = IERC4626(_vault).asset();
         } else {
             MarketHandler.Storage().token[market] = token;
         }
-        bool suc = MarketHandler.Storage().marketIds[vault].add(uint256(market));
+        bool suc = MarketHandler.Storage().marketIds[_vault].add(uint256(market));
         require(suc, "MarketFacet: market already exists");
-        MarketHandler.Storage().vault[market] = vault;
+        MarketHandler.Storage().vault[market] = _vault;
         MarketHandler.Storage().config[market] = MarketHandler.Props({
             isSuspended: false,
             allowOpen: true,
@@ -86,8 +73,8 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
 
     function removeMarket(uint16 marketId) external restricted {
         MarketHandler.StorageStruct storage $ = MarketHandler.Storage();
-        address vault = $.vault[marketId];
-        MarketHandler.Storage().marketIds[vault].remove(uint256(marketId));
+        address _vault = $.vault[marketId];
+        MarketHandler.Storage().marketIds[_vault].remove(uint256(marketId));
         delete MarketHandler.Storage().vault[marketId];
     }
 
@@ -102,8 +89,8 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
         _config = MarketHandler.Storage().config[market];
     }
 
-    function getGlobalPnl(address vault) public view returns (int256) {
-        EnumerableSet.UintSet storage marketIds = MarketHandler.Storage().marketIds[vault];
+    function getGlobalPnl(address _vault) public view returns (int256) {
+        EnumerableSet.UintSet storage marketIds = MarketHandler.Storage().marketIds[_vault];
         uint256[] memory _markets = marketIds.values();
         int256 pnl = 0;
         for (uint256 i = 0; i < _markets.length; i++) {
@@ -157,8 +144,8 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
 
     function containsMarket(uint16 marketId) external view returns (bool) {
         MarketHandler.StorageStruct storage $ = MarketHandler.Storage();
-        address vault = $.vault[marketId];
-        return $.marketIds[vault].contains(uint256(marketId));
+        address _vault = $.vault[marketId];
+        return $.marketIds[_vault].contains(uint256(marketId));
     }
 
     // function _execOrder(bytes calldata data) private {

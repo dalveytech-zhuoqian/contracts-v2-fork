@@ -51,9 +51,8 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
             PositionStorage.getPosition(_params.market, order.account, _params.oraclePrice, _params.isLong);
         (int256[] memory fees, int256 totalFee) = _feeFacet().getFees(abi.encode(_params, _position));
         if (order.size > 0) {
-            _params.collateralDelta = PositionSubMgrLib.getDecreaseDeltaCollateral(
-                order.isKeepLev, _position.size, order.size, _position.collateral
-            );
+            _params.collateralDelta =
+                getDecreaseDeltaCollateral(order.isKeepLev, _position.size, order.size, _position.collateral);
         }
 
         //--------------

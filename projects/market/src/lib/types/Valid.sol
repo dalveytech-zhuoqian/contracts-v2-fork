@@ -174,15 +174,14 @@ library Validations {
     function validSlippagePrice(MarketCache memory _inputs) private view {
         MarketHandler.StorageStruct storage $ = MarketHandler.Storage();
         _inputs.slippage = min(_inputs.slippage, $.config[_inputs.market].maxSlippage);
-        uint256 _slippagePrice;
-        uint256 slipageValue = _inputs.price.percentMul(_inputs.slippage);
-        if (_inputs.isLong == _inputs.isOpen) {
-            _slippagePrice = _inputs.price + slipageValue;
-        } else {
-            _slippagePrice = _inputs.price - slipageValue;
-        }
-        require(_slippagePrice > 0, "MarketValid:input price zero");
+        require(calSlippagePrice(_inputs) > 0, "MarketValid:input price zero");
         validMarkPrice(_inputs);
+    }
+
+    function calSlippagePrice(MarketCache memory _inputs) internal pure returns (uint256 _slippagePrice) {
+        return _inputs.isLong == _inputs.isOpen
+            ? _inputs.price + _inputs.price.percentMul(_inputs.slippage)
+            : _inputs.price - _inputs.price.percentMul(_inputs.slippage);
     }
 
     function validSize(uint256 _size, uint256 _sizeDelta, bool isOpen) private pure {

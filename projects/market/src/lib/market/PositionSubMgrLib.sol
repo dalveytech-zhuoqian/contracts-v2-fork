@@ -172,20 +172,4 @@ library PositionSubMgrLib {
         return (_params.liqState != LiquidationState.Collateral || _params.liqState != LiquidationState.Leverage)
             && _params.sizeDelta != _position.size;
     }
-
-    /**
-     * @dev Calculates the delta collateral for decreasing a position.
-     * @return deltaCollateral The calculated delta collateral.
-     */
-    function getDecreaseDeltaCollateral(bool isKeepLev, uint256 size, uint256 dSize, uint256 collateral)
-        internal
-        pure
-        returns (uint256 deltaCollateral)
-    {
-        if (isKeepLev) {
-            deltaCollateral = (collateral * dSize) / size;
-        } else {
-            deltaCollateral = 0;
-        }
-    }
 }
