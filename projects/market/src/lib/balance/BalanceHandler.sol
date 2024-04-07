@@ -43,16 +43,10 @@ library BalanceHandler {
         emit Transfer(market, Type.VaultToMarket, account, value, bytes(""));
     }
 
-    function marketToFee(
-        uint16 market,
-        address account,
-        uint256 value,
-        int256[] memory feeReceivable,
-        int256[] memory feeReceived
-    ) internal {
+    function marketToFee(uint16 market, address account, uint256 value, bytes memory extraData) internal {
         Storage().marketBalance[market] -= value;
         Storage().feeBalance[market] += value;
-        emit Transfer(market, Type.MarketToFee, account, value, abi.encode(feeReceivable, feeReceived));
+        emit Transfer(market, Type.MarketToFee, account, value, extraData);
     }
 
     function feeToMarket(uint16 market, address account, uint256 value, int256[] memory feesReceivable) internal {

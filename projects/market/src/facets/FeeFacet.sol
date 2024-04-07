@@ -31,12 +31,12 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         // todo 会存在这种现象嘛 如果存在要不要更新event
         //if (_amount == 0 && fundfeeLoss == 0) return;
         if (_amount != 0) {
-            BalanceHandler.marketToFee(market, account, _amount);
+            BalanceHandler.marketToFee(market, account, _amount, _data);
         }
         if (fundfeeLoss > 0) {
             uint256 _before = FeeHandler.Storage().fundFeeLoss[market];
             FeeHandler.Storage().fundFeeLoss[market] += fundfeeLoss;
-            BalanceHandler.feeToMarket(market, account, fees, fundfeeLoss);
+            BalanceHandler.feeToMarket(market, account, fundfeeLoss, fees);
             // emit AddNegativeFeeLoss(market, account, _before, Storage().fundFeeLoss[market]);
         }
         emit FeeHandler.UpdateFee(account, market, fees, _amount);
