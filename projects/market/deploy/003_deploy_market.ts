@@ -40,15 +40,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const MarketDiamondDeployment = await diamond.deploy('MarketDiamond', {
         from: deployer,
         facets: [
-            "MarketFacet",
             "AccessManagedFacet",
             "DiamondEtherscanFacet",
+            "FeeFacet",
+            "MarketFacet",
+            "MultiCallFacet",
             "OracleFacet",
             "OrderFacet",
             "PositionAddFacet",
+            "PositionFacet",
             "PositionSubFacet",
             "ReferralFacet",
-            // "FeeFacet",
         ], // will prepend TestDiamond_facet_ to each facet name
         log: true,
         autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
