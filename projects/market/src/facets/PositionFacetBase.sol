@@ -5,8 +5,7 @@ pragma abicoder v2;
 // interfaces
 import {IFeeFacet} from "../interfaces/IFeeFacet.sol";
 import {IPrice} from "../interfaces/IPrice.sol";
-import {IMarketInternal} from "../interfaces/IMarketInternal.sol";
-import {IPositionFacet} from "../interfaces/IPositionFacet.sol";
+import {IPositionFacet, IncreasePositionInputs, DecreasePositionInputs} from "../interfaces/IPositionFacet.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IOrderFacet} from "../interfaces/IOrderFacet.sol";
 //================================================
@@ -17,10 +16,6 @@ import {MarketHandler} from "../lib/market/MarketHandler.sol";
 abstract contract PositionFacetBase {
     function _feeFacet() internal view returns (IFeeFacet) {
         return IFeeFacet(address(this));
-    }
-
-    function _marketFacet() internal view returns (IMarketInternal) {
-        return IMarketInternal(address(this));
     }
 
     function _positionFacet() internal view returns (IPositionFacet) {

@@ -8,7 +8,7 @@ import {OrderHelper} from "../lib/order/OrderHelper.sol";
 // interfaces
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
-import {PositionFacetBase} from "./PositionFacetBase.sol";
+import {PositionFacetBase, IncreasePositionInputs, DecreasePositionInputs} from "./PositionFacetBase.sol";
 //===============
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {StringsPlus} from "../lib/utils/Strings.sol";
@@ -179,8 +179,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         (params.marketLongSizes, params.marketShortSizes) =
             PositionStorage.getMarketSizesForBothDirections(params.market);
         address _collateralToken = MarketHandler.collateralToken(_params.market);
-        params.aum =
-            _marketFacet().parseVaultAsset(vault(_params.market).getAUM(), IERC20Metadata(_collateralToken).decimals());
+        params.aum = parseVaultAsset(vault(_params.market).getAUM(), _collateralToken);
         require(GValidHandler.isIncreasePosition(params), "mr:gv");
     }
 
@@ -215,7 +214,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     {
         _updateCumulativeFundingRate(_params.market);
 
-        (int256[] memory _fees, int256 _totalfee) = _feeFacet().getFees(abi.encode(_params, _position));
+        (int256[] memory _fees, int256 _totalfee) = _feeFacet().getFeesReceivable(_params, _position);
 
         if (_params.sizeDelta > 0) {
             Validations.validPosition(_params, _position, _totalfee);
@@ -251,15 +250,31 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         returns (PositionProps memory result)
     {
         if (_params.sizeDelta == 0 && collD < 0) {
+            // abi.encode(_params.account, uint256(-collD), _params.sizeDelta, fr, _params.isLong)
             result = _positionFacet().decreasePosition(
-                abi.encode(_params.account, uint256(-collD), _params.sizeDelta, fr, _params.isLong)
+                DecreasePositionInputs({
+                    market: _params.market,
+                    account: _params.account,
+                    collateralDelta: collD,
+                    sizeDelta: _params.sizeDelta,
+                    fundingRate: fr,
+                    isLong: _params.isLong
+                })
             );
         } else {
             address collateralToken = MarketHandler.collateralToken(_params.market);
 
             vault(_params.market).borrowFromVault(_params.market, formatCollateral(_params.sizeDelta, collateralToken));
             result = _positionFacet().increasePosition(
-                abi.encode(_params.account, collD, _params.sizeDelta, _params.oraclePrice, fr, _params.isLong)
+                IncreasePositionInputs({
+                    market: _params.market,
+                    account: _params.account,
+                    collateralDelta: collD,
+                    sizeDelta: _params.sizeDelta,
+                    markPrice: _params.oraclePrice,
+                    fundingRate: fr,
+                    isLong: _params.isLong
+                })
             );
         }
         //PositionProps

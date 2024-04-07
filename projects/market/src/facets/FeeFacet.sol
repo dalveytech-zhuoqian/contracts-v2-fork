@@ -2,7 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
-import {MarketVaultLib} from "../lib/market/MarketVaultLib.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {IVault} from "../interfaces/IVault.sol";
+
 //================================================================
 //handlers
 import {FeeHandler} from "../lib/fee/FeeHandler.sol";
@@ -18,7 +20,7 @@ import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeE
 import "../lib/types/Types.sol";
 
 contract FeeFacet is IAccessManaged, IFeeFacet {
-    // uint256 public constant FEE_RATE_PRECISION = LibFundFee.PRECISION;
+    using EnumerableSet for EnumerableSet.UintSet;
 
     //================================================================
     // only self
@@ -42,7 +44,11 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         emit FeeHandler.UpdateFee(account, market, fees, _amount);
     }
 
-    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) external onlySelf {
+    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize)
+        external
+        override
+        onlySelf
+    {
         // TODO too much to do
     }
     //================================================================
@@ -103,13 +109,21 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
     //================================================
     // view functions
     //================================================
+    function getOrderFees(MarketCache calldata data) external view override returns (int256 fees) {
+        return FeeHandler.getOrderFees(data);
+    }
 
     function getExecFee(uint16 market) external view returns (uint256) {
         return FeeHandler.getExecFee(market);
     }
 
-    function getFees(bytes calldata data) external view override returns (int256[] memory fees, int256 totalFee) {
-        fees = FeeHandler.getFees(data);
+    function getFeesReceivable(MarketCache calldata params, PositionProps calldata position)
+        external
+        view
+        override
+        returns (int256[] memory fees, int256 totalFee)
+    {
+        fees = FeeHandler.getFeesReceivable(params, position);
         totalFee = FeeHandler.totalFees(fees);
     }
 
@@ -117,7 +131,7 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         return FeeHandler.getFundingRate(market, isLong);
     }
 
-    function cumulativeFundingRates(uint16 market, bool isLong) external view returns (int256) {
+    function cumulativeFundingRates(uint16 market, bool isLong) external view override returns (int256) {
         return FeeHandler.Storage().cumulativeFundingRates[market][isLong];
     }
 
@@ -125,7 +139,7 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         //todo
     }
 
-    function getFundingFee(address market, uint256 size, int256 entryFundingRate, bool isLong)
+    function getFundingFee(uint16 market, uint256 size, int256 entryFundingRate, bool isLong)
         external
         view
         returns (int256)
@@ -134,8 +148,15 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
     }
 
     function getGlobalOpenInterest(uint16 market) public view returns (uint256 _globalSize) {
-        //todo
-        return MarketVaultLib.getGlobalOpenInterest(market);
+        MarketHandler.StorageStruct storage $ = MarketHandler.Storage();
+        uint256 openInterest = 0;
+        EnumerableSet.UintSet storage marketIds = $.marketIds[address(0)];
+        address vault = $.vault[market];
+        for (uint256 i = 0; i < marketIds.length(); i++) {
+            uint16 marketId = uint16(marketIds.at(i));
+            openInterest += IVault(vault).fundsUsed(marketId);
+        }
+        return openInterest;
     }
 
     function feeAndRates(uint16 market)

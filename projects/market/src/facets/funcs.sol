@@ -17,6 +17,16 @@ function formatCollateral(uint256 amount, address colleteralToken) view returns 
     return (amount * (10 ** uint256(collateralTokenDigits))) / (10 ** usdDecimals);
 }
 
+function parseVaultAsset(uint256 amount, address colleteralToken) view returns (uint256) {
+    uint8 collateralTokenDigits = IERC20Metadata(colleteralToken).decimals();
+    return (amount * (10 ** uint256(usdDecimals))) / (10 ** collateralTokenDigits);
+}
+
+function parseVaultAssetSigned(int256 amount, address colleteralToken) view returns (int256) {
+    uint8 collateralTokenDigits = IERC20Metadata(colleteralToken).decimals();
+    return (amount * int256(10 ** uint256(collateralTokenDigits))) / int256(10 ** uint256(usdDecimals));
+}
+
 function transferOut(address tokenAddress, address _to, uint256 _tokenAmount) {
     // If the token amount is 0, return.
     if (_tokenAmount == 0) return;

@@ -17,9 +17,8 @@ import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IMarketInternal} from "../interfaces/IMarketInternal.sol";
 
-contract MarketFacet is IAccessManaged, IMarketInternal {
+contract MarketFacet is IAccessManaged {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableValues for EnumerableSet.AddressSet;
@@ -111,20 +110,7 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
 
     function getMarkets() external view returns (bytes memory result) {}
 
-    function parseVaultAsset(uint256 amount, uint8 originDigits) external pure override returns (uint256) {
-        return (amount * (10 ** uint256(usdDecimals))) / (10 ** originDigits);
-    }
-
-    function parseVaultAssetSigned(int256 amount, uint8 collateralTokenDigits)
-        external
-        pure
-        override
-        returns (int256)
-    {
-        return (amount * int256(10 ** uint256(collateralTokenDigits))) / int256(10 ** uint256(usdDecimals));
-    }
-
-    function getUSDDecimals() external pure override returns (uint8) {
+    function getUSDDecimals() external pure returns (uint8) {
         return usdDecimals;
     }
 

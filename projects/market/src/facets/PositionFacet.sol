@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+import "../interfaces/IPositionFacet.sol";
 import "../lib/utils/EnumerableValues.sol";
 import {PositionProps} from "../lib/types/Types.sol";
 import {IPrice} from "../interfaces/IPrice.sol";
 
-import {IPositionFacet} from "../interfaces/IPositionFacet.sol";
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
 //==========================================================================================
 // hanlders
@@ -21,31 +21,49 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
     //==========================================================================================
     //       self functions
     //==========================================================================================
-    function increasePosition(bytes memory _data) external override onlySelf returns (PositionProps memory result) {
+    function increasePosition(IncreasePositionInputs calldata _data)
+        external
+        override
+        onlySelf
+        returns (PositionProps memory result)
+    {
         PositionCache memory cache;
-        (
-            cache.market,
-            cache.account,
-            cache.collateralDelta,
-            cache.sizeDelta,
-            cache.markPrice,
-            cache.fundingRate,
-            cache.isLong
-        ) = abi.decode(_data, (uint16, address, int256, uint256, uint256, int256, bool));
+        cache.market = _data.market;
+        cache.account = _data.account;
+        cache.collateralDelta = _data.collateralDelta;
+        cache.sizeDelta = _data.sizeDelta;
+        cache.markPrice = _data.markPrice;
+        cache.fundingRate = _data.fundingRate;
+        cache.isLong = _data.isLong;
         return PositionHandler.increasePosition(cache);
     }
 
-    function decreasePosition(bytes memory _data) external onlySelf returns (PositionProps memory result) {
+    function decreasePosition(DecreasePositionInputs calldata inputs)
+        external
+        onlySelf
+        returns (PositionProps memory result)
+    {
         PositionCache memory cache;
-        (cache.market, cache.account, cache.collateralDelta, cache.sizeDelta, cache.fundingRate, cache.isLong) =
-            abi.decode(_data, (uint16, address, int256, uint256, int256, bool));
+        cache.market = inputs.market;
+        cache.account = inputs.account;
+        cache.collateralDelta = inputs.collateralDelta;
+        cache.sizeDelta = inputs.sizeDelta;
+        cache.fundingRate = inputs.fundingRate;
+        cache.isLong = inputs.isLong;
         return PositionHandler.decreasePosition(cache);
     }
 
-    function liquidatePosition(bytes memory _data) external onlySelf returns (PositionProps memory result) {
+    function liquidatePosition(uint16 market, address account, uint256 oraclePrice, bool isLong)
+        external
+        override
+        onlySelf
+        returns (PositionProps memory result)
+    {
         PositionCache memory cache;
-        (cache.market, cache.account, cache.markPrice, cache.isLong) =
-            abi.decode(_data, (uint16, address, uint256, bool));
+        cache.market = market;
+        cache.account = account;
+        cache.markPrice = oraclePrice;
+        cache.isLong = isLong;
         return PositionHandler.liquidatePosition(cache);
     }
 

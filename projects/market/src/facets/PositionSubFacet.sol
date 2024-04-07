@@ -24,7 +24,7 @@ import {PositionStorage} from "../lib/position/PositionStorage.sol";
 // interfaces
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
-import {PositionFacetBase} from "./PositionFacetBase.sol";
+import {PositionFacetBase, DecreasePositionInputs, IncreasePositionInputs} from "./PositionFacetBase.sol";
 import {IVault} from "../interfaces/IVault.sol";
 
 contract PositionSubFacet is IAccessManaged, PositionFacetBase {
@@ -49,7 +49,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         _params.oraclePrice = _getClosePrice(_params.market, _params.isLong);
         PositionProps memory _position =
             PositionStorage.getPosition(_params.market, order.account, _params.oraclePrice, _params.isLong);
-        (int256[] memory fees, int256 totalFee) = _feeFacet().getFees(abi.encode(_params, _position));
+        (int256[] memory fees, int256 totalFee) = _feeFacet().getFeesReceivable(_params, _position);
         if (order.size > 0) {
             _params.collateralDelta =
                 getDecreaseDeltaCollateral(order.isKeepLev, _position.size, order.size, _position.collateral);
@@ -142,7 +142,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
             }
         }
 
-        (int256[] memory _originFees, int256 totalFees) = _feeFacet().getFees(abi.encode(_params, _position));
+        (int256[] memory _originFees, int256 totalFees) = _feeFacet().getFeesReceivable(_params, _position);
 
         if (_params.sizeDelta == 0) {
             uint256 collateral =
@@ -171,14 +171,15 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         //                     先把资金费结算给用户
         if (_outs.newCollateralUnsigned > 0 && _outs.withdrawFromFeeVault > 0) {
             _positionFacet().increasePosition(
-                abi.encode(
-                    _params.account,
-                    _outs.withdrawFromFeeVault,
-                    0, //sizeDelta
-                    _params.oraclePrice,
-                    _nowFundRate,
-                    _params.isLong
-                )
+                IncreasePositionInputs({
+                    market: _params.market,
+                    account: _params.account,
+                    collateralDelta: _outs.withdrawFromFeeVault,
+                    sizeDelta: 0,
+                    markPrice: _params.oraclePrice,
+                    fundingRate: _nowFundRate,
+                    isLong: _params.isLong
+                })
             );
         }
 
@@ -186,7 +187,14 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         address colleteralToken = MarketHandler.collateralToken(_params.market);
         vault(_params.market).repayToVault(_params.market, formatCollateral(_params.sizeDelta, colleteralToken));
         PositionProps memory result = _positionFacet().decreasePosition(
-            abi.encode(_params.account, _outs.collateralDecreased, _params.sizeDelta, _nowFundRate, _params.isLong)
+            DecreasePositionInputs({
+                market: _params.market,
+                account: _params.account,
+                collateralDelta: int256(_outs.collateralDecreased),
+                sizeDelta: _params.sizeDelta,
+                fundingRate: _nowFundRate,
+                isLong: _params.isLong
+            })
         );
         // <<<<<<<<<<<<<<<<<<仓位修改
 

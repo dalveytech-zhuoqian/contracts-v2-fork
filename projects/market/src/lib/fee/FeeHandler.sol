@@ -82,7 +82,7 @@ library FeeHandler {
         }
     }
 
-    function getOrderFees(bytes memory params) internal view returns (int256 fees) {
+    function getOrderFees(MarketCache calldata data) internal view returns (int256 fees) {
         //todo
     }
 
@@ -97,6 +97,13 @@ library FeeHandler {
     function getFundingRate(uint16 market, bool isLong) internal view returns (int256) {
         // todo
     }
+    function getFundingFee(uint16 market, uint256 size, int256 entryFundingRate, bool isLong)
+        internal
+        view
+        returns (int256)
+    {
+        //todo
+    }
 
     function totalFees(int256[] memory fees) internal pure returns (int256 total) {
         for (uint256 i = 0; i < fees.length; i++) {
@@ -104,50 +111,13 @@ library FeeHandler {
         }
     }
 
-    function getFees(bytes calldata data) internal view returns (int256[] memory) {
-        (MarketCache memory params, PositionProps memory _position) = abi.decode(data, (MarketCache, PositionProps));
-
-        //todo
-    }
-
-    /**
-     * 只是获取根据当前仓位获取各种费用应该收取多少, 并不包含收费顺序和是否能收得到
-     */
-    function getFeesReceivable(MarketCache memory params, int256 _fundFee)
+    function getFeesReceivable(MarketCache calldata params, PositionProps calldata position)
         internal
         view
         returns (int256[] memory fees)
     {
-        // todo merge with feeAndRates?
-        fees = new int256[](uint8(FeeType.Counter));
-
-        fees[uint8(FeeType.FundFee)] = _fundFee;
-
-        if (params.sizeDelta == 0 && params.collateralDelta != 0) {
-            return fees;
-        }
-
-        // open position
-        if (params.isOpen) {
-            fees[uint8(FeeType.OpenFee)] = int256(getFeeOfKind(params.market, params.sizeDelta, uint8(FeeType.OpenFee)));
-        } else {
-            // close position
-            fees[uint8(FeeType.CloseFee)] =
-                int256(getFeeOfKind(params.market, params.sizeDelta, uint8(FeeType.CloseFee)));
-
-            // liquidate position
-            if (params.liqState == LiquidationState.Collateral) {
-                uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.LiqFee)];
-                fees[uint8(FeeType.LiqFee)] = int256(_fee);
-            }
-        }
-        if (params.execNum > 0) {
-            // exec fee
-            uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.ExecFee)];
-            _fee = _fee * params.execNum;
-
-            fees[uint8(FeeType.ExecFee)] = int256(_fee);
-        }
+        int256 fundfee = getFundingFee(params.market, params.sizeDelta, position.entryFundingRate, params.isLong);
+        fees = _getFeesReceivable(params, fundfee);
         return fees;
     }
 
@@ -217,11 +187,44 @@ library FeeHandler {
         //todo
     }
 
-    function getFundingFee(address market, uint256 size, int256 entryFundingRate, bool isLong)
-        internal
+    /**
+     * 只是获取根据当前仓位获取各种费用应该收取多少, 并不包含收费顺序和是否能收得到
+     */
+    function _getFeesReceivable(MarketCache calldata params, int256 _fundFee)
+        private
         view
-        returns (int256)
+        returns (int256[] memory fees)
     {
-        //todo
+        // todo merge with feeAndRates?
+        fees = new int256[](uint8(FeeType.Counter));
+
+        fees[uint8(FeeType.FundFee)] = _fundFee;
+
+        if (params.sizeDelta == 0 && params.collateralDelta != 0) {
+            return fees;
+        }
+
+        // open position
+        if (params.isOpen) {
+            fees[uint8(FeeType.OpenFee)] = int256(getFeeOfKind(params.market, params.sizeDelta, uint8(FeeType.OpenFee)));
+        } else {
+            // close position
+            fees[uint8(FeeType.CloseFee)] =
+                int256(getFeeOfKind(params.market, params.sizeDelta, uint8(FeeType.CloseFee)));
+
+            // liquidate position
+            if (params.liqState == LiquidationState.Collateral) {
+                uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.LiqFee)];
+                fees[uint8(FeeType.LiqFee)] = int256(_fee);
+            }
+        }
+        if (params.execNum > 0) {
+            // exec fee
+            uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.ExecFee)];
+            _fee = _fee * params.execNum;
+
+            fees[uint8(FeeType.ExecFee)] = int256(_fee);
+        }
+        return fees;
     }
 }

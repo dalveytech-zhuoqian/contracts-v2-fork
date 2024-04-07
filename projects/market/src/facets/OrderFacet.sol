@@ -41,12 +41,12 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
                 MarketHandler.collateralToken(_inputs.market), msg.sender, address(this), _inputs.collateralDelta
             );
             if (_inputs.isOpen) {
-                (, int256 totalFee) = _feeFacet().getFees(abi.encode());
-                Validations.validIncreaseOrder(_inputs, totalFee);
+                //todo
+                // (, int256 totalFee) = _feeFacet().getFeesReceivable(_inputs, 0);
+                // Validations.validIncreaseOrder(_inputs, totalFee);
                 _inputs.collateral = _inputs.pay;
             } else {
-                int256 fees;
-                // _feeFacet().getOrderFees(_vars);
+                int256 fees = _feeFacet().getOrderFees(_inputs);
                 PositionProps memory _position =
                     _positionFacet().getPosition(_inputs.market, _inputs.account, _inputs.oraclePrice, _inputs.isLong);
                 //todo
