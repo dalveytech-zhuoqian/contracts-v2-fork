@@ -4,17 +4,7 @@ pragma solidity ^0.8.20;
 
 import "../utils/EnumerableValues.sol";
 import {OrderHandler, OrderHelper, OrderProps} from "./OrderHandler.sol";
-
-struct OrderFinderCache {
-    uint16 market;
-    bool isLong;
-    bool isIncrease;
-    uint256 start;
-    uint256 end;
-    bool isOpen;
-    uint256 oraclePrice;
-    bytes32 storageKey;
-}
+import {OrderFinderCache} from "../../interfaces/IMarketFacet.sol";
 
 library OrderFinder {
     using EnumerableSet for EnumerableSet.Bytes32Set;

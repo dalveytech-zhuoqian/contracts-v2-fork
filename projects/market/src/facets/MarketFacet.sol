@@ -9,6 +9,7 @@ import "./funcs.sol";
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
 import {PositionStorage} from "../lib/position/PositionStorage.sol";
 import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
+import {OrderFinder, OrderFinderCache} from "../lib/order/OrderFinder.sol";
 
 //================================================================
 //interfaces
@@ -16,8 +17,9 @@ import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../interfaces/IMarketFacet.sol";
 
-contract MarketFacet is IAccessManaged {
+contract MarketFacet is IAccessManaged, IMarketFacet {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableValues for EnumerableSet.AddressSet;
@@ -152,4 +154,13 @@ contract MarketFacet is IAccessManaged {
     //     //     }
     //     // }
     // }
+
+    function getExecutableOrdersByPrice(OrderFinderCache memory cache)
+        external
+        view
+        override
+        returns (OrderProps[] memory _orders)
+    {
+        return OrderFinder.getExecutableOrdersByPrice(cache);
+    }
 }

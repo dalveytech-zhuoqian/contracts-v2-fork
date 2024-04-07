@@ -4,7 +4,6 @@ pragma abicoder v2;
 
 import "../utils/EnumerableValues.sol";
 import {Position, PositionProps} from "./../types/PositionStruct.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {PositionStorage, PositionCache} from "./PositionStorage.sol";
 
