@@ -4,14 +4,12 @@ pragma solidity ^0.8.20;
 pragma abicoder v2;
 
 import "../utils/EnumerableValues.sol";
-import {Order, OrderProps} from "../types/OrderStruct.sol";
-
-import {OrderHelper} from "./OrderHelper.sol";
+import {OrderHelper, OrderProps} from "./OrderHelper.sol";
 
 library OrderHandler { /* is IOrderBook, Ac */
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableValues for EnumerableSet.Bytes32Set;
-    using Order for OrderProps;
+    using OrderHelper for OrderProps;
 
     bytes32 constant OB_STORAGE_POSITION = keccak256("blex.orderbook.storage");
 

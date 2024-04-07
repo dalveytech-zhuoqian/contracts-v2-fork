@@ -6,7 +6,6 @@ import {Validations} from "../lib/types/Valid.sol";
 import {OrderHelper} from "../lib/order/OrderHelper.sol";
 //===============
 // interfaces
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {PositionFacetBase, IncreasePositionInputs, DecreasePositionInputs} from "./PositionFacetBase.sol";
 //===============
@@ -16,7 +15,6 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "./funcs.sol";
 //===============
 // data types
-import {Order} from "../lib/types/OrderStruct.sol";
 import "../lib/types/Types.sol";
 import {Event} from "../lib/types/Event.sol";
 // //===============

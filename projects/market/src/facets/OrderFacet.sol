@@ -4,20 +4,26 @@ pragma abicoder v2;
 
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./funcs.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {Order} from "../lib/types/OrderStruct.sol";
-import {IAccessManaged} from "../ac/IAccessManaged.sol";
-import "../lib/types/Types.sol";
-import {OrderHelper, OrderHandler} from "../lib/order/OrderHandler.sol";
-import {IOrderFacet} from "../interfaces/IOrderFacet.sol";
 import {PositionFacetBase} from "./PositionFacetBase.sol";
-import {Validations} from "../lib/types/Valid.sol";
-import {MarketHandler} from "../lib/market/MarketHandler.sol";
-// here does not implement core logic
 
+//================================================================
+//handlers
+import {MarketHandler} from "../lib/market/MarketHandler.sol";
+//================================================================
+//interfaces
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IOrderFacet} from "../interfaces/IOrderFacet.sol";
+import {IAccessManaged} from "../ac/IAccessManaged.sol";
+//================================================================
+//data types
+import {OrderHelper, OrderHandler} from "../lib/order/OrderHandler.sol";
+import "../lib/types/Types.sol";
+import {Validations} from "../lib/types/Valid.sol";
+
+// here does not implement core logic
 contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
-    using Order for OrderProps;
+    using OrderHelper for OrderProps;
     using SafeERC20 for IERC20Metadata;
 
     //==========================================================================================
@@ -151,7 +157,7 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
         bytes32 sk = OrderHelper.storageKey(_inputs.market, _inputs.isLong, _inputs.isOpen);
         require(OrderHandler.containsKey(sk, okey), "OrderBook:invalid orderKey");
         _order = OrderHandler.getOrders(sk, okey);
-        require(_order.version == Order.STRUCT_VERSION, "OrderBook:wrong version"); // ，
+        require(_order.version == OrderHelper.STRUCT_VERSION, "OrderBook:wrong version"); // ，
         _order.price = _inputs.price;
 
         //******************************************************************

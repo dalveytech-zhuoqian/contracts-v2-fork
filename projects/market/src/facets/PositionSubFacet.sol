@@ -10,14 +10,13 @@ import {PositionSubMgrLib} from "../lib/market/PositionSubMgrLib.sol";
 
 //===============
 // data types
-import {Order} from "../lib/types/OrderStruct.sol";
 import "../lib/types/Types.sol";
 //===============
 // handlers
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
 
 import {Validations} from "../lib/types/Valid.sol";
-import {OrderHandler} from "../lib/order/OrderHandler.sol";
+import {OrderHandler, OrderHelper} from "../lib/order/OrderHandler.sol";
 import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
 import {PositionStorage} from "../lib/position/PositionStorage.sol";
 //===============
@@ -25,10 +24,9 @@ import {PositionStorage} from "../lib/position/PositionStorage.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {PositionFacetBase, DecreasePositionInputs, IncreasePositionInputs} from "./PositionFacetBase.sol";
-import {IVault} from "../interfaces/IVault.sol";
 
 contract PositionSubFacet is IAccessManaged, PositionFacetBase {
-    using Order for OrderProps;
+    using OrderHelper for OrderProps;
     using SafeCast for int256;
     using SafeCast for uint256;
     using PositionSubMgrLib for MarketCache;

@@ -2,9 +2,24 @@
 
 pragma solidity ^0.8.0;
 
-import "../types/Types.sol";
+// import "../types/Types.sol";
+import {OrderProps} from "../types/Types.sol";
 
 library OrderHelper {
+    uint8 internal constant STRUCT_VERSION = 0x01;
+
+    function getKey(OrderProps memory order) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(order.account, order.orderID));
+    }
+
+    function updateTime(OrderProps memory _order) internal view {
+        _order.updatedAtBlock = uint32(block.timestamp);
+    }
+
+    // 精度
+    // 创建结构体
+    // valid
+    // 转换结构体
     function getKey(address account, uint64 orderID) internal pure returns (bytes32) {
         return keccak256(abi.encodePacked(account, orderID));
     }
