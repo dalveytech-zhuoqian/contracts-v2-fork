@@ -79,6 +79,21 @@ contract DummyDiamondImplementation {
         uint128 gas;
     }
 
+    struct Tuple0408041 {
+        bool isSuspended;
+        bool allowOpen;
+        bool allowClose;
+        bool validDecrease;
+        uint16 minSlippage;
+        uint16 maxSlippage;
+        uint16 minLeverage;
+        uint16 maxLeverage;
+        uint16 minPayment;
+        uint16 minCollateral;
+        uint16 decreaseNumLimit;
+        uint32 maxTradeAmount;
+    }
+
     struct Tuple2589231 {
         uint16 market;
         bool isLong;
@@ -294,6 +309,21 @@ contract DummyDiamondImplementation {
         bytes4[] functionSelectors;
     }
 
+    struct Tuple5605664 {
+        bool isSuspended;
+        bool allowOpen;
+        bool allowClose;
+        bool validDecrease;
+        uint16 minSlippage;
+        uint16 maxSlippage;
+        uint16 minLeverage;
+        uint16 maxLeverage;
+        uint16 minPayment;
+        uint16 minCollateral;
+        uint16 decreaseNumLimit;
+        uint32 maxTradeAmount;
+    }
+
     struct Tuple564566 {
         bytes32 refCode;
         uint128 collateral;
@@ -403,6 +433,8 @@ contract DummyDiamondImplementation {
 
    function setDummyImplementation(address  _implementation) external {}
 
+   function _addFee(uint16  market, bytes memory fee) external {}
+
    function _collectFees(bytes memory _data) external {}
 
    function _updateCumulativeFundingRate(uint16  market, uint256  longSize, uint256  shortSize) external {}
@@ -445,9 +477,19 @@ contract DummyDiamondImplementation {
 
    function setLastCalTimes(uint16  market, uint256  lastCalTime) external {}
 
-   function _addMarket(bytes memory data) external {}
+   function marketMakerForConfig(bool  isSuspended, bool  allowOpen, bool  allowClose, bool  validDecrease, uint16  minSlippage, uint16  maxSlippage, uint16  minLeverage, uint16  maxLeverage, uint16  minPayment, uint16  minCollateral, uint16  decreaseNumLimit, uint32  maxTradeAmount) external pure returns (Tuple5605664 memory) {}
 
-   function addMarket(string memory name, address  _vault, bool  isSuspended, bool  allowOpen, bool  allowClose, bool  validDecrease, uint16  minSlippage, uint16  maxSlippage, uint16  minLeverage, uint16  maxLeverage, uint16  minPayment, uint16  minCollateral, uint16  decreaseNumLimit, uint32  maxTradeAmount) external {}
+   function marketMakerForFee(uint256  maxFRatePerDay, uint256  fRateFactor, uint256  mintFRate, uint256  minFundingInterval, uint256  fundingFeeLossOffLimit) external pure returns (bytes memory) {}
+
+   function marketMakerForOracle(address  pricefeed, uint256  maxCumulativeDeltaDiffs) external pure returns (bytes memory) {}
+
+   function _addGValid(uint16  market, uint256  maxMarketSizeLimit) external {}
+
+   function _addMarket(bytes memory data) external returns (uint16  market) {}
+
+   function _addOracle(uint16  market, bytes memory oracle) external {}
+
+   function addMarket(string memory name, address  _vault, uint256  maxMarketSizeLimit, Tuple0408041 memory config, bytes memory oracle, bytes memory fee) external returns (uint16  market) {}
 
    function availableLiquidity(address  market, address  account, bool  isLong) external view returns (uint256 ) {}
 

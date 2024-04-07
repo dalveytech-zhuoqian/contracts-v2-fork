@@ -11,6 +11,8 @@ import {PositionStorage} from "../lib/position/PositionStorage.sol";
 import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
 import {OrderFinder, OrderFinderCache} from "../lib/order/OrderFinder.sol";
 
+import {GValidHandler} from "../lib/globalValid/GValidHandler.sol";
+
 //================================================================
 //interfaces
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
@@ -18,6 +20,7 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IMarketFacet.sol";
+import {IFeeFacet} from "../interfaces/IFeeFacet.sol";
 
 contract MarketFacet is IAccessManaged, IMarketFacet {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -26,6 +29,9 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
     using EnumerableValues for EnumerableSet.UintSet;
 
     using SafeERC20 for IERC20Metadata;
+
+    event OracleAdded(uint16 market, address pricefeed, uint256 maxCumulativeDeltaDiffs);
+    event MarketAdded(uint16 market, string name, address vault, address token, MarketHandler.Props config);
 
     //================================================================
     // only self
@@ -43,50 +49,41 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
     function addMarket(
         string memory name,
         address _vault,
-        bool isSuspended,
-        bool allowOpen,
-        bool allowClose,
-        bool validDecrease,
-        uint16 minSlippage,
-        uint16 maxSlippage,
-        uint16 minLeverage,
-        uint16 maxLeverage,
-        uint16 minPayment,
-        uint16 minCollateral,
-        uint16 decreaseNumLimit, //default: 10
-        uint32 maxTradeAmount
-    ) external restricted {
-        MarketFacet(address(this))._addMarket(
-            abi.encode(
-                name,
-                _vault,
-                address(0),
-                MarketHandler.Props({
-                    isSuspended: isSuspended,
-                    allowOpen: allowOpen,
-                    allowClose: allowClose,
-                    validDecrease: validDecrease,
-                    minSlippage: minSlippage,
-                    maxSlippage: maxSlippage,
-                    minLeverage: minLeverage,
-                    maxLeverage: maxLeverage,
-                    minPayment: minPayment,
-                    minCollateral: minCollateral,
-                    decreaseNumLimit: decreaseNumLimit,
-                    maxTradeAmount: maxTradeAmount
-                })
-            )
-        );
+        uint256 maxMarketSizeLimit,
+        MarketHandler.Props calldata config,
+        bytes calldata oracle,
+        bytes calldata fee
+    ) external restricted returns (uint16 market) {
+        market = MarketFacet(address(this))._addMarket(abi.encode(name, _vault, address(0), config));
+        MarketFacet(address(this))._addOracle(market, oracle);
+        MarketFacet(address(this))._addGValid(market, maxMarketSizeLimit);
+        IFeeFacet(address(this))._addFee(market, fee);
     }
 
-    event MarketAdded(uint16 market, string name, address vault, address token, MarketHandler.Props config);
+    function _addGValid(uint16 market, uint256 maxMarketSizeLimit) external {
+        if (address(this) != msg.sender) {
+            _checkCanCall(msg.sender, msg.data);
+        }
+        GValidHandler.StorageStruct storage $ = GValidHandler.Storage();
+        $.maxMarketSizeLimit[market] = maxMarketSizeLimit;
+    }
 
-    function _addMarket(bytes calldata data) external {
+    function _addOracle(uint16 market, bytes calldata oracle) external {
+        if (address(this) != msg.sender) {
+            _checkCanCall(msg.sender, msg.data);
+        }
+        OracleHandler.StorageStruct storage $ = OracleHandler.Storage();
+        (address pricefeed, uint256 maxCumulativeDeltaDiffs) = abi.decode(oracle, (address, uint256));
+        $.priceFeeds[market] = pricefeed;
+        $.maxCumulativeDeltaDiffs[market] = maxCumulativeDeltaDiffs;
+    }
+
+    function _addMarket(bytes calldata data) external returns (uint16 market) {
         if (address(this) != msg.sender) {
             _checkCanCall(msg.sender, msg.data);
         }
 
-        uint16 market = MarketHandler.Storage().marketIdAutoIncrease + 1;
+        market = MarketHandler.Storage().marketIdAutoIncrease + 1;
         (string memory name, address _vault, address token, MarketHandler.Props memory config) =
             abi.decode(data, (string, address, address, MarketHandler.Props));
 
@@ -99,21 +96,6 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
         bool suc = MarketHandler.Storage().marketIds[_vault].add(uint256(market));
         require(suc, "MarketFacet: market already exists");
         MarketHandler.Storage().vault[market] = _vault;
-        MarketHandler.Storage().config[market] = MarketHandler.Props({
-            isSuspended: false,
-            allowOpen: true,
-            allowClose: true,
-            validDecrease: true,
-            minSlippage: 0,
-            maxSlippage: 100,
-            minLeverage: 1,
-            maxLeverage: 100,
-            minPayment: 0,
-            minCollateral: 0,
-            decreaseNumLimit: 10,
-            maxTradeAmount: 0
-        });
-
         MarketHandler.Storage().config[market] = config;
         MarketHandler.Storage().marketIdAutoIncrease = market;
         emit MarketAdded(market, name, _vault, token, config);

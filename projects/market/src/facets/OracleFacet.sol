@@ -8,13 +8,14 @@ pragma solidity ^0.8.17;
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
 import {IPrice} from "../interfaces/IPrice.sol";
+import "hardhat-deploy/solc_0.8/diamond/UsingDiamondOwner.sol";
 
-contract OracleFacet is IAccessManaged, IPrice {
+contract OracleFacet is IAccessManaged, IPrice, UsingDiamondOwner {
     //================================================================
     //   ADMIN functions
     //================================================================
 
-    function initDefaultOracleConfig() external restricted {
+    function initDefaultOracleConfig() external onlyOwner {
         OracleHandler.ConfigStruct memory _config = OracleHandler.ConfigStruct({
             maxDeviationBP: 100, //超过 1% 进行比价
             priceDuration: 300, //checked

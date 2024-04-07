@@ -17,8 +17,9 @@ import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeE
 //================================================================
 //data types
 import "../lib/types/Types.sol";
+import "hardhat-deploy/solc_0.8/diamond/UsingDiamondOwner.sol";
 
-contract FeeFacet is IAccessManaged, IFeeFacet {
+contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
     using EnumerableSet for EnumerableSet.UintSet;
 
     // //================================================================
@@ -43,6 +44,25 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         emit FeeHandler.UpdateFee(account, market, fees, _amount);
     }
 
+    function _addFee(uint16 market, bytes calldata fee) external {
+        if (address(this) != msg.sender) {
+            _checkCanCall(msg.sender, msg.data);
+        }
+        (
+            uint256 maxFRatePerDay,
+            uint256 fRateFactor,
+            uint256 mintFRate,
+            uint256 minFundingInterval,
+            uint256 fundingFeeLossOffLimit
+        ) = abi.decode(fee, (uint256, uint256, uint256, uint256, uint256));
+        FeeHandler.Storage().configs[market][uint8(FeeHandler.ConfigType.MaxFRatePerDay)] = maxFRatePerDay;
+        FeeHandler.Storage().configs[market][uint8(FeeHandler.ConfigType.FRateFactor)] = fRateFactor;
+        FeeHandler.Storage().configs[market][uint8(FeeHandler.ConfigType.MinFRate)] = mintFRate;
+        FeeHandler.Storage().configs[market][uint8(FeeHandler.ConfigType.MinFundingInterval)] = minFundingInterval;
+        FeeHandler.Storage().configs[market][uint8(FeeHandler.ConfigType.FundingFeeLossOffLimit)] =
+            fundingFeeLossOffLimit;
+    }
+
     function _updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize)
         external
         override
@@ -54,7 +74,7 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
     // // ADMIN
     // //================================================================
 
-    function initFeeFacet(uint16 market) external onlySelfOrRestricted {
+    function initFeeFacet(uint16 market) external onlyOwner {
         FeeHandler.initialize(market);
     }
 

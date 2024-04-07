@@ -23,4 +23,5 @@ interface IFeeFacet {
         returns (int256[] memory fees, int256 totalFee);
 
     function cumulativeFundingRates(uint16 market, bool isLong) external view returns (int256);
+    function _addFee(uint16 market, bytes calldata fee) external;
 }

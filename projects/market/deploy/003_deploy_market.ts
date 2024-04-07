@@ -43,6 +43,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             "AccessManagedFacet",
             "DiamondEtherscanFacet",
             "FeeFacet",
+            "MarketMakerFacet",
             "MarketFacet",
             "MultiCallFacet",
             "OracleFacet",
