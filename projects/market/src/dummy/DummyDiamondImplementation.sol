@@ -22,63 +22,8 @@ contract DummyDiamondImplementation {
         uint32 maxTradeAmount;
     }
 
-    struct Tuple9848150 {
-        uint256 oraclePrice;
-        uint256 pay;
-        uint256 slippage;
-        uint16 market;
-        bool isLong;
-        bool isOpen;
-        bool isCreate;
-        bool isFromMarket;
-        uint256 sizeDelta;
-        uint256 price;
-        uint256 collateralDelta;
-        uint256 collateral;
-        uint256 tp;
-        uint256 sl;
-        uint64 orderId;
-        address account;
-        bool isExec;
-        uint8 liqState;
-        uint64 fromOrder;
-        bytes32 refCode;
-        uint8 execNum;
-        bool isKeepLev;
-        bool isKeepLevTP;
-        bool isKeepLevSL;
-        bool triggerAbove;
-        uint128 gas;
-    }
-
-    struct Tuple8473922 {
-        bytes32 refCode;
-        uint128 collateral;
-        uint128 size;
-        uint256 price;
-        uint256 tp;
-        bool triggerAbove;
-        bool isFromMarket;
-        bool isKeepLev;
-        bool isKeepLevTP;
-        bool isKeepLevSL;
-        uint64 orderID;
-        uint64 pairId;
-        uint64 fromId;
-        uint32 updatedAtBlock;
-        uint8 extra0;
-        address account;
-        uint96 extra1;
-        uint256 sl;
-        bool isIncrease;
-        bool isLong;
-        uint16 market;
-        uint96 extra2;
-        uint128 gas;
-        uint8 version;
-    }
-
-    struct Tuple2000403 {
+    struct Tuple910965 {
+        uint8 busiType;
         uint256 oraclePrice;
         uint256 pay;
         uint256 slippage;
@@ -134,8 +79,38 @@ contract DummyDiamondImplementation {
         uint8 version;
     }
 
-    struct Tuple6442409 {
-        Tuple894709 inputs;
+    struct Tuple5849784 {
+        uint8 busiType;
+        uint256 oraclePrice;
+        uint256 pay;
+        uint256 slippage;
+        uint16 market;
+        bool isLong;
+        bool isOpen;
+        bool isCreate;
+        bool isFromMarket;
+        uint256 sizeDelta;
+        uint256 price;
+        uint256 collateralDelta;
+        uint256 collateral;
+        uint256 tp;
+        uint256 sl;
+        uint64 orderId;
+        address account;
+        bool isExec;
+        uint8 liqState;
+        uint64 fromOrder;
+        bytes32 refCode;
+        uint8 execNum;
+        bool isKeepLev;
+        bool isKeepLevTP;
+        bool isKeepLevSL;
+        bool triggerAbove;
+        uint128 gas;
+    }
+
+    struct Tuple4013238 {
+        Tuple0521689 inputs;
         Tuple464693 position;
         int256[] fees;
         address collateralToken;
@@ -143,7 +118,8 @@ contract DummyDiamondImplementation {
         int256 collateralDeltaAfter;
     }
 
-    struct Tuple894709 {
+    struct Tuple0521689 {
+        uint8 busiType;
         uint256 oraclePrice;
         uint256 pay;
         uint256 slippage;
@@ -205,6 +181,33 @@ contract DummyDiamondImplementation {
         uint32 maxTradeAmount;
     }
 
+    struct Tuple564566 {
+        bytes32 refCode;
+        uint128 collateral;
+        uint128 size;
+        uint256 price;
+        uint256 tp;
+        bool triggerAbove;
+        bool isFromMarket;
+        bool isKeepLev;
+        bool isKeepLevTP;
+        bool isKeepLevSL;
+        uint64 orderID;
+        uint64 pairId;
+        uint64 fromId;
+        uint32 updatedAtBlock;
+        uint8 extra0;
+        address account;
+        uint96 extra1;
+        uint256 sl;
+        bool isIncrease;
+        bool isLong;
+        uint16 market;
+        uint96 extra2;
+        uint128 gas;
+        uint8 version;
+    }
+
     struct Tuple1236461 {
         address facetAddress;
         bytes4[] functionSelectors;
@@ -216,8 +219,6 @@ contract DummyDiamondImplementation {
    function availableLiquidity(address  market, address  account, bool  isLong) external view returns (uint256 ) {}
 
    function containsMarket(uint16  marketId) external view returns (bool ) {}
-
-   function formatCollateral(uint256  amount, uint8  collateralTokenDigits) external pure returns (uint256 ) {}
 
    function getGlobalPnl(address  vault) external view returns (int256 ) {}
 
@@ -237,13 +238,9 @@ contract DummyDiamondImplementation {
 
    function removeMarket(uint16  marketId) external {}
 
-   function setConf(uint16  market, Tuple9273272 memory data) external {}
+   function setMarketConf(uint16  market, Tuple9273272 memory data) external {}
 
    function transferIn(address  tokenAddress, address  _from, address  _to, uint256  _tokenAmount) external {}
-
-   function transferOut(address  tokenAddress, address  _to, uint256  _tokenAmount) external {}
-
-   function usdDecimals() external view returns (uint8 ) {}
 
    function authority() external view returns (address ) {}
 
@@ -261,29 +258,27 @@ contract DummyDiamondImplementation {
 
    function initDefaultOracleConfig() external {}
 
-   function setConfig(bytes memory _data) external {}
-
    function setMaxCumulativeDeltaDiffs(uint16[] memory _market, uint256[] memory _maxCumulativeDeltaDiffs) external {}
+
+   function setOracleConfig(bytes memory _data) external {}
 
    function setPrices(uint16[] memory _markets, uint256[] memory _prices) external {}
 
    function setUSDT(address  _feed) external {}
 
-   function cancelOrder(address  markets, bool  isIncrease, uint256  orderID, bool  isLong) external {}
+   function cancelOrder(address  account, uint16  market, bool  isIncrease, uint256  orderID, bool  isLong) external returns (Tuple564566[] memory _orders) {}
 
-   function sysCancelOrder(address  user, address  markets, bool  isIncrease, uint256  orderID, bool  isLong) external {}
+   function updateOrder(Tuple910965 memory _inputs) external payable {}
 
-   function updateOrder(bytes memory data) external payable {}
-
-   function _increasePositionWithOrders(Tuple9848150 memory _inputs) external {}
-
-   function execAddOrderKey(Tuple8473922 memory exeOrder, Tuple2000403 memory _params) external {}
+   function execAddOrder(Tuple680644 memory order, Tuple5849784 memory _params) external {}
 
    function getAccountSizeOfMarkets(uint16  market, address  account) external view returns (uint256  sizesL, uint256  sizesS) {}
 
    function getGlobalSize(uint16  market) external view returns (uint256  sizesLong, uint256  sizesShort) {}
 
-   function execSubOrderKey(Tuple680644 memory order, Tuple2000403 memory _params) external {}
+   function getMarketsOfMarket(uint16  market) external view returns (uint256[] memory) {}
+
+   function execSubOrder(Tuple680644 memory order, Tuple5849784 memory _params) external {}
 
    function liquidate(uint16  market, address  accounts, bool  _isLong) external {}
 
@@ -301,11 +296,11 @@ contract DummyDiamondImplementation {
 
    function setTier(uint256  _tierId, uint256  _totalRebate, uint256  _discountShare) external {}
 
-   function setTraderReferralCode(address  _account, bytes32  _code) external {}
+   function setTraderReferralCodeByGov(address  _account, bytes32  _code) external {}
 
    function setTraderReferralCodeByUser(bytes32  _code) external {}
 
-   function updatePositionCallback(Tuple6442409 memory _event) external {}
+   function updatePositionCallback(Tuple4013238 memory _event) external {}
 
    function diamondCut(Tuple6871229[] memory _diamondCut, address  _init, bytes memory _calldata) external {}
 

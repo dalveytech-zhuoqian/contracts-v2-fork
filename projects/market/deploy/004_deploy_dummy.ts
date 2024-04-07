@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
 import { DiamondEtherscanFacet, MarketDiamond } from '../typechain-types'
 import { ethers } from 'hardhat'
-import { BaseContract } from 'ethers'
+import { BaseContract, ZeroAddress } from 'ethers'
 import { waitFor } from '../utils/wait'
 
 async function setupUser<T extends { [contractName: string]: BaseContract }>(
@@ -24,8 +24,13 @@ async function setAccessManagerAddress(hre: HardhatRuntimeEnvironment): Promise<
     const DummyDiamondImplementation = (await deployments.get('DummyDiamondImplementation')).address
     const DiamondEtherscanFacet = await ethers.getContract<DiamondEtherscanFacet>('MarketDiamond')
     const deployerDeployments = await setupUser(deployer, { MarketDiamond: DiamondEtherscanFacet })
-    if (await deployerDeployments.MarketDiamond.implementation() !== DummyDiamondImplementation) {
-        console.log("implementations don't match, setting new implementation")
+    const currentImplementation = await deployerDeployments.MarketDiamond.implementation()
+    if (currentImplementation !== DummyDiamondImplementation) {
+        if (ZeroAddress === currentImplementation) {
+            console.log("current implementation is zero address, setting new implementation")
+        } else {
+            console.log("implementations don't match, setting new implementation")
+        }
         await waitFor(deployerDeployments.MarketDiamond.setDummyImplementation(DummyDiamondImplementation))
     } else {
         console.log('implementations match, no need to set new implementation')

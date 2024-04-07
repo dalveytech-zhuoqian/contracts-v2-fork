@@ -6,9 +6,7 @@ import {OrderProps, MarketCache} from "../lib/types/Types.sol";
 interface IOrderFacet {
     function updateOrder(MarketCache calldata _inputs) external payable;
 
-    function cancelOrder(address account, uint16 market, bool isIncrease, uint256 orderID, bool isLong) external;
-
-    function sysCancelOrder(address account, uint16 market, bool isIncrease, uint256 orderID, bool isLong)
+    function cancelOrder(address account, uint16 market, bool isIncrease, uint256 orderID, bool isLong)
         external
         returns (OrderProps[] memory _orders);
 }

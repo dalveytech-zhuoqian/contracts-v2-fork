@@ -7,86 +7,70 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {StringsPlus} from "../lib/utils/Strings.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {PositionSubMgrLib} from "../lib/market/PositionSubMgrLib.sol";
-//===============
-// interfaces
-
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
-import {IAccessManaged} from "../ac/IAccessManaged.sol";
-import {IVault} from "../interfaces/IVault.sol";
 
 //===============
 // data types
 import {Order} from "../lib/types/OrderStruct.sol";
-
 import "../lib/types/Types.sol";
 //===============
 // handlers
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
-import {MarketValid} from "../lib/market/MarketValid.sol";
+
+import {Validations} from "../lib/types/Valid.sol";
 import {OrderHandler} from "../lib/order/OrderHandler.sol";
-import {PositionFacetBase} from "./PositionFacetBase.sol";
 import {BalanceHandler} from "../lib/balance/BalanceHandler.sol";
 import {PositionStorage} from "../lib/position/PositionStorage.sol";
+//===============
+// interfaces
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IAccessManaged} from "../ac/IAccessManaged.sol";
+import {PositionFacetBase} from "./PositionFacetBase.sol";
+import {IVault} from "../interfaces/IVault.sol";
 
 contract PositionSubFacet is IAccessManaged, PositionFacetBase {
     using Order for OrderProps;
     using SafeCast for int256;
     using SafeCast for uint256;
     using PositionSubMgrLib for MarketCache;
-    //==========================================================================================
-    //       external functions
-    //==========================================================================================
+    // //==========================================================================================
+    // //       external functions
+    // //==========================================================================================
 
-    //==========================================================================================
-    //       self functions
-    //==========================================================================================
+    // //==========================================================================================
+    // //       self functions
+    // //==========================================================================================
 
-    //==========================================================================================
-    //       admin functions
-    //==========================================================================================
+    // //==========================================================================================
+    // //       admin functions
+    // //==========================================================================================
     function liquidate(uint16 market, address accounts, bool _isLong) external restricted {}
 
-    function execSubOrderKey(OrderProps memory order, MarketCache memory _params) external restricted {
-        order.validOrderAccountAndID();
-        require(_params.isOpen == false, "PositionSubMgr:invalid isOpen");
-        uint256 oraclePrice;
-        PositionProps memory _position =
-            PositionStorage.getPosition(_params.market, order.account, oraclePrice, _params.isLong);
-        (int256[] memory fees, int256 totalFee) = _feeFacet().getFees(abi.encode(_params, _position));
-        MarketValid.validateLiquidation(_params.market, totalFee, fees[uint8(FeeType.LiqFee)], true);
-        decreasePositionFromOrder(order, _params);
-    }
-    //==========================================================================================
-    //       view functions
-    //==========================================================================================
-
-    function validLiq(address acc, bool _isLong) private view {}
-
-    //==========================================================================================
-    //       private functions
-    //==========================================================================================
-
-    function decreasePositionFromOrder(OrderProps memory order, MarketCache memory _params) private {
+    function execSubOrder(OrderProps memory order, MarketCache memory _params) external restricted {
         _params.oraclePrice = _getClosePrice(_params.market, _params.isLong);
-
         PositionProps memory _position =
             PositionStorage.getPosition(_params.market, order.account, _params.oraclePrice, _params.isLong);
-
+        (int256[] memory fees, int256 totalFee) = _feeFacet().getFees(abi.encode(_params, _position));
         if (order.size > 0) {
             _params.collateralDelta = PositionSubMgrLib.getDecreaseDeltaCollateral(
                 order.isKeepLev, _position.size, order.size, _position.collateral
             );
         }
 
-        OrderProps[] memory ods =
-            _orderFacet().sysCancelOrder(_params.account, _params.market, _params.isOpen, order.orderID, _params.isLong);
-        require(ods[0].account != address(0), "PositionSubMgr:!account");
+        //--------------
+        // validations
+        Validations.validOrderAccountAndID(order);
+        require(_params.isOpen == false, "PositionSubMgr:invalid isOpen");
+        Validations.validateLiquidation(_params.market, totalFee, fees[uint8(FeeType.LiqFee)], true);
 
-        // , emit
+        //--------------
+        // cancel order
+        OrderProps[] memory ods =
+            _orderFacet().cancelOrder(_params.account, _params.market, _params.isOpen, order.orderID, _params.isLong);
+
         for (uint256 i = 0; i < ods.length; i++) {
             OrderProps memory od = ods[i];
             if (address(0) == od.account) continue;
+            // todo call referral
             // MarketLib.afterDeleteOrder(
             //     MarketOrderCallBackIntl.DeleteOrderEvent(
             //         od,
@@ -104,15 +88,18 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
             // );
             if (i == 0) {
                 _params.execNum += 1;
-                require(
-                    od.isMarkPriceValid(_params.oraclePrice),
-                    order.isFromMarket ? "PositionSubMgr:market slippage" : StringsPlus.POSITION_TRIGGER_ABOVE
-                );
+                // require(
+                // od.isMarkPriceValid(_params.oraclePrice),
+                //     order.isFromMarket ? "PositionSubMgr:market slippage" : StringsPlus.POSITION_TRIGGER_ABOVE
+                // );
             }
         }
-
         _decreasePosition(_params, _position);
     }
+
+    // //==========================================================================================
+    // //       private functions
+    // //==========================================================================================
 
     function _decreasePosition(MarketCache memory _params, PositionProps memory _position) private {
         // Return if the position size is zero or the account is invalid
@@ -127,9 +114,9 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         if (isCloseAll) {
             // Determine the cancellation reason based on the liquidation state
             CancelReason reason = CancelReason.PositionClosed;
-            if (_params.liqState == 1) {
+            if (_params.liqState == LiquidationState.Collateral) {
                 reason = CancelReason.Liquidation;
-            } else if (_params.liqState == 2) {
+            } else if (_params.liqState == LiquidationState.Leverage) {
                 reason = CancelReason.LeverageLiquidation;
             }
 
@@ -161,9 +148,9 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         if (_params.sizeDelta == 0) {
             uint256 collateral =
                 totalFees <= 0 ? (_position.collateral.toInt256() - totalFees).toUint256() : _position.collateral;
-            MarketValid.validCollateralDelta(abi.encode(4, collateral, _params.collateralDelta, _position.size, 0, 0));
+            // Validations.validCollateralDelta(abi.encode(4, collateral, _params.collateralDelta, _position.size, 0, 0));
         } else {
-            MarketValid.validPosition(abi.encode(_params, _position, _originFees));
+            // Validations.validPosition(_params, _position, _originFees);
         }
 
         int256 dPnl;
@@ -198,19 +185,16 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
 
         // >>>>>>>>>>>>>>>>>>>>>>偿还 CoreVault 的账目
         address colleteralToken = MarketHandler.collateralToken(_params.market);
-        vault(_params.market).repayToVault(
-            _params.market,
-            _marketFacet().formatCollateral(_params.sizeDelta, IERC20Metadata(colleteralToken).decimals())
-        );
+        vault(_params.market).repayToVault(_params.market, formatCollateral(_params.sizeDelta, colleteralToken));
         PositionProps memory result = _positionFacet().decreasePosition(
             abi.encode(_params.account, _outs.collateralDecreased, _params.sizeDelta, _nowFundRate, _params.isLong)
         );
         // <<<<<<<<<<<<<<<<<<仓位修改
 
-        MarketValid.validLev(_params.market, result.size, result.collateral);
+        Validations.validLev(_params.market, result.size, result.collateral);
 
         if (PositionSubMgrLib.isClearPos(_params, _position)) {
-            validLiq(_params.account, _params.isLong);
+            // validLiq(_params.account, _params.isLong);
         }
 
         // MarketLib.afterUpdatePosition(
@@ -240,10 +224,10 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         //            fee vault transactions
         //================================================
         address _collateralToken = MarketHandler.collateralToken(_params.market);
-        IERC20Metadata _collateralTokenERC20 = IERC20Metadata(_collateralToken);
-        uint256 amount = _marketFacet().formatCollateral(
+        // IERC20Metadata _collateralTokenERC20 = IERC20Metadata(_collateralToken);
+        uint256 amount = formatCollateral(
             _outs.transToFeeVault >= 0 ? _outs.transToFeeVault.toUint256() : (-_outs.transToFeeVault).toUint256(),
-            _collateralTokenERC20.decimals()
+            _collateralToken
         );
 
         if (_outs.transToFeeVault >= 0) {
@@ -270,7 +254,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         //         usr transactions
         //================================================
         if (_outs.transToUser > 0) {
-            _marketFacet().transferOut(_collateralToken, _params.account, uint256(_outs.transToUser));
+            transferOut(_collateralToken, _params.account, uint256(_outs.transToUser));
         }
     }
 }

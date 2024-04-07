@@ -16,4 +16,9 @@ library OrderHelper {
     function getPairKey(OrderProps memory order) internal pure returns (bytes32) {
         return getKey(order.account, order.pairId);
     }
+
+    function isMarkPriceValid(OrderProps memory _order, uint256 _oraclePrice) internal pure returns (bool) {
+        if (_order.triggerAbove) return _oraclePrice >= uint256(_order.price);
+        else return _oraclePrice <= uint256(_order.price);
+    }
 }

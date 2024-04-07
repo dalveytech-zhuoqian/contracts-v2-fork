@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "../lib/utils/EnumerableValues.sol";
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "./funcs.sol";
 //================================================================
 //handlers
 import {MarketHandler} from "../lib/market/MarketHandler.sol";
@@ -26,7 +27,6 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
 
     using SafeERC20 for IERC20Metadata;
 
-    uint8 public constant usdDecimals = 18; //数量精度
     //================================================================
     // only self
     //================================================================
@@ -41,18 +41,7 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
         // Retrieve the token contract.
         IERC20Metadata coll = IERC20Metadata(tokenAddress);
         // Format the collateral amount based on the token's decimals and transfer the tokens.
-        coll.safeTransferFrom(_from, _to, formatCollateral(_tokenAmount, IERC20Metadata(tokenAddress).decimals()));
-    }
-
-    function transferOut(address tokenAddress, address _to, uint256 _tokenAmount) external override onlySelf {
-        // If the token amount is 0, return.
-        if (_tokenAmount == 0) return;
-        // Retrieve the token contract.
-        IERC20Metadata coll = IERC20Metadata(tokenAddress);
-        // Format the collateral amount based on the token's decimals.
-        _tokenAmount = formatCollateral(_tokenAmount, IERC20Metadata(tokenAddress).decimals());
-        // Transfer the tokens to the specified address.
-        coll.safeTransfer(_to, _tokenAmount);
+        coll.safeTransferFrom(_from, _to, formatCollateral(_tokenAmount, tokenAddress));
     }
 
     //================================================================
@@ -106,7 +95,7 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
     // view only
     //================================================================
     function isLiquidate(uint16 market, address account, bool isLong) external view {
-        // LibMarketValid.validateLiquidation(market, pnl, fees, liquidateFee, collateral, size, raise);
+        // LibValidations.validateLiquidation(market, pnl, fees, liquidateFee, collateral, size, raise);
     }
 
     function markeConfig(uint16 market) external view returns (MarketHandler.Props memory _config) {
@@ -134,10 +123,6 @@ contract MarketFacet is IAccessManaged, IMarketInternal {
     function getMarket(uint16 market) external view returns (bytes memory result) {}
 
     function getMarkets() external view returns (bytes memory result) {}
-
-    function formatCollateral(uint256 amount, uint8 collateralTokenDigits) public pure override returns (uint256) {
-        return (amount * (10 ** uint256(collateralTokenDigits))) / (10 ** usdDecimals);
-    }
 
     function parseVaultAsset(uint256 amount, uint8 originDigits) external pure override returns (uint256) {
         return (amount * (10 ** uint256(usdDecimals))) / (10 ** originDigits);

@@ -47,5 +47,8 @@ library MarketHandler { /* is IOrderBook, Ac */
         return Storage().token[market];
     }
 
-    function getDecreaseOrderValidation(uint16 market, uint256 decrOrderCount) internal view returns (bool isValid) {}
+    function getDecreaseOrderValidation(uint16 market, uint256 decrOrderCount) internal view returns (bool isValid) {
+        Props storage conf = Storage().config[market];
+        return conf.decreaseNumLimit >= decrOrderCount + 1;
+    }
 }

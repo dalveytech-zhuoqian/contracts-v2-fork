@@ -1,6 +1,20 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.17;
 
+enum MarketBusinessType {
+    None,
+    Increase,
+    IncreaseCollateral,
+    Decrease,
+    DecreaseCollateral
+}
+
+enum LiquidationState {
+    None,
+    Collateral,
+    Leverage
+}
+
 enum CancelReason {
     Padding, //0
     Liquidation, //1
@@ -92,6 +106,7 @@ struct PositionProps {
 }
 
 struct MarketCache {
+    MarketBusinessType busiType;
     uint256 oraclePrice;
     uint256 pay;
     uint256 slippage;
@@ -109,7 +124,7 @@ struct MarketCache {
     uint64 orderId;
     address account;
     bool isExec;
-    uint8 liqState;
+    LiquidationState liqState;
     uint64 fromOrder;
     bytes32 refCode;
     uint8 execNum;

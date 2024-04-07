@@ -41,7 +41,7 @@ contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable {
         // ReferralHandler.setReferrerDiscountShare(_account, _discountShare);
     }
 
-    function setTraderReferralCode(address _account, bytes32 _code) external restricted {
+    function setTraderReferralCodeByGov(address _account, bytes32 _code) external restricted {
         // ReferralHandler._setTraderReferralCode(_account, _code);
     }
 

@@ -24,7 +24,7 @@ library ReferralHandler {
     }
 
     event SetTraderReferralCode(address account, bytes32 code);
-    event SetTraderReferralCode(address account, address inviter, bytes32 code);
+    event SetTraderReferralCodeWithInviter(address account, address inviter, bytes32 code);
     event SetTier(uint256 tierId, uint256 totalRebate, uint256 discountShare);
     event SetReferrerTier(address referrer, uint256 tierId);
     event SetReferrerDiscountShare(address referrer, uint256 discountShare);
@@ -113,7 +113,7 @@ library ReferralHandler {
     function _setTraderReferralCode(address _account, bytes32 _code) internal {
         Storage().traderReferralCodes[_account] = _code;
         emit SetTraderReferralCode(_account, _code);
-        emit SetTraderReferralCode(_account, Storage().codeOwners[_code], _code);
+        emit SetTraderReferralCodeWithInviter(_account, Storage().codeOwners[_code], _code);
     }
 
     function getCodeOwners(bytes32[] memory _codes) internal view returns (address[] memory) {

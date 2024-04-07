@@ -10,7 +10,7 @@ library PositionSubMgrLib {
     using SafeCast for int256;
     using SafeCast for uint256;
 
-    error TotalFeesLtZero();
+    error TotalFeesLtZero(int256 fees);
 
     /**
      * @param _originFees 原始应当收取的费用数据
@@ -44,7 +44,7 @@ library PositionSubMgrLib {
         int256 fees // 手续费
     ) internal pure returns (int256 transferToFeeVaultAmount) {
         int256 remain = _position.collateral.toInt256() + dPNL; // 计算剩余金额
-        if (fees < 0) revert TotalFeesLtZero(); // 如果手续费小于0，则抛出异常
+        if (fees < 0) revert TotalFeesLtZero(fees); // 如果手续费小于0，则抛出异常
         if (remain > 0) return SignedMath.min(remain, fees); // 如果剩余金额大于0，则返回剩余金额和手续费中较小的一个
             // 默认返回 0
     }
@@ -83,7 +83,7 @@ library PositionSubMgrLib {
     ) internal pure returns (uint256) {
         bool isCloseAll = _position.size == _params.sizeDelta;
         if (isCloseAll) _params.collateralDelta = _position.collateral;
-        if (_params.liqState > 0 || isCloseAll) return 0; // 如果处于清算状态或者是全部清算，则返回0
+        if (_params.liqState != LiquidationState.None || isCloseAll) return 0; // 如果处于清算状态或者是全部清算，则返回0
         if (_position.collateral.toInt256() + dPNL - fees <= 0) return 0; // 如果保证金加上盈亏减去费用小于等于0，则返回0
         if (_params.collateralDelta.toInt256() + dPNL - fees < 0) {
             return (_position.collateral.toInt256() + dPNL - fees).toUint256();
@@ -169,7 +169,8 @@ library PositionSubMgrLib {
         MarketCache memory _params, // 定义更新仓位所需的参数
         PositionProps memory _position // 定义当前仓位的属性
     ) internal pure returns (bool) {
-        return (_params.liqState != 1 || _params.liqState != 2) && _params.sizeDelta != _position.size;
+        return (_params.liqState != LiquidationState.Collateral || _params.liqState != LiquidationState.Leverage)
+            && _params.sizeDelta != _position.size;
     }
 
     /**

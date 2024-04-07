@@ -113,7 +113,11 @@ library FeeHandler {
     /**
      * 只是获取根据当前仓位获取各种费用应该收取多少, 并不包含收费顺序和是否能收得到
      */
-    function getFees(MarketCache memory params, int256 _fundFee) internal view returns (int256[] memory fees) {
+    function getFeesReceivable(MarketCache memory params, int256 _fundFee)
+        internal
+        view
+        returns (int256[] memory fees)
+    {
         // todo merge with feeAndRates?
         fees = new int256[](uint8(FeeType.Counter));
 
@@ -125,13 +129,14 @@ library FeeHandler {
 
         // open position
         if (params.isOpen) {
-            fees[uint8(FeeType.OpenFee)] = int256(getFee(params.market, params.sizeDelta, uint8(FeeType.OpenFee)));
+            fees[uint8(FeeType.OpenFee)] = int256(getFeeOfKind(params.market, params.sizeDelta, uint8(FeeType.OpenFee)));
         } else {
             // close position
-            fees[uint8(FeeType.CloseFee)] = int256(getFee(params.market, params.sizeDelta, uint8(FeeType.CloseFee)));
+            fees[uint8(FeeType.CloseFee)] =
+                int256(getFeeOfKind(params.market, params.sizeDelta, uint8(FeeType.CloseFee)));
 
             // liquidate position
-            if (params.liqState == 1) {
+            if (params.liqState == LiquidationState.Collateral) {
                 uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.LiqFee)];
                 fees[uint8(FeeType.LiqFee)] = int256(_fee);
             }
@@ -153,7 +158,7 @@ library FeeHandler {
      * @param kind The fee kind.
      * @return The fee amount.
      */
-    function getFee(uint16 market, uint256 sizeDelta, uint8 kind) internal view returns (uint256) {
+    function getFeeOfKind(uint16 market, uint256 sizeDelta, uint8 kind) internal view returns (uint256) {
         if (sizeDelta == 0) {
             return 0;
         }

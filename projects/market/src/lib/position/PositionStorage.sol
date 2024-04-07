@@ -7,6 +7,8 @@ import "./../types/PositionStruct.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
+import {Event} from "../types/Event.sol";
+
 struct PositionCache {
     uint16 market;
     address account;
@@ -60,19 +62,29 @@ library PositionStorage {
     // =====================================================
 
     function set(PositionCache memory cache) internal {
+        PositionProps memory _oldPosition = Storage().positions[cache.sk][cache.account];
+        PositionProps memory _oldGlobalPosition = Storage().globalPositions[cache.sk];
         Storage().positions[cache.sk][cache.account] = cache.position;
         Storage().globalPositions[cache.sk] = cache.globalPosition;
         Storage().positionKeys[cache.sk].add(cache.account);
-        emit UpdatePosition(cache.account, cache.position.size, cache.position.collateral);
+
+        emit Event.PositionUpdate(cache.account, cache.market, cache.isLong, _oldPosition, cache.position);
+        emit Event.PositionKeyAdd(cache.account, cache.market, cache.isLong);
+        emit Event.GlobalPositionUpdate(cache.market, cache.isLong, cache.globalPosition, cache.globalPosition);
     }
 
     function remove(PositionCache memory cache) internal {
+        PositionProps memory _oldPosition = Storage().positions[cache.sk][cache.account];
+
         bool has = Storage().positionKeys[cache.sk].contains(cache.account);
         require(has, "position does not exist");
         Storage().globalPositions[cache.sk] = cache.globalPosition;
         delete Storage().positions[cache.sk][cache.account];
         Storage().positionKeys[cache.sk].remove(cache.account);
-        emit RemovePosition(cache.account, cache.position.size, cache.position.collateral);
+
+        emit Event.PositionDelete(cache.account, cache.market, cache.isLong, _oldPosition);
+        emit Event.PositionKeyDelete(cache.account, cache.market, cache.isLong);
+        emit Event.GlobalPositionUpdate(cache.market, cache.isLong, cache.globalPosition, cache.globalPosition);
     }
     // =====================================================
     //           view only

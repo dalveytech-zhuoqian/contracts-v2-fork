@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {MarketCache} from "../types/Types.sol";
+import {MarketCache, PositionProps} from "../types/Types.sol";
 
 library Event {
     event UpdateOrder(
@@ -32,4 +32,16 @@ library Event {
         uint256 price,
         int256 dPNL
     );
+
+    event PositionUpdate(
+        address indexed account, uint16 market, bool isLong, PositionProps oldPosition, PositionProps newPosition
+    );
+
+    event PositionDelete(address indexed account, uint16 market, bool isLong, PositionProps oldPosition);
+
+    event PositionKeyAdd(address indexed account, uint16 market, bool isLong);
+
+    event PositionKeyDelete(address indexed account, uint16 market, bool isLong);
+
+    event GlobalPositionUpdate(uint16 market, bool isLong, PositionProps oldPosition, PositionProps newPosition);
 }

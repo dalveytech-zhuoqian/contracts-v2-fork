@@ -24,29 +24,16 @@ contract OrderFacet is IAccessManaged, IOrderFacet {
         }
     }
 
-    function cancelOrder(address account, uint16 market, bool isIncrease, uint256 orderID, bool isLong) external {
-        require(account == msg.sender, "OrderBook:invalid account");
-        // user cancel
-        _cancelOrder(market, isIncrease, isLong, msg.sender, orderID);
-    }
-
-    //==========================================================================================
-    //       admin/self functions
-    //==========================================================================================
-
-    function sysCancelOrder(address user, uint16 market, bool isIncrease, uint256 orderID, bool isLong)
+    function cancelOrder(address account, uint16 market, bool isIncrease, uint256 orderID, bool isLong)
         external
-        override
         returns (OrderProps[] memory _orders)
     {
-        if (msg.sender == address(this)) {
-            // called by market
-        } else {
-            // system cancel
+        if (address(this) != msg.sender && account != msg.sender) {
             _checkCanCall(msg.sender, msg.data);
         }
-        _cancelOrder(market, isIncrease, isLong, user, orderID);
+        return _cancelOrder(market, isIncrease, isLong, msg.sender, orderID);
     }
+
     //==========================================================================================
     //       private functions
     //==========================================================================================
@@ -85,7 +72,7 @@ contract OrderFacet is IAccessManaged, IOrderFacet {
 
     function _validInputParams(OrderProps memory _order, bool _isOpen, bool isLong) private pure {
         if (_isOpen) {
-            _order.validTPSL(isLong);
+            // _order.validTPSL(isLong);
             require(_order.collateral > 0, "OB:invalid collateral");
         }
         require(_order.account != address(0), "OrderBook:invalid account");
@@ -134,6 +121,7 @@ contract OrderFacet is IAccessManaged, IOrderFacet {
         //     _orders = new OrderProps[](1);
         // } // pairKey0_orders
         // _orders[0] = _remove(sk, ok);
+        require(_orders[0].account != address(0), "PositionSubMgr:!account"); // new added
     }
 
     function _setupTriggerAbove(MarketCache memory _vars, OrderProps memory _order)

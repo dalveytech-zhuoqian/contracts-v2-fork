@@ -12,6 +12,7 @@ library OrderFinder {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableValues for EnumerableSet.Bytes32Set;
     using Order for OrderProps;
+    using OrderHelper for OrderProps;
 
     struct Cache {
         uint16 market;
