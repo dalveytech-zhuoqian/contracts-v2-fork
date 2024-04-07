@@ -4,13 +4,13 @@ pragma solidity ^0.8.0;
 import {MarketCache, PositionProps} from "../lib/types/Types.sol";
 
 interface IFeeFacet {
-    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) external;
-
+    function _collectFees(bytes calldata _data) external;
+    function _updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) external;
     //================================================================
     // view functions
     //================================================================
 
-    function feeAndRates(uint16 market)
+    function getFeeAndRatesOfMarket(uint16 market)
         external
         view
         returns (uint256[] memory fees, int256[] memory fundingRates, int256[] memory _cumulativeFundingRates);

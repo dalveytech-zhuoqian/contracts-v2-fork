@@ -20,7 +20,7 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
     //==========================================================================================
     //       self functions
     //==========================================================================================
-    function increasePosition(IncreasePositionInputs calldata _data)
+    function _increasePosition(IncreasePositionInputs calldata _data)
         external
         override
         onlySelf
@@ -37,7 +37,7 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
         return PositionHandler.increasePosition(cache);
     }
 
-    function decreasePosition(DecreasePositionInputs calldata inputs)
+    function _decreasePosition(DecreasePositionInputs calldata inputs)
         external
         onlySelf
         returns (PositionProps memory result)
@@ -52,7 +52,7 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
         return PositionHandler.decreasePosition(cache);
     }
 
-    function liquidatePosition(uint16 market, address account, uint256 oraclePrice, bool isLong)
+    function _liquidatePosition(uint16 market, address account, uint256 oraclePrice, bool isLong)
         external
         override
         onlySelf
@@ -69,6 +69,12 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
     //==========================================================================================
     //       view functions
     //==========================================================================================
+    function isLiquidate(address _account, uint16 _market, bool _isLong, uint256 _price)
+        external
+        view
+        override
+        returns (LiquidationState _state)
+    {}
 
     function getAccountSize(uint16 market, address account) external view returns (uint256, uint256) {
         return PositionStorage.getAccountSizesForBothDirections(market, account);
@@ -99,7 +105,7 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
         return PositionStorage.getGlobalPosition(market, isLong);
     }
 
-    function contains(uint16 market, address account) external view returns (bool) {
+    function containsPositionOfUser(uint16 market, address account) external view returns (bool) {
         PositionStorage.StorageStruct storage ps = PositionStorage.Storage();
         return ps.positions[PositionStorage.storageKey(market, true)][account].size > 0
             || ps.positions[PositionStorage.storageKey(market, false)][account].size > 0;
@@ -126,7 +132,7 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
         return ps.positionKeys[PositionStorage.storageKey(market, isLong)].length();
     }
 
-    function getPNL(uint16 market, address account, uint256 sizeDelta, uint256 markPrice, bool isLong)
+    function getPNLOfUser(uint16 market, address account, uint256 sizeDelta, uint256 markPrice, bool isLong)
         external
         view
         override
@@ -135,7 +141,7 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
         return PositionStorage.getPNL(market, account, sizeDelta, markPrice, isLong);
     }
 
-    function getPNL(uint16 market) external view returns (int256 pnl) {
+    function getPNLOfMarket(uint16 market) external view returns (int256 pnl) {
         // TODO
         // uint256 longPrice = IPrice(this).getPrice(market, false);
         // uint256 shortPrice = IPrice(this).getPrice(market, true);

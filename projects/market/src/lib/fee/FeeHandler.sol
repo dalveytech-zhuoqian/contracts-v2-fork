@@ -86,7 +86,7 @@ library FeeHandler {
         //todo
     }
 
-    function getExecFee(uint16 market) external view returns (uint256) {
+    function getExecFee(uint16 market) internal view returns (uint256) {
         //todo
     }
 

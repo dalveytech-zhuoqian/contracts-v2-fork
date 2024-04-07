@@ -108,7 +108,7 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
         coll.safeTransferFrom(_from, _to, formatCollateral(_tokenAmount, tokenAddress));
     }
 
-    function addOrders(MarketCache[] memory _inputs) external onlySelf returns (OrderProps[] memory _orders) {
+    function _addOrders(MarketCache[] memory _inputs) external onlySelf returns (OrderProps[] memory _orders) {
         return _add(_inputs);
     }
 

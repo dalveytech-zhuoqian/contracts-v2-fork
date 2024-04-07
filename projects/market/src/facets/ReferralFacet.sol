@@ -4,9 +4,10 @@ pragma solidity ^0.8.17;
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {ReferralHandler} from "../lib/referral/ReferralHandler.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import {ReferralType} from "../lib/types/ReferralType.sol";
 
-contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable {
+import "../interfaces/IReferral.sol";
+
+contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable, IReferral {
     //==========================================================================================
     //       external functions
     //==========================================================================================
@@ -49,7 +50,7 @@ contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable {
     //       self functions
     //==========================================================================================
 
-    function updatePositionCallback(ReferralType.UpdatePositionEvent calldata _event) external onlySelf {
+    function _updatePositionCallback(ReferralUpdatePositionEvent calldata _event) external override onlySelf {
         ReferralHandler.updatePositionCallback(_event);
     }
 

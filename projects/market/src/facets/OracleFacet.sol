@@ -26,8 +26,7 @@ contract OracleFacet is IAccessManaged, IPrice {
         store.config = _config;
     }
 
-    function setOracleConfig(bytes calldata _data) external restricted {
-        (OracleHandler.ConfigStruct memory _config) = abi.decode(_data, (OracleHandler.ConfigStruct));
+    function setOracleConfig(OracleHandler.ConfigStruct memory _config) external restricted {
         OracleHandler.StorageStruct storage store = OracleHandler.Storage();
         store.config = _config;
     }
@@ -53,6 +52,14 @@ contract OracleFacet is IAccessManaged, IPrice {
     //========================================================================
     //     view functions
     //========================================================================
+
+    function priceFeed(uint16 market) external view returns (address) {
+        return OracleHandler.Storage().priceFeeds[market];
+    }
+
+    function usdtFeed() external view returns (address) {
+        return OracleHandler.Storage().USDT;
+    }
 
     function getPrice(uint16 market, bool _maximise) external view override returns (uint256) {
         return OracleHandler.getPrice(market, _maximise);

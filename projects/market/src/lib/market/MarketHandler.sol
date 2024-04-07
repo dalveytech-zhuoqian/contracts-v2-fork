@@ -30,6 +30,7 @@ library MarketHandler { /* is IOrderBook, Ac */
         mapping(uint16 => address) token;
         mapping(uint16 => uint256) balance;
         mapping(address vault => EnumerableSet.UintSet) marketIds;
+        uint16 marketIdAutoIncrease;
     }
 
     function vault(uint16 market) internal view returns (address) {

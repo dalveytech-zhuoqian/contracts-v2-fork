@@ -152,7 +152,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
 
         int256 dPnl;
         if (_params.sizeDelta > 0) {
-            dPnl = _positionFacet().getPNL(
+            dPnl = _positionFacet().getPNLOfUser(
                 _params.market, _params.account, _params.sizeDelta, _params.oraclePrice, _params.isLong
             );
         }
@@ -168,7 +168,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         int256 _nowFundRate = _feeFacet().cumulativeFundingRates(_params.market, _params.isLong);
         //                     先把资金费结算给用户
         if (_outs.newCollateralUnsigned > 0 && _outs.withdrawFromFeeVault > 0) {
-            _positionFacet().increasePosition(
+            _positionFacet()._increasePosition(
                 IncreasePositionInputs({
                     market: _params.market,
                     account: _params.account,
@@ -184,7 +184,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         // >>>>>>>>>>>>>>>>>>>>>>偿还 CoreVault 的账目
         address colleteralToken = MarketHandler.collateralToken(_params.market);
         vault(_params.market).repayToVault(_params.market, formatCollateral(_params.sizeDelta, colleteralToken));
-        PositionProps memory result = _positionFacet().decreasePosition(
+        PositionProps memory result = _positionFacet()._decreasePosition(
             DecreasePositionInputs({
                 market: _params.market,
                 account: _params.account,

@@ -105,7 +105,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
             return;
         }
 
-        OrderProps[] memory _os = _orderFacet().addOrders(_vars);
+        OrderProps[] memory _os = _orderFacet()._addOrders(_vars);
         // uint256[] memory inputs = new uint256[](0);
         // for (uint256 i; i < _os.length;) {
         //     OrderProps memory _order = _os[i];
@@ -249,7 +249,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     {
         if (_params.sizeDelta == 0 && collD < 0) {
             // abi.encode(_params.account, uint256(-collD), _params.sizeDelta, fr, _params.isLong)
-            result = _positionFacet().decreasePosition(
+            result = _positionFacet()._decreasePosition(
                 DecreasePositionInputs({
                     market: _params.market,
                     account: _params.account,
@@ -263,7 +263,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
             address collateralToken = MarketHandler.collateralToken(_params.market);
 
             vault(_params.market).borrowFromVault(_params.market, formatCollateral(_params.sizeDelta, collateralToken));
-            result = _positionFacet().increasePosition(
+            result = _positionFacet()._increasePosition(
                 IncreasePositionInputs({
                     market: _params.market,
                     account: _params.account,

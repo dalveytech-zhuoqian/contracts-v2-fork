@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {ReferralType} from "../types/ReferralType.sol";
 import {FeeType} from "../types/Types.sol";
+import "../../interfaces/IReferral.sol";
 
 library ReferralHandler {
     bytes32 constant STORAGE_POSITION = keccak256("blex.referral.storage");
@@ -127,7 +127,7 @@ library ReferralHandler {
         return owners;
     }
 
-    function updatePositionCallback(ReferralType.UpdatePositionEvent calldata _event) internal {
+    function updatePositionCallback(ReferralUpdatePositionEvent calldata _event) internal {
         (bytes32 referralCode, address referrer) = getTraderReferralInfo(_event.inputs.account);
 
         if (referralCode == bytes32(0)) {

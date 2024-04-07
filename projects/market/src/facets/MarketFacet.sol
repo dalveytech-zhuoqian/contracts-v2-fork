@@ -40,9 +40,55 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
         MarketHandler.Storage().config[market] = data;
     }
 
-    function addMarket(bytes calldata data) external restricted {
-        (uint16 market, string memory name, address _vault, address token, MarketHandler.Props memory config) =
-            abi.decode(data, (uint16, string, address, address, MarketHandler.Props));
+    function addMarket(
+        string memory name,
+        address _vault,
+        bool isSuspended,
+        bool allowOpen,
+        bool allowClose,
+        bool validDecrease,
+        uint16 minSlippage,
+        uint16 maxSlippage,
+        uint16 minLeverage,
+        uint16 maxLeverage,
+        uint16 minPayment,
+        uint16 minCollateral,
+        uint16 decreaseNumLimit, //default: 10
+        uint32 maxTradeAmount
+    ) external restricted {
+        MarketFacet(address(this))._addMarket(
+            abi.encode(
+                name,
+                _vault,
+                address(0),
+                MarketHandler.Props({
+                    isSuspended: isSuspended,
+                    allowOpen: allowOpen,
+                    allowClose: allowClose,
+                    validDecrease: validDecrease,
+                    minSlippage: minSlippage,
+                    maxSlippage: maxSlippage,
+                    minLeverage: minLeverage,
+                    maxLeverage: maxLeverage,
+                    minPayment: minPayment,
+                    minCollateral: minCollateral,
+                    decreaseNumLimit: decreaseNumLimit,
+                    maxTradeAmount: maxTradeAmount
+                })
+            )
+        );
+    }
+
+    event MarketAdded(uint16 market, string name, address vault, address token, MarketHandler.Props config);
+
+    function _addMarket(bytes calldata data) external {
+        if (address(this) != msg.sender) {
+            _checkCanCall(msg.sender, msg.data);
+        }
+
+        uint16 market = MarketHandler.Storage().marketIdAutoIncrease + 1;
+        (string memory name, address _vault, address token, MarketHandler.Props memory config) =
+            abi.decode(data, (string, address, address, MarketHandler.Props));
 
         MarketHandler.Storage().name[market] = name;
         if (token == address(0)) {
@@ -69,6 +115,8 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
         });
 
         MarketHandler.Storage().config[market] = config;
+        MarketHandler.Storage().marketIdAutoIncrease = market;
+        emit MarketAdded(market, name, _vault, token, config);
     }
 
     function removeMarket(uint16 marketId) external restricted {
@@ -81,9 +129,6 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
     //================================================================
     // view only
     //================================================================
-    function isLiquidate(uint16 market, address account, bool isLong) external view {
-        // LibValidations.validateLiquidation(market, pnl, fees, liquidateFee, collateral, size, raise);
-    }
 
     function markeConfig(uint16 market) external view returns (MarketHandler.Props memory _config) {
         _config = MarketHandler.Storage().config[market];
@@ -107,9 +152,25 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
         // todo for front end
     }
 
-    function getMarket(uint16 market) external view returns (bytes memory result) {}
+    function getMarket(uint16 market) external view returns (bytes memory result) {
+        MarketHandler.StorageStruct storage $ = MarketHandler.Storage();
+        return abi.encode($.name[market], $.vault[market], $.token[market], $.balance[market], $.config[market]);
+    }
 
-    function getMarkets() external view returns (bytes memory result) {}
+    function getMarkets() external view returns (bytes memory result) {
+        MarketHandler.StorageStruct storage $ = MarketHandler.Storage();
+        uint256[] memory _markets = $.marketIds[msg.sender].values();
+        bytes memory result = new bytes(_markets.length * 32);
+        for (uint256 i = 0; i < _markets.length; i++) {
+            uint16 market = uint16(_markets[i]);
+            bytes memory data =
+                abi.encode($.name[market], $.vault[market], $.token[market], $.balance[market], $.config[market]);
+            assembly {
+                mstore(add(result, mul(i, 32)), data)
+            }
+        }
+        return result;
+    }
 
     function getUSDDecimals() external pure returns (uint8) {
         return usdDecimals;

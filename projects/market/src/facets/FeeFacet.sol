@@ -21,11 +21,11 @@ import "../lib/types/Types.sol";
 contract FeeFacet is IAccessManaged, IFeeFacet {
     using EnumerableSet for EnumerableSet.UintSet;
 
-    //================================================================
-    // only self
-    //================================================================
+    // //================================================================
+    // // only self
+    // //================================================================
 
-    function collectFees(bytes calldata _data) external onlySelf {
+    function _collectFees(bytes calldata _data) external onlySelf {
         (address account, address token, int256[] memory fees, uint256 fundfeeLoss, uint16 market) =
             abi.decode(_data, (address, address, int256[], uint256, uint16));
         uint256 _amount = IERC20(token).allowance(msg.sender, address(this));
@@ -43,16 +43,16 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         emit FeeHandler.UpdateFee(account, market, fees, _amount);
     }
 
-    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize)
+    function _updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize)
         external
         override
         onlySelf
     {
         // TODO too much to do
     }
-    //================================================================
-    // ADMIN
-    //================================================================
+    // //================================================================
+    // // ADMIN
+    // //================================================================
 
     function initFeeFacet(uint16 market) external onlySelfOrRestricted {
         FeeHandler.initialize(market);
@@ -105,9 +105,9 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         // FeeHandler.addSkipTime(market, start, end);
     }
 
-    //================================================
-    // view functions
-    //================================================
+    // //================================================
+    // // view functions
+    // //================================================
     function getOrderFees(MarketCache calldata data) external view override returns (int256 fees) {
         return FeeHandler.getOrderFees(data);
     }
@@ -158,7 +158,7 @@ contract FeeFacet is IAccessManaged, IFeeFacet {
         return openInterest;
     }
 
-    function feeAndRates(uint16 market)
+    function getFeeAndRatesOfMarket(uint16 market)
         external
         view
         override
