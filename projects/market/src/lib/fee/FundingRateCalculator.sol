@@ -5,15 +5,16 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {Calc} from "../utils/Calc.sol";
+import {PercentageMath} from "../utils/PercentageMath.sol";
 
 library FundingRateCalculator {
     using SafeCast for uint256;
     using SafeCast for int256;
+    using PercentageMath for uint256;
     using FundingRateCalculator for FundFeeStorageMemory;
     using FundingRateCalculator for FundFeeVars;
 
     uint256 internal constant MIN_FUNDING_INTERVAL_3600 = 1 hours; // 8hours
-    uint256 internal constant ONE_WITH_8_DECIMALS = 10 ** 8; //0.0001666666*100000000
     uint256 internal constant BASIS_INTERVAL_HOUR_24 = 24;
     uint256 internal constant DEFAULT_RATE_DIVISOR_100 = 100;
 
@@ -34,8 +35,9 @@ library FundingRateCalculator {
         uint256 fundingIntervalSeconds
     ) internal pure returns (uint256) {
         uint256 _maxFRate = (
-            openInterest18Decimals * fundingIntervalSeconds * maxFRatePerDayWith8Decimals * ONE_WITH_8_DECIMALS
-        ) / aumWith18Decimals / BASIS_INTERVAL_HOUR_24 / ONE_WITH_8_DECIMALS / MIN_FUNDING_INTERVAL_3600;
+            openInterest18Decimals * fundingIntervalSeconds * maxFRatePerDayWith8Decimals
+                * PercentageMath.PERCENTAGE_FACTOR
+        ) / aumWith18Decimals / BASIS_INTERVAL_HOUR_24 / PercentageMath.PERCENTAGE_FACTOR / MIN_FUNDING_INTERVAL_3600;
         return _maxFRate;
     }
 
@@ -68,7 +70,7 @@ library FundingRateCalculator {
         // Calculate the funding fee by multiplying the position size with the rate.
         // - 收取周期负资金费方头寸为0时，正资金费>0，负资金费率为<0；收取的资金费全部用于抵扣亏损，无亏损时不发放；
         // TODO 需要和 painter 讨论
-        return (int256(size) * (cumRates - entryFundingRate)) / int256(ONE_WITH_8_DECIMALS);
+        return (int256(size) * (cumRates - entryFundingRate)) / int256(PercentageMath.PERCENTAGE_FACTOR);
     }
 
     /**
@@ -89,13 +91,13 @@ library FundingRateCalculator {
             // (1666-2000)/(2000+1666)
 
             // Calculate the fee rate.
-            _rate = (_size * ONE_WITH_8_DECIMALS) / _divisor;
+            _rate = (_size * PercentageMath.PERCENTAGE_FACTOR) / _divisor;
 
             // ((2000-1664)/(2000+1664) * 10**8)**2 * 3600 / (10**8) / 100 / 24 / 3600
             //350
-            _rate = ((_rate ** 2) * _intervalSeconds) / ONE_WITH_8_DECIMALS / DEFAULT_RATE_DIVISOR_100
+            _rate = ((_rate ** 2) * _intervalSeconds) / PercentageMath.PERCENTAGE_FACTOR / DEFAULT_RATE_DIVISOR_100
                 / BASIS_INTERVAL_HOUR_24 / MIN_FUNDING_INTERVAL_3600;
-            _rate = (_rate * fRateFactorWith8Decimals) / ONE_WITH_8_DECIMALS;
+            _rate = (_rate * fRateFactorWith8Decimals) / PercentageMath.PERCENTAGE_FACTOR;
         }
         return _rate;
     }
@@ -149,7 +151,7 @@ library FundingRateCalculator {
             if (isFomular) {
                 C_FRate_Short = -(
                     (Size_Long.toInt256() * C_FRate_Long)
-                        - deductFundFeeAmount.toInt256() * ONE_WITH_8_DECIMALS.toInt256()
+                        - deductFundFeeAmount.toInt256() * PercentageMath.PERCENTAGE_FACTOR.toInt256()
                 ) / Size_Short.toInt256();
             }
         } else {
@@ -159,7 +161,7 @@ library FundingRateCalculator {
                 //feeLoss计算出来的一定 < Size_Short.toInt256() * C_FRate_Short
                 C_FRate_Long = -(
                     (Size_Short.toInt256() * C_FRate_Short)
-                        - deductFundFeeAmount.toInt256() * ONE_WITH_8_DECIMALS.toInt256()
+                        - deductFundFeeAmount.toInt256() * PercentageMath.PERCENTAGE_FACTOR.toInt256()
                 ) / Size_Long.toInt256();
             }
         }
@@ -179,10 +181,8 @@ library FundingRateCalculator {
         returns (uint256)
     {
         // 资金费亏损<= Size_Long * C_FRate_Long *10%
-        return Math.min((size * _CFRate * fundingFeeLossOffLimit) / (ONE_WITH_8_DECIMALS ** 2), totalLoss);
+        return Math.min((size * _CFRate * fundingFeeLossOffLimit) / (PercentageMath.PERCENTAGE_FACTOR ** 2), totalLoss);
     }
-
-
 
     //========================================================================
     //               TIM

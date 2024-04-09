@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.20;
 
-import "../types/GDataTypes.sol";
+import {GValid} from "../types/Types.sol";
+import {PercentageMath} from "../utils/PercentageMath.sol";
 
-library LibGlobalValid {
-    uint256 internal constant BASIS_POINTS_DIVISOR = 10 ** 18;
+library GValidHandler {
+    using PercentageMath for uint256;
 
     bytes32 constant STORAGE_POSITION = keccak256("blex.globalvalid.storage");
 
@@ -12,7 +13,7 @@ library LibGlobalValid {
         uint256 maxSizeLimit;
         uint256 maxNetSizeLimit;
         uint256 maxUserNetSizeLimit;
-        mapping(uint16 => uint256) maxMarketSizeLimit;
+        mapping(uint256 => uint256) maxMarketSizeLimit;
     }
 
     function Storage() internal pure returns (StorageStruct storage fs) {
@@ -23,42 +24,39 @@ library LibGlobalValid {
     }
 
     function setMaxSizeLimit(uint256 limit) internal {
-        require(limit > 0 && limit <= BASIS_POINTS_DIVISOR, "GlobalValid:!params");
+        PercentageMath.valid(limit);
         Storage().maxSizeLimit = limit;
     }
 
     function setMaxNetSizeLimit(uint256 limit) internal {
-        require(limit > 0 && limit <= BASIS_POINTS_DIVISOR, "GlobalValid:!params");
+        PercentageMath.valid(limit);
         Storage().maxNetSizeLimit = limit;
     }
 
     function setMaxUserNetSizeLimit(uint256 limit) internal {
-        require(limit > 0 && limit <= BASIS_POINTS_DIVISOR, "GlobalValid:!params");
+        PercentageMath.valid(limit);
         Storage().maxUserNetSizeLimit = limit;
     }
 
     function setMaxMarketSizeLimit(uint16 market, uint256 limit) internal {
+        PercentageMath.valid(limit);
         Storage().maxMarketSizeLimit[market] = limit;
     }
 
     function maxSizeLimit() internal view returns (uint256) {
-        uint256 m = Storage().maxSizeLimit;
-        return m == 0 ? BASIS_POINTS_DIVISOR : m;
+        return PercentageMath.maxPctIfZero(Storage().maxSizeLimit);
     }
 
     function maxNetSizeLimit() internal view returns (uint256) {
-        uint256 m = Storage().maxNetSizeLimit;
-        return m == 0 ? BASIS_POINTS_DIVISOR : m;
+        return PercentageMath.maxPctIfZero(Storage().maxNetSizeLimit);
     }
 
     function maxUserNetSizeLimit() internal view returns (uint256) {
-        uint256 m = Storage().maxUserNetSizeLimit;
-        return m == 0 ? BASIS_POINTS_DIVISOR : m;
+        return PercentageMath.maxPctIfZero(Storage().maxUserNetSizeLimit);
     }
 
     function maxMarketSizeLimit(uint16 market) internal view returns (uint256) {
-        uint256 m = Storage().maxMarketSizeLimit[market];
-        return m == 0 ? BASIS_POINTS_DIVISOR : m;
+        return PercentageMath.maxPctIfZero(Storage().maxMarketSizeLimit[market]);
     }
 
     /**
@@ -66,27 +64,13 @@ library LibGlobalValid {
      * @param params The ValidParams struct containing the valid parameters.
      * @return A boolean indicating whether the position should be increased.
      */
-    function isIncreasePosition(GlobalDataTypes.ValidParams memory params) internal view returns (bool) {
+    function isIncreasePosition(GValid memory params) internal view returns (bool) {
         if (params.sizeDelta == 0) {
             return true;
         }
 
-        uint256 _max = _getMaxIncreasePositionSize(params);
-
-        /**
-         * @dev Checks if the maximum increase in position size is greater than or equal to sizeDelta.
-         * @return A boolean indicating whether the maximum increase in position size is satisfied.
-         */
+        uint256 _max = getMaxIncreasePositionSize(params);
         return (_max >= params.sizeDelta);
-    }
-
-    /**
-     * @dev Retrieves the maximum increase in position size.
-     * @param params The ValidParams struct containing the valid parameters.
-     * @return The maximum increase in position size as a uint256 value.
-     */
-    function getMaxIncreasePositionSize(GlobalDataTypes.ValidParams memory params) internal view returns (uint256) {
-        return _getMaxIncreasePositionSize(params);
     }
 
     /**
@@ -94,7 +78,7 @@ library LibGlobalValid {
      * @param params The ValidParams struct containing the valid parameters.
      * @return The maximum increase in position size as a uint256 value.
      */
-    function _getMaxIncreasePositionSize(GlobalDataTypes.ValidParams memory params) private view returns (uint256) {
+    function getMaxIncreasePositionSize(GValid memory params) internal view returns (uint256) {
         uint256 _min =
             _getMaxUseableGlobalSize(params.globalLongSizes, params.globalShortSizes, params.aum, params.isLong);
         if (_min == 0) return 0;
@@ -128,9 +112,8 @@ library LibGlobalValid {
         returns (uint256)
     {
         uint256 _size = isLong ? longSize : shortSize;
-        uint256 _limit = (aum * maxSizeLimit()) / BASIS_POINTS_DIVISOR;
-        if (_size >= _limit) return 0;
-        return (_limit - _size);
+        uint256 _limit = aum.percentMul(maxSizeLimit());
+        return calRemaining(_size, _limit);
     }
 
     /**
@@ -145,12 +128,9 @@ library LibGlobalValid {
         returns (uint256)
     {
         uint256 _size = isLong ? longSize : shortSize;
-
-        uint256 _limit = (aum * maxNetSizeLimit()) / BASIS_POINTS_DIVISOR;
+        uint256 _limit = aum.percentMul(maxNetSizeLimit());
         _limit = isLong ? _limit + shortSize : _limit + longSize;
-
-        if (_size >= _limit) return 0;
-        return (_limit - _size);
+        return calRemaining(_size, _limit);
     }
 
     /**
@@ -165,12 +145,9 @@ library LibGlobalValid {
         returns (uint256)
     {
         uint256 _size = isLong ? longSize : shortSize;
-
-        uint256 _limit = (aum * maxUserNetSizeLimit()) / BASIS_POINTS_DIVISOR;
+        uint256 _limit = aum.percentMul(maxUserNetSizeLimit());
         _limit = isLong ? _limit + shortSize : _limit + longSize;
-
-        if (_size >= _limit) return 0;
-        return (_limit - _size);
+        return calRemaining(_size, _limit);
     }
 
     /**
@@ -188,9 +165,11 @@ library LibGlobalValid {
     {
         uint256 _limit = maxMarketSizeLimit(market);
         uint256 _size = isLong ? longSize : shortSize;
+        return calRemaining(_size, _limit);
+    }
 
+    function calRemaining(uint256 _size, uint256 _limit) internal pure returns (uint256) {
         if (_size >= _limit) return 0;
-
         return (_limit - _size);
     }
 }

@@ -1,26 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {Order} from "./OrderStruct.sol";
+import {OrderProps, PositionProps} from "./Types.sol";
 
 library Position {
-    struct Props {
-        // 1
-        uint256 size;
-        uint256 collateral;
-        // 2
-        int256 entryFundingRate;
-        // 3
-        int256 realisedPnl;
-        // 4
-        uint256 averagePrice;
-        bool isLong;
-        uint32 lastTime;
-        uint16 market;
-        uint72 extra0;
-    }
-
-    function createPositionFromOrder(Order.Props memory order) internal view returns (Props memory result) {
+    function createPositionFromOrder(OrderProps memory order) internal view returns (PositionProps memory result) {
+        // new added
         result.size = order.size;
         result.collateral = order.collateral;
         result.isLong = order.isLong;
@@ -30,11 +15,13 @@ library Position {
         return result;
     }
 
-    function calAveragePrice(Props memory position, uint256 sizeDelta, uint256 markPrice, uint256 pnl, bool hasProfit)
-        internal
-        pure
-        returns (uint256)
-    {
+    function calAveragePrice(
+        PositionProps memory position,
+        uint256 sizeDelta,
+        uint256 markPrice,
+        uint256 pnl,
+        bool hasProfit
+    ) internal pure returns (uint256) {
         uint256 _size = position.size + sizeDelta;
         uint256 _netSize;
 
@@ -47,11 +34,11 @@ library Position {
         return (markPrice * _size) / _netSize;
     }
 
-    function getLeverage(Props memory position) internal pure returns (uint256) {
+    function calLeverage(PositionProps memory position) internal pure returns (uint256) {
         return position.size / position.collateral;
     }
 
-    function getPNL(Props memory position, uint256 price) internal pure returns (bool, uint256) {
+    function calPNL(PositionProps memory position, uint256 price) internal pure returns (bool, uint256) {
         uint256 _priceDelta =
             position.averagePrice > price ? position.averagePrice - price : price - position.averagePrice;
         uint256 _pnl = (position.size * _priceDelta) / position.averagePrice;
@@ -66,12 +53,12 @@ library Position {
         return (_hasProfit, _pnl);
     }
 
-    function isExist(Props memory position) internal pure returns (bool) {
+    function isExist(PositionProps memory position) internal pure returns (bool) {
         return (position.size > 0);
     }
 
     // only valid data of position, not include the business logic
-    function isValid(Props memory position) internal pure returns (bool) {
+    function isValid(PositionProps memory position) internal pure returns (bool) {
         if (position.size == 0) {
             return false;
         }

@@ -9,11 +9,11 @@ library EnumerableValues {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
 
-    function valuesAt(
-        EnumerableSet.Bytes32Set storage set,
-        uint256 start,
-        uint256 end
-    ) internal view returns (bytes32[] memory) {
+    function valuesAt(EnumerableSet.Bytes32Set storage set, uint256 start, uint256 end)
+        internal
+        view
+        returns (bytes32[] memory)
+    {
         uint256 max = set.length();
         if (end > max) {
             end = max;
@@ -27,11 +27,11 @@ library EnumerableValues {
         return items;
     }
 
-    function valuesAt(
-        EnumerableSet.AddressSet storage set,
-        uint256 start,
-        uint256 end
-    ) internal view returns (address[] memory) {
+    function valuesAt(EnumerableSet.AddressSet storage set, uint256 start, uint256 end)
+        internal
+        view
+        returns (address[] memory)
+    {
         uint256 max = set.length();
         if (end > max) {
             end = max;
@@ -45,18 +45,18 @@ library EnumerableValues {
         return items;
     }
 
-    function valuesAt(
-        EnumerableSet.UintSet storage set,
-        uint256 start,
-        uint256 end
-    ) internal view returns (uint256[] memory) {
+    function valuesAt(EnumerableSet.UintSet storage set, uint256 start, uint256 end)
+        internal
+        view
+        returns (uint256[] memory)
+    {
         uint256 max = set.length();
         if (end > max) {
             end = max;
         }
 
         uint256[] memory items = new uint256[](end - start);
-        for (uint256 i = start; i < end; ) {
+        for (uint256 i = start; i < end;) {
             items[i - start] = set.at(i);
             unchecked {
                 ++i;

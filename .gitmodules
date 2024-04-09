@@ -1,0 +1,6 @@
+[submodule "projects/market/lib/forge-std"]
+path = projects/market/lib/forge-std
+url = https://github.com/foundry-rs/forge-std
+[submodule "projects/diamond-etherscan"]
+path = projects/diamond-etherscan
+url = https://github.com/ben46/diamond-etherscan.git

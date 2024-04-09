@@ -7,9 +7,15 @@ pragma solidity ^0.8.17;
 
 import {IAccessManaged} from "../ac/IAccessManaged.sol";
 import {OracleHandler} from "../lib/oracle/OracleHandler.sol";
+import {IPrice} from "../interfaces/IPrice.sol";
+import "hardhat-deploy/solc_0.8/diamond/UsingDiamondOwner.sol";
 
-contract OracleFacet is IAccessManaged {
-    function initDefaultOracleConfig() external restricted {
+contract OracleFacet is IAccessManaged, IPrice, UsingDiamondOwner {
+    //================================================================
+    //   ADMIN functions
+    //================================================================
+
+    function initDefaultOracleConfig() external onlyOwner {
         OracleHandler.ConfigStruct memory _config = OracleHandler.ConfigStruct({
             maxDeviationBP: 100, //超过 1% 进行比价
             priceDuration: 300, //checked
@@ -21,8 +27,7 @@ contract OracleFacet is IAccessManaged {
         store.config = _config;
     }
 
-    function setConfig(bytes calldata _data) external restricted {
-        (OracleHandler.ConfigStruct memory _config) = abi.decode(_data, (OracleHandler.ConfigStruct));
+    function setOracleConfig(OracleHandler.ConfigStruct memory _config) external restricted {
         OracleHandler.StorageStruct storage store = OracleHandler.Storage();
         store.config = _config;
     }
@@ -49,7 +54,15 @@ contract OracleFacet is IAccessManaged {
     //     view functions
     //========================================================================
 
-    function getPrice(uint16 market, bool _maximise) external view returns (uint256) {
+    function priceFeed(uint16 market) external view returns (address) {
+        return OracleHandler.Storage().priceFeeds[market];
+    }
+
+    function usdtFeed() external view returns (address) {
+        return OracleHandler.Storage().USDT;
+    }
+
+    function getPrice(uint16 market, bool _maximise) external view override returns (uint256) {
         return OracleHandler.getPrice(market, _maximise);
     }
 

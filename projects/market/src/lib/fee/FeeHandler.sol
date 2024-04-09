@@ -1,20 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {BalanceHandler} from "../balance/BalanceHandler.sol";
-import {MarketDataTypes} from "../types/MarketDataTypes.sol";
-import {FeeType} from "../types/FeeType.sol";
+import "../types/Types.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {FundingRateCalculator} from "./FundingRateCalculator.sol";
+import {PercentageMath} from "../utils/PercentageMath.sol";
 
 library FeeHandler {
     using SafeCast for int256;
     using SafeERC20 for IERC20;
+    using PercentageMath for uint256;
 
     bytes32 constant FEE_STORAGE_POSITION = keccak256("blex.fee.storage");
-    uint256 constant PRECISION = 10 ** 18;
 
     enum ConfigType {
         SkipTime,
@@ -69,11 +68,11 @@ library FeeHandler {
 
     function initialize(uint16 market) internal {
         FeeStorage storage fs = Storage();
-        fs.configs[market][uint8(ConfigType.MaxFRatePerDay)] = PRECISION;
-        fs.configs[market][uint8(ConfigType.FRateFactor)] = PRECISION;
+        fs.configs[market][uint8(ConfigType.MaxFRatePerDay)] = PercentageMath.PERCENTAGE_FACTOR;
+        fs.configs[market][uint8(ConfigType.FRateFactor)] = PercentageMath.PERCENTAGE_FACTOR;
         fs.configs[market][uint8(ConfigType.MinFRate)] = 1250;
         fs.configs[market][uint8(ConfigType.MinFundingInterval)] = 1 hours;
-        fs.configs[market][uint8(ConfigType.FundingFeeLossOffLimit)] = 1e7;
+        fs.configs[market][uint8(ConfigType.FundingFeeLossOffLimit)] = 0.1e7;
     }
 
     function Storage() internal pure returns (FeeStorage storage fs) {
@@ -83,33 +82,11 @@ library FeeHandler {
         }
     }
 
-    function getOrderFees(bytes memory params) internal view returns (int256 fees) {
+    function getOrderFees(MarketCache calldata data) internal view returns (int256 fees) {
         //todo
     }
 
-    function collectFees(uint16 market, address account, address token, int256[] memory fees, uint256 fundfeeLoss)
-        internal
-    {
-        uint256 _amount = IERC20(token).allowance(msg.sender, address(this));
-        // todo 会存在这种现象嘛 如果存在要不要更新event
-        //if (_amount == 0 && fundfeeLoss == 0) return;
-        if (_amount != 0) {
-            BalanceHandler.marketToFee(market, account, _amount);
-        }
-        if (fundfeeLoss > 0) {
-            uint256 _before = Storage().fundFeeLoss[market];
-            Storage().fundFeeLoss[market] += fundfeeLoss;
-            BalanceHandler.feeToMarket(market, account, fees, fundfeeLoss);
-            // emit AddNegativeFeeLoss(market, account, _before, Storage().fundFeeLoss[market]);
-        }
-        emit UpdateFee(account, market, fees, _amount);
-    }
-
-    function updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) internal {
-        // TODO too much to do
-    }
-
-    function getExecFee(uint16 market) external view returns (uint256) {
+    function getExecFee(uint16 market) internal view returns (uint256) {
         //todo
     }
 
@@ -120,45 +97,27 @@ library FeeHandler {
     function getFundingRate(uint16 market, bool isLong) internal view returns (int256) {
         // todo
     }
+    function getFundingFee(uint16 market, uint256 size, int256 entryFundingRate, bool isLong)
+        internal
+        view
+        returns (int256)
+    {
+        //todo
+    }
 
-    /**
-     * 只是获取根据当前仓位获取各种费用应该收取多少, 并不包含收费顺序和是否能收得到
-     */
+    function totalFees(int256[] memory fees) internal pure returns (int256 total) {
+        for (uint256 i = 0; i < fees.length; i++) {
+            total += fees[i];
+        }
+    }
 
-    function getFees(MarketDataTypes.Cache memory params, int256 _fundFee)
+    function getFeesReceivable(MarketCache calldata params, PositionProps calldata position)
         internal
         view
         returns (int256[] memory fees)
     {
-        // todo merge with feeAndRates?
-        fees = new int256[](uint8(FeeType.T.Counter));
-
-        fees[uint8(FeeType.T.FundFee)] = _fundFee;
-
-        if (params.sizeDelta == 0 && params.collateralDelta != 0) {
-            return fees;
-        }
-
-        // open position
-        if (params.isOpen) {
-            fees[uint8(FeeType.T.OpenFee)] = int256(getFee(params.market, params.sizeDelta, uint8(FeeType.T.OpenFee)));
-        } else {
-            // close position
-            fees[uint8(FeeType.T.CloseFee)] = int256(getFee(params.market, params.sizeDelta, uint8(FeeType.T.CloseFee)));
-
-            // liquidate position
-            if (params.liqState == 1) {
-                uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.T.LiqFee)];
-                fees[uint8(FeeType.T.LiqFee)] = int256(_fee);
-            }
-        }
-        if (params.execNum > 0) {
-            // exec fee
-            uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.T.ExecFee)];
-            _fee = _fee * params.execNum;
-
-            fees[uint8(FeeType.T.ExecFee)] = int256(_fee);
-        }
+        int256 fundfee = getFundingFee(params.market, params.sizeDelta, position.entryFundingRate, params.isLong);
+        fees = _getFeesReceivable(params, fundfee);
         return fees;
     }
 
@@ -169,18 +128,13 @@ library FeeHandler {
      * @param kind The fee kind.
      * @return The fee amount.
      */
-    function getFee(uint16 market, uint256 sizeDelta, uint8 kind) internal view returns (uint256) {
+    function getFeeOfKind(uint16 market, uint256 sizeDelta, uint8 kind) internal view returns (uint256) {
         if (sizeDelta == 0) {
             return 0;
         }
 
-        uint256 _point = Storage().feeAndRates[market][kind];
-        if (_point == 0) {
-            _point = PRECISION;
-        }
-
-        uint256 _size = (sizeDelta * (PRECISION - _point)) / PRECISION;
-        return sizeDelta - _size;
+        uint256 _point = PercentageMath.maxPctIfZero(Storage().feeAndRates[market][kind]);
+        return sizeDelta.percentMul(_point);
     }
 
     //==========================================================================================
@@ -233,11 +187,44 @@ library FeeHandler {
         //todo
     }
 
-    function getFundingFee(address market, uint256 size, int256 entryFundingRate, bool isLong)
-        internal
+    /**
+     * 只是获取根据当前仓位获取各种费用应该收取多少, 并不包含收费顺序和是否能收得到
+     */
+    function _getFeesReceivable(MarketCache calldata params, int256 _fundFee)
+        private
         view
-        returns (int256)
+        returns (int256[] memory fees)
     {
-        //todo
+        // todo merge with feeAndRates?
+        fees = new int256[](uint8(FeeType.Counter));
+
+        fees[uint8(FeeType.FundFee)] = _fundFee;
+
+        if (params.sizeDelta == 0 && params.collateralDelta != 0) {
+            return fees;
+        }
+
+        // open position
+        if (params.isOpen) {
+            fees[uint8(FeeType.OpenFee)] = int256(getFeeOfKind(params.market, params.sizeDelta, uint8(FeeType.OpenFee)));
+        } else {
+            // close position
+            fees[uint8(FeeType.CloseFee)] =
+                int256(getFeeOfKind(params.market, params.sizeDelta, uint8(FeeType.CloseFee)));
+
+            // liquidate position
+            if (params.liqState == LiquidationState.Collateral) {
+                uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.LiqFee)];
+                fees[uint8(FeeType.LiqFee)] = int256(_fee);
+            }
+        }
+        if (params.execNum > 0) {
+            // exec fee
+            uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.ExecFee)];
+            _fee = _fee * params.execNum;
+
+            fees[uint8(FeeType.ExecFee)] = int256(_fee);
+        }
+        return fees;
     }
 }

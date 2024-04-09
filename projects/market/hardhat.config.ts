@@ -14,15 +14,31 @@ import 'hardhat-deploy-tenderly'
 import { node_url, accounts, addForkConfiguration } from './utils/network'
 
 const config: HardhatUserConfig = {
+	typechain: {
+		externalArtifacts: ['deployments/localhost/MarketDiamond.json']
+	},
 	solidity: {
 		compilers: [
 			{
-				version: '0.8.20',
+				version: '0.8.24',
 				settings: {
 					optimizer: {
 						enabled: false,
 						runs: 1,
 					},
+					viaIR: true
+				},
+
+			},
+			{
+				version: '0.8.16',
+				settings: {
+					optimizer: {
+						enabled: false,
+						runs: 1,
+					},
+					viaIR: true
+
 				},
 			},
 		],
@@ -48,6 +64,16 @@ const config: HardhatUserConfig = {
 				etherscan: {
 					apiKey: process.env.ETHERSCAN_API_KEY_FANTOM,
 					apiUrl: 'https://api-testnet.ftmscan.com',
+				}
+			}
+		},
+		base_sepolia: {
+			url: node_url('base_sepolia'),
+			accounts: accounts(),
+			verify: {
+				etherscan: {
+					apiUrl: 'https://api-sepolia.basescan.org',
+					apiKey: process.env.ETHERSCAN_API_KEY_BASE,
 				}
 			}
 		},

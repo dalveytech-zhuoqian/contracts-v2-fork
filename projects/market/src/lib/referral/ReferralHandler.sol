@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {MarketPositionCallBackIntl, MarketCallBackIntl} from "../IMarketCallBackIntl.sol";
-import {MarketCbStruct} from "../MarketCbStruct.sol";
-import {FeeType} from "../types/FeeType.sol";
+import {FeeType} from "../types/Types.sol";
+import "../../interfaces/IReferral.sol";
 
 library ReferralHandler {
     bytes32 constant STORAGE_POSITION = keccak256("blex.referral.storage");
@@ -25,7 +24,7 @@ library ReferralHandler {
     }
 
     event SetTraderReferralCode(address account, bytes32 code);
-    event SetTraderReferralCode(address account, address inviter, bytes32 code);
+    event SetTraderReferralCodeWithInviter(address account, address inviter, bytes32 code);
     event SetTier(uint256 tierId, uint256 totalRebate, uint256 discountShare);
     event SetReferrerTier(address referrer, uint256 tierId);
     event SetReferrerDiscountShare(address referrer, uint256 discountShare);
@@ -114,7 +113,7 @@ library ReferralHandler {
     function _setTraderReferralCode(address _account, bytes32 _code) internal {
         Storage().traderReferralCodes[_account] = _code;
         emit SetTraderReferralCode(_account, _code);
-        emit SetTraderReferralCode(_account, Storage().codeOwners[_code], _code);
+        emit SetTraderReferralCodeWithInviter(_account, Storage().codeOwners[_code], _code);
     }
 
     function getCodeOwners(bytes32[] memory _codes) internal view returns (address[] memory) {
@@ -128,8 +127,7 @@ library ReferralHandler {
         return owners;
     }
 
-    function updatePositionCallback(bytes memory _data) internal {
-        MarketCbStruct.UpdatePositionEvent memory _event = abi.decode(_data, (MarketCbStruct.UpdatePositionEvent));
+    function updatePositionCallback(ReferralUpdatePositionEvent calldata _event) internal {
         (bytes32 referralCode, address referrer) = getTraderReferralInfo(_event.inputs.account);
 
         if (referralCode == bytes32(0)) {
@@ -143,7 +141,7 @@ library ReferralHandler {
             emit IncreasePositionReferral(
                 _event.inputs.account,
                 _event.inputs.sizeDelta,
-                uint256(_event.fees[uint8(FeeType.T.OpenFee)]),
+                uint256(_event.fees[uint8(FeeType.OpenFee)]),
                 referralCode,
                 referrer
             );
@@ -151,7 +149,7 @@ library ReferralHandler {
             emit DecreasePositionReferral(
                 _event.inputs.account,
                 _event.inputs.sizeDelta,
-                uint256(_event.fees[uint8(FeeType.T.CloseFee)]),
+                uint256(_event.fees[uint8(FeeType.CloseFee)]),
                 referralCode,
                 referrer
             );

@@ -60,7 +60,7 @@ bool isLong
 
 function getFees(
 MarketDataTypes.UpdatePositionInputs memory params,
-Position.Props memory position
+PositionProps memory position
 ) external view returns (int256[] memory fees)
 
 # fundfee
