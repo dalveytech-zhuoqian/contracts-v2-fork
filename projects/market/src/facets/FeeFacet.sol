@@ -26,7 +26,7 @@ contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
     // // only self
     // //================================================================
 
-    function _collectFees(bytes calldata _data) external onlySelf {
+    function SELF_collectFees(bytes calldata _data) external onlySelf {
         (address account, address token, int256[] memory fees, uint256 fundfeeLoss, uint16 market) =
             abi.decode(_data, (address, address, int256[], uint256, uint16));
         uint256 _amount = IERC20(token).allowance(msg.sender, address(this));
@@ -44,7 +44,7 @@ contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
         emit FeeHandler.UpdateFee(account, market, fees, _amount);
     }
 
-    function _addFee(uint16 market, bytes calldata fee) external {
+    function SELF_addFee(uint16 market, bytes calldata fee) external {
         if (address(this) != msg.sender) {
             _checkCanCall(msg.sender, msg.data);
         }
@@ -63,7 +63,7 @@ contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
             fundingFeeLossOffLimit;
     }
 
-    function _updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize)
+    function SELF_updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize)
         external
         override
         onlySelf

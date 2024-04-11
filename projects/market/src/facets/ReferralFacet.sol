@@ -50,7 +50,7 @@ contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable, IReferral 
     //       self functions
     //==========================================================================================
 
-    function _updatePositionCallback(ReferralUpdatePositionEvent calldata _event) external override onlySelf {
+    function SELF_updatePositionCallback(ReferralUpdatePositionEvent calldata _event) external override onlySelf {
         ReferralHandler.updatePositionCallback(_event);
     }
 

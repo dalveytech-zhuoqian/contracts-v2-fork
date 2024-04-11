@@ -10,5 +10,5 @@ interface IOrderFacet {
         external
         returns (OrderProps[] memory _orders);
 
-    function _addOrders(MarketCache[] memory _inputs) external returns (OrderProps[] memory _orders);
+    function SELF_addOrders(MarketCache[] memory _inputs) external returns (OrderProps[] memory _orders);
 }

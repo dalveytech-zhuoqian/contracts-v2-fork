@@ -23,9 +23,9 @@ struct DecreasePositionInputs {
 }
 
 interface IPositionFacet {
-    function _increasePosition(IncreasePositionInputs calldata _data) external returns (PositionProps memory);
-    function _decreasePosition(DecreasePositionInputs calldata _data) external returns (PositionProps memory);
-    function _liquidatePosition(uint16 market, address account, uint256 oraclePrice, bool isLong)
+    function SELF_increasePosition(IncreasePositionInputs calldata _data) external returns (PositionProps memory);
+    function SELF_decreasePosition(DecreasePositionInputs calldata _data) external returns (PositionProps memory);
+    function SELF_liquidatePosition(uint16 market, address account, uint256 oraclePrice, bool isLong)
         external
         returns (PositionProps memory result);
     //====================================

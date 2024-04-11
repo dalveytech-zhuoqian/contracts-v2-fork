@@ -54,13 +54,13 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
         bytes calldata oracle,
         bytes calldata fee
     ) external restricted returns (uint16 market) {
-        market = MarketFacet(address(this))._addMarket(abi.encode(name, _vault, address(0), config));
-        MarketFacet(address(this))._addOracle(market, oracle);
-        MarketFacet(address(this))._addGValid(market, maxMarketSizeLimit);
-        IFeeFacet(address(this))._addFee(market, fee);
+        market = MarketFacet(address(this)).SELF_addMarket(abi.encode(name, _vault, address(0), config));
+        MarketFacet(address(this)).SELF_addOracle(market, oracle);
+        MarketFacet(address(this)).SELF_addGValid(market, maxMarketSizeLimit);
+        IFeeFacet(address(this)).SELF_addFee(market, fee);
     }
 
-    function _addGValid(uint16 market, uint256 maxMarketSizeLimit) external {
+    function SELF_addGValid(uint16 market, uint256 maxMarketSizeLimit) external {
         if (address(this) != msg.sender) {
             _checkCanCall(msg.sender, msg.data);
         }
@@ -68,7 +68,7 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
         $.maxMarketSizeLimit[market] = maxMarketSizeLimit;
     }
 
-    function _addOracle(uint16 market, bytes calldata oracle) external {
+    function SELF_addOracle(uint16 market, bytes calldata oracle) external {
         if (address(this) != msg.sender) {
             _checkCanCall(msg.sender, msg.data);
         }
@@ -78,7 +78,7 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
         $.maxCumulativeDeltaDiffs[market] = maxCumulativeDeltaDiffs;
     }
 
-    function _addMarket(bytes calldata data) external returns (uint16 market) {
+    function SELF_addMarket(bytes calldata data) external returns (uint16 market) {
         if (address(this) != msg.sender) {
             _checkCanCall(msg.sender, msg.data);
         }

@@ -91,19 +91,19 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
                 // );
             }
         }
-        _decreasePosition(_params, _position);
+        SELF_decreasePosition(_params, _position);
     }
 
     // //==========================================================================================
     // //       private functions
     // //==========================================================================================
 
-    function _decreasePosition(MarketCache memory _params, PositionProps memory _position) private {
+    function SELF_decreasePosition(MarketCache memory _params, PositionProps memory _position) private {
         // Return if the position size is zero or the account is invalid
         if (_position.size == 0 || _params.account == address(0)) return;
 
         // Update the cumulative funding rate
-        _updateCumulativeFundingRate(_params.market);
+        SELF_updateCumulativeFundingRate(_params.market);
 
         // Check if the position is being closed entirely
         bool isCloseAll = _position.size == _params.sizeDelta;
@@ -168,7 +168,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         int256 _nowFundRate = _feeFacet().cumulativeFundingRates(_params.market, _params.isLong);
         //                     先把资金费结算给用户
         if (_outs.newCollateralUnsigned > 0 && _outs.withdrawFromFeeVault > 0) {
-            _positionFacet()._increasePosition(
+            _positionFacet().SELF_increasePosition(
                 IncreasePositionInputs({
                     market: _params.market,
                     account: _params.account,
@@ -184,7 +184,7 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         // >>>>>>>>>>>>>>>>>>>>>>偿还 CoreVault 的账目
         address colleteralToken = MarketHandler.collateralToken(_params.market);
         vault(_params.market).repayToVault(_params.market, formatCollateral(_params.sizeDelta, colleteralToken));
-        PositionProps memory result = _positionFacet()._decreasePosition(
+        PositionProps memory result = _positionFacet().SELF_decreasePosition(
             DecreasePositionInputs({
                 market: _params.market,
                 account: _params.account,

@@ -78,7 +78,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
             _params.market, _params.account, _params.sizeDelta == 0 ? 0 : _params.oraclePrice, _params.isLong
         );
 
-        int256 collateralChanged = _increasePosition(_params, _position);
+        int256 collateralChanged = SELF_increasePosition(_params, _position);
         if (collateralChanged < 0) collateralChanged = 0;
 
         // ------------
@@ -105,7 +105,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
             return;
         }
 
-        OrderProps[] memory _os = _orderFacet()._addOrders(_vars);
+        OrderProps[] memory _os = _orderFacet().SELF_addOrders(_vars);
         // uint256[] memory inputs = new uint256[](0);
         // for (uint256 i; i < _os.length;) {
         //     OrderProps memory _order = _os[i];
@@ -206,11 +206,11 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
         _createVars.refCode = _params.refCode;
     }
 
-    function _increasePosition(MarketCache memory _params, PositionProps memory _position)
+    function SELF_increasePosition(MarketCache memory _params, PositionProps memory _position)
         private
         returns (int256 collD)
     {
-        _updateCumulativeFundingRate(_params.market);
+        SELF_updateCumulativeFundingRate(_params.market);
 
         (int256[] memory _fees, int256 _totalfee) = _feeFacet().getFeesReceivable(_params, _position);
 
@@ -249,7 +249,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
     {
         if (_params.sizeDelta == 0 && collD < 0) {
             // abi.encode(_params.account, uint256(-collD), _params.sizeDelta, fr, _params.isLong)
-            result = _positionFacet()._decreasePosition(
+            result = _positionFacet().SELF_decreasePosition(
                 DecreasePositionInputs({
                     market: _params.market,
                     account: _params.account,
@@ -263,7 +263,7 @@ contract PositionAddFacet is IAccessManaged, PositionFacetBase {
             address collateralToken = MarketHandler.collateralToken(_params.market);
 
             vault(_params.market).borrowFromVault(_params.market, formatCollateral(_params.sizeDelta, collateralToken));
-            result = _positionFacet()._increasePosition(
+            result = _positionFacet().SELF_increasePosition(
                 IncreasePositionInputs({
                     market: _params.market,
                     account: _params.account,

@@ -20,7 +20,7 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
     //==========================================================================================
     //       self functions
     //==========================================================================================
-    function _increasePosition(IncreasePositionInputs calldata _data)
+    function SELF_increasePosition(IncreasePositionInputs calldata _data)
         external
         override
         onlySelf
@@ -37,7 +37,7 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
         return PositionHandler.increasePosition(cache);
     }
 
-    function _decreasePosition(DecreasePositionInputs calldata inputs)
+    function SELF_decreasePosition(DecreasePositionInputs calldata inputs)
         external
         onlySelf
         returns (PositionProps memory result)
@@ -52,7 +52,7 @@ contract PositionFacet is IPositionFacet, IAccessManaged {
         return PositionHandler.decreasePosition(cache);
     }
 
-    function _liquidatePosition(uint16 market, address account, uint256 oraclePrice, bool isLong)
+    function SELF_liquidatePosition(uint16 market, address account, uint256 oraclePrice, bool isLong)
         external
         override
         onlySelf
