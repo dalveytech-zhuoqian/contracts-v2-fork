@@ -12,10 +12,10 @@ pragma solidity >=0.8.10;
  */
 library PercentageMath {
     // Maximum percentage factor (100.00%)
-    uint256 internal constant PERCENTAGE_FACTOR = 1e8;
+    uint256 internal constant PERCENTAGE_FACTOR = 1e4;
 
     // Half percentage factor (50.00%)
-    uint256 internal constant HALF_PERCENTAGE_FACTOR = 0.5e8;
+    uint256 internal constant HALF_PERCENTAGE_FACTOR = 0.5e4;
 
     function maxPctIfZero(uint256 m) internal pure returns (uint256) {
         return m == 0 ? PERCENTAGE_FACTOR : m;
