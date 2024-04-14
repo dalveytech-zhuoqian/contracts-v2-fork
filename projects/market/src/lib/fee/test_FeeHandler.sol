@@ -60,5 +60,54 @@ contract FeeHandlerTest is Test {
         assertEq(fee, sizeDelta * 5000 / 10000, "Fee should be 5000 when sizeDelta is not 0");
     }
 
-    // Add more test cases for other functions in the FeeHandler library
+    function testGetFeesReceivable() public {
+        // Create a mock MarketCache object
+        MarketCache memory params;
+        params.market = 1;
+        params.sizeDelta = 100;
+        params.collateralDelta = 0;
+        params.isOpen = true;
+        params.liqState = LiquidationState.None;
+        params.execNum = 2;
+
+        // Set the feeAndRates values
+        FeeHandler.FeeStorage storage feeStorage = FeeHandler.Storage();
+        feeStorage.feeAndRates[params.market][uint8(FeeType.OpenFee)] = 5000;
+        feeStorage.feeAndRates[params.market][uint8(FeeType.CloseFee)] = 6000;
+        feeStorage.feeAndRates[params.market][uint8(FeeType.LiqFee)] = 7000;
+        feeStorage.feeAndRates[params.market][uint8(FeeType.ExecFee)] = 8000;
+
+        // Call the _getFeesReceivable function
+        int256[] memory fees = FeeHandler._getFeesReceivable(params, 100);
+
+        // Assert the expected fees
+        assertEq(fees[uint8(FeeType.FundFee)], 100, "FundFee should be 100");
+        assertEq(fees[uint8(FeeType.OpenFee)], 50, "OpenFee should be 50");
+        assertEq(fees[uint8(FeeType.LiqFee)], 0, "LiqFee should be 0");
+        assertEq(fees[uint8(FeeType.ExecFee)], 16000, "ExecFee should be 16000");
+
+        params.isOpen = false;
+        fees = FeeHandler._getFeesReceivable(params, 100);
+        assertEq(fees[uint8(FeeType.CloseFee)], 60, "CloseFee should be 60");
+    }
+
+    function testGetOrderFees() public {
+        // Create a sample MarketDataTypes.UpdateOrderInputs struct
+        MarketCache memory params;
+        params.isOpen = true;
+        params.market = 1;
+        params.sizeDelta = 100;
+
+        FeeHandler.FeeStorage storage feeStorage = FeeHandler.Storage();
+        feeStorage.feeAndRates[params.market][uint8(FeeType.OpenFee)] = 5000;
+        feeStorage.feeAndRates[params.market][uint8(FeeType.CloseFee)] = 6000;
+        feeStorage.feeAndRates[params.market][uint8(FeeType.LiqFee)] = 7000;
+        feeStorage.feeAndRates[params.market][uint8(FeeType.ExecFee)] = 8000;
+
+        // Call the getOrderFees function
+        int256 fees = FeeHandler.getOrderFees(params);
+
+        // Assert the expected fees value
+        assertEq(fees, 8050);
+    }
 }
