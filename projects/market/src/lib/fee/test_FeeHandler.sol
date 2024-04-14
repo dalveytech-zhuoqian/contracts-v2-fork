@@ -109,5 +109,13 @@ contract FeeHandlerTest is Test {
 
         // Assert the expected fees value
         assertEq(fees, 8050);
+
+        params.isOpen = false;
+
+        // Call the getOrderFees function
+        fees = FeeHandler.getOrderFees(params);
+
+        // Assert the expected fees value
+        assertEq(fees, 8060);
     }
 }
