@@ -107,7 +107,7 @@ library GValidHandler {
      * @return The maximum usable global position size as a uint256 value.
      */
     function _getMaxUseableGlobalSize(uint256 longSize, uint256 shortSize, uint256 aum, bool isLong)
-        private
+        internal
         view
         returns (uint256)
     {
@@ -123,7 +123,7 @@ library GValidHandler {
      * @return The maximum usable net position size as a uint256 value.
      */
     function _getMaxUseableNetSize(uint256 longSize, uint256 shortSize, uint256 aum, bool isLong)
-        private
+        internal
         view
         returns (uint256)
     {
@@ -140,7 +140,7 @@ library GValidHandler {
      * @return The maximum usable net position size for the user as a uint256 value.
      */
     function _getMaxUseableUserNetSize(uint256 longSize, uint256 shortSize, uint256 aum, bool isLong)
-        private
+        internal
         view
         returns (uint256)
     {
@@ -159,7 +159,7 @@ library GValidHandler {
      * @return The maximum usable market position size as a uint256 value.
      */
     function _getMaxUseableMarketSize(uint16 market, bool isLong, uint256 longSize, uint256 shortSize)
-        private
+        internal
         view
         returns (uint256)
     {

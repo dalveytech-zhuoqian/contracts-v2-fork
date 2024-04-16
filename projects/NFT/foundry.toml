@@ -1,0 +1,7 @@
+[profile.default]
+src = 'src'
+out = 'out_forge'
+libs = ['node_modules', 'lib']
+test = 'test_forge'
+cache_path  = 'cache_forge'
+fs_permissions = [{ access = "read-write", path = "./"}]

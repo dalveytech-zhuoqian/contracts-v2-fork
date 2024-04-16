@@ -82,12 +82,23 @@ library FeeHandler {
         }
     }
 
-    function getOrderFees(MarketCache calldata data) internal view returns (int256 fees) {
-        //todo
+    function getOrderFees(MarketCache memory data) internal view returns (int256 fees) {
+        FeeStorage storage $ = Storage();
+        uint8 _kind;
+
+        if (data.isOpen) {
+            _kind = uint8(FeeType.OpenFee);
+        } else {
+            _kind = uint8(FeeType.CloseFee);
+        }
+
+        uint256 _tradeFee = getFeeOfKind(data.market, data.sizeDelta, _kind);
+        uint256 _execFee = getExecFee(data.market);
+        return int256(_tradeFee + _execFee);
     }
 
     function getExecFee(uint16 market) internal view returns (uint256) {
-        //todo
+        return Storage().feeAndRates[market][uint8(FeeType.ExecFee)];
     }
 
     function payoutFees(address account, address token, int256[] memory fees, uint256 feesTotal) internal {
@@ -111,7 +122,7 @@ library FeeHandler {
         }
     }
 
-    function getFeesReceivable(MarketCache calldata params, PositionProps calldata position)
+    function getFeesReceivable(MarketCache memory params, PositionProps memory position)
         internal
         view
         returns (int256[] memory fees)
@@ -190,8 +201,8 @@ library FeeHandler {
     /**
      * 只是获取根据当前仓位获取各种费用应该收取多少, 并不包含收费顺序和是否能收得到
      */
-    function _getFeesReceivable(MarketCache calldata params, int256 _fundFee)
-        private
+    function _getFeesReceivable(MarketCache memory params, int256 _fundFee)
+        internal
         view
         returns (int256[] memory fees)
     {
