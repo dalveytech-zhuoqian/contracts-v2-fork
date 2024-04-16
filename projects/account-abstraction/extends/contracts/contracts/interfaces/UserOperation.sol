@@ -91,13 +91,19 @@ library UserOperationLib {
         uint256 maxPriorityFeePerGas = userOp.maxPriorityFeePerGas;
         bytes32 hashPaymasterAndData = calldataKeccak(userOp.paymasterAndData);
 
-        return abi.encode(
-            sender, nonce,
-            hashInitCode, hashCallData,
-            callGasLimit, verificationGasLimit, preVerificationGas,
-            maxFeePerGas, maxPriorityFeePerGas,
-            hashPaymasterAndData
-        );
+        return
+            abi.encode(
+                sender,
+                nonce,
+                hashInitCode,
+                hashCallData,
+                callGasLimit,
+                verificationGasLimit,
+                preVerificationGas,
+                maxFeePerGas,
+                maxPriorityFeePerGas,
+                hashPaymasterAndData
+            );
     }
 
     /**

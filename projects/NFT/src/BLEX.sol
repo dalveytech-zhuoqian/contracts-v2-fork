@@ -9,6 +9,7 @@ contract BLEX is AccessManagedUpgradeable, ERC721Upgradeable {
     uint256 private _currentTokenId;
     string public baseURI;
 
+/// @dev Initialize the contract sdfsdf
     function initialize(address _auth) public initializer {
         __AccessManaged_init(_auth);
         __ERC721_init("BLEX BitCoin Halving Competition Winner 2024", "BLEX");

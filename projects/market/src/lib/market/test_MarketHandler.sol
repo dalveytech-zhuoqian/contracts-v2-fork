@@ -11,11 +11,25 @@ contract MarketHandlerTest is Test {
         uint16 market = 1;
         uint256 decrOrderCount = 5;
 
-        bool isValid = MarketHandler.getDecreaseOrderValidation(market, decrOrderCount);
-        assertEq(isValid, true, "Validation should be true when decrOrderCount is within limit");
+        bool isValid = MarketHandler.getDecreaseOrderValidation(
+            market,
+            decrOrderCount
+        );
+        assertEq(
+            isValid,
+            true,
+            "Validation should be true when decrOrderCount is within limit"
+        );
 
         decrOrderCount = 12;
-        isValid = MarketHandler.getDecreaseOrderValidation(market, decrOrderCount);
-        assertEq(isValid, false, "Validation should be false when decrOrderCount exceeds limit");
+        isValid = MarketHandler.getDecreaseOrderValidation(
+            market,
+            decrOrderCount
+        );
+        assertEq(
+            isValid,
+            false,
+            "Validation should be false when decrOrderCount exceeds limit"
+        );
     }
 }

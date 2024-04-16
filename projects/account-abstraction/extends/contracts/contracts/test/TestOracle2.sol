@@ -28,9 +28,21 @@ contract TestOracle2 is IOracle {
         external
         view
         override
-        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
+        returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        )
     {
         // solhint-disable-next-line not-rely-on-time
-        return (73786976294838215802, price, 1680509051, block.timestamp, 73786976294838215802);
+        return (
+            73786976294838215802,
+            price,
+            1680509051,
+            block.timestamp,
+            73786976294838215802
+        );
     }
 }

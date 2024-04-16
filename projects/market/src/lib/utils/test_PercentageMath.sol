@@ -9,7 +9,11 @@ contract PercentageMathTest is Test {
 
     function testMaxPctIfZero() public {
         uint256 result = PercentageMath.maxPctIfZero(0);
-        assertEq(result, 1e4, "Should return PERCENTAGE_FACTOR when input is 0");
+        assertEq(
+            result,
+            1e4,
+            "Should return PERCENTAGE_FACTOR when input is 0"
+        );
 
         result = PercentageMath.maxPctIfZero(100);
         assertEq(result, 100, "Should return the input value when it is not 0");
@@ -32,19 +36,31 @@ contract PercentageMathTest is Test {
         uint256 percentage = 0.5e4;
         uint256 expected = 50;
         uint256 result = PercentageMath.percentMul(value, percentage);
-        assertEq(result, expected, "Incorrect percentage multiplication result");
+        assertEq(
+            result,
+            expected,
+            "Incorrect percentage multiplication result"
+        );
 
         value = 200;
         percentage = 0.75e4;
         expected = 150;
         result = PercentageMath.percentMul(value, percentage);
-        assertEq(result, expected, "Incorrect percentage multiplication result");
+        assertEq(
+            result,
+            expected,
+            "Incorrect percentage multiplication result"
+        );
 
         value = 0;
         percentage = 1e4;
         expected = 0;
         result = PercentageMath.percentMul(value, percentage);
-        assertEq(result, expected, "Incorrect percentage multiplication result");
+        assertEq(
+            result,
+            expected,
+            "Incorrect percentage multiplication result"
+        );
     }
 
     function testPercentDiv() public {

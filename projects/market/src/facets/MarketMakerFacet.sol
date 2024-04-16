@@ -24,27 +24,27 @@ contract MarketMakerFacet is IAccessManaged {
         uint16 decreaseNumLimit, //default: 10
         uint32 maxTradeAmount
     ) external pure returns (MarketHandler.Props memory) {
-        return MarketHandler.Props({
-            isSuspended: isSuspended,
-            allowOpen: allowOpen,
-            allowClose: allowClose,
-            validDecrease: validDecrease,
-            minSlippage: minSlippage,
-            maxSlippage: maxSlippage,
-            minLeverage: minLeverage,
-            maxLeverage: maxLeverage,
-            minPayment: minPayment,
-            minCollateral: minCollateral,
-            decreaseNumLimit: decreaseNumLimit,
-            maxTradeAmount: maxTradeAmount
-        });
+        return
+            MarketHandler.Props({
+                isSuspended: isSuspended,
+                allowOpen: allowOpen,
+                allowClose: allowClose,
+                validDecrease: validDecrease,
+                minSlippage: minSlippage,
+                maxSlippage: maxSlippage,
+                minLeverage: minLeverage,
+                maxLeverage: maxLeverage,
+                minPayment: minPayment,
+                minCollateral: minCollateral,
+                decreaseNumLimit: decreaseNumLimit,
+                maxTradeAmount: maxTradeAmount
+            });
     }
 
-    function marketMakerForOracle(address pricefeed, uint256 maxCumulativeDeltaDiffs)
-        external
-        pure
-        returns (bytes memory)
-    {
+    function marketMakerForOracle(
+        address pricefeed,
+        uint256 maxCumulativeDeltaDiffs
+    ) external pure returns (bytes memory) {
         return abi.encode(pricefeed, maxCumulativeDeltaDiffs);
     }
 
@@ -55,6 +55,13 @@ contract MarketMakerFacet is IAccessManaged {
         uint256 minFundingInterval,
         uint256 fundingFeeLossOffLimit
     ) external pure returns (bytes memory) {
-        return abi.encode(maxFRatePerDay, fRateFactor, mintFRate, minFundingInterval, fundingFeeLossOffLimit);
+        return
+            abi.encode(
+                maxFRatePerDay,
+                fRateFactor,
+                mintFRate,
+                minFundingInterval,
+                fundingFeeLossOffLimit
+            );
     }
 }

@@ -6,7 +6,8 @@ pragma abicoder v2;
 import "../utils/EnumerableValues.sol";
 import {OrderHelper, OrderProps} from "./OrderHelper.sol";
 
-library OrderHandler { /* is IOrderBook, Ac */
+library OrderHandler {
+    /* is IOrderBook, Ac */
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableValues for EnumerableSet.Bytes32Set;
     using OrderHelper for OrderProps;
@@ -28,7 +29,10 @@ library OrderHandler { /* is IOrderBook, Ac */
         }
     }
 
-    function generateID(bytes32 sk, address _acc) internal returns (uint256 retVal) {
+    function generateID(
+        bytes32 sk,
+        address _acc
+    ) internal returns (uint256 retVal) {
         retVal = Storage().ordersIndex[sk][_acc];
         if (retVal == 0) {
             retVal = 1;
@@ -48,7 +52,10 @@ library OrderHandler { /* is IOrderBook, Ac */
         Storage().ordersByAccount[sk][order.account].add(order.getKey());
     }
 
-    function remove(bytes32 sk, bytes32 key) internal returns (OrderProps memory _order) {
+    function remove(
+        bytes32 sk,
+        bytes32 key
+    ) internal returns (OrderProps memory _order) {
         _order = Storage().orders[sk][key];
         Storage().orderNum[sk][_order.account] -= 1;
         delete Storage().orders[sk][key];
@@ -63,19 +70,22 @@ library OrderHandler { /* is IOrderBook, Ac */
         $.orders[sk][key] = order;
     }
 
-    function removeByAccount(uint16 market, bool isIncrease, bool isLong, address account)
-        internal
-        returns (OrderProps[] memory _orders)
-    {
+    function removeByAccount(
+        uint16 market,
+        bool isIncrease,
+        bool isLong,
+        address account
+    ) internal returns (OrderProps[] memory _orders) {
         bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
         if (account == address(0)) return _orders;
-        bytes32[] memory _ordersKeys = Storage().ordersByAccount[sk][account].values();
+        bytes32[] memory _ordersKeys = Storage()
+        .ordersByAccount[sk][account].values();
         uint256 orderCount = _filterOrders(sk, _ordersKeys);
         uint256 len = _ordersKeys.length;
         // return & del
         _orders = new OrderProps[](orderCount);
         uint256 readIdx;
-        for (uint256 i = 0; i < len && readIdx < orderCount;) {
+        for (uint256 i = 0; i < len && readIdx < orderCount; ) {
             bytes32 _orderKey = _ordersKeys[i];
             if (Storage().orderKeys[sk].contains(_orderKey)) {
                 OrderProps memory _order = remove(sk, _orderKey);
@@ -100,43 +110,57 @@ library OrderHandler { /* is IOrderBook, Ac */
         return Storage().orderKeys[sk].contains(key);
     }
 
-    function getOrderByIndex(uint16 market, bool isLong, bool isIncrease, uint256 index)
-        internal
-        view
-        returns (OrderProps memory)
-    {
+    function getOrderByIndex(
+        uint16 market,
+        bool isLong,
+        bool isIncrease,
+        uint256 index
+    ) internal view returns (OrderProps memory) {
         bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
         bytes32 key = Storage().orderKeys[sk].at(index);
         return Storage().orders[sk][key];
     }
 
-    function getOrderCount(uint16 market, bool isLong, bool isIncrease) internal view returns (uint256) {
+    function getOrderCount(
+        uint16 market,
+        bool isLong,
+        bool isIncrease
+    ) internal view returns (uint256) {
         bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
         return Storage().orderKeys[sk].length();
     }
 
-    function getKeyByIndex(uint16 market, bool isLong, bool isIncrease, uint256 _index)
-        internal
-        view
-        returns (bytes32)
-    {
+    function getKeyByIndex(
+        uint16 market,
+        bool isLong,
+        bool isIncrease,
+        uint256 _index
+    ) internal view returns (bytes32) {
         bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
         return Storage().orderKeys[sk].at(_index);
     }
 
-    function getKeysInRange(bytes32 sk, uint256 start, uint256 end) internal view returns (bytes32[] memory) {
+    function getKeysInRange(
+        bytes32 sk,
+        uint256 start,
+        uint256 end
+    ) internal view returns (bytes32[] memory) {
         return Storage().orderKeys[sk].valuesAt(start, end);
     }
 
-    function getOrders(bytes32 storageKey, bytes32 orderKey) internal view returns (OrderProps memory _orders) {
+    function getOrders(
+        bytes32 storageKey,
+        bytes32 orderKey
+    ) internal view returns (OrderProps memory _orders) {
         return Storage().orders[storageKey][orderKey];
     }
 
-    function getOrderNum(uint16 market, bool isLong, bool isIncrease, address account)
-        internal
-        view
-        returns (uint256)
-    {
+    function getOrderNum(
+        uint16 market,
+        bool isLong,
+        bool isIncrease,
+        address account
+    ) internal view returns (uint256) {
         bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
         return Storage().orderNum[sk][account];
     }
@@ -145,7 +169,10 @@ library OrderHandler { /* is IOrderBook, Ac */
     // private functions
     //===============================================================
 
-    function _filterOrders(bytes32 sk, bytes32[] memory _ordersKeys) private view returns (uint256 orderCount) {
+    function _filterOrders(
+        bytes32 sk,
+        bytes32[] memory _ordersKeys
+    ) private view returns (uint256 orderCount) {
         uint256 len = _ordersKeys.length;
         for (uint256 i = 0; i < len; i++) {
             bytes32 _orderKey = _ordersKeys[i];

@@ -21,19 +21,39 @@ contract OrderHandlerTest is Test {
 
         // Test add function
         OrderHandler.add(storageKey, order);
-        assertTrue(OrderHandler.containsKey(storageKey, order.getKey()), "Order should be added");
+        assertTrue(
+            OrderHandler.containsKey(storageKey, order.getKey()),
+            "Order should be added"
+        );
 
         // Test getOrderByIndex function
-        OrderProps memory retrievedOrder = OrderHandler.getOrderByIndex(0, true, true, 0);
-        assertTrue(retrievedOrder.account == account, "Retrieved order account should match");
+        OrderProps memory retrievedOrder = OrderHandler.getOrderByIndex(
+            0,
+            true,
+            true,
+            0
+        );
+        assertTrue(
+            retrievedOrder.account == account,
+            "Retrieved order account should match"
+        );
 
         // Test getOrderCount function
         uint256 orderCount = OrderHandler.getOrderCount(0, true, true);
         assertTrue(orderCount == 1, "Order count should be 1");
 
         // Test remove function
-        OrderProps memory removedOrder = OrderHandler.remove(storageKey, order.getKey());
-        assertTrue(removedOrder.account == account, "Removed order account should match");
-        assertTrue(!OrderHandler.containsKey(storageKey, order.getKey()), "Order should be removed");
+        OrderProps memory removedOrder = OrderHandler.remove(
+            storageKey,
+            order.getKey()
+        );
+        assertTrue(
+            removedOrder.account == account,
+            "Removed order account should match"
+        );
+        assertTrue(
+            !OrderHandler.containsKey(storageKey, order.getKey()),
+            "Order should be removed"
+        );
     }
 }

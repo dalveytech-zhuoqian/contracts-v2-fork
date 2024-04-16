@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type {SafeEventEmitterProvider} from "@web3auth/base";
-import {ethers} from "ethers";
+import type { SafeEventEmitterProvider } from "@web3auth/base";
+import { ethers } from "ethers";
 
 export default class EthereumRpc {
   private provider: SafeEventEmitterProvider;

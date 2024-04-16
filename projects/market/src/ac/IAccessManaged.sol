@@ -32,9 +32,14 @@ abstract contract IAccessManaged {
     }
 
     function _checkCanCall(address caller, bytes calldata data) internal {
-        LibAccessManaged.AccessManagedStorage storage $ = LibAccessManaged.Storage();
-        (bool immediate, uint32 delay) =
-            AuthorityUtils.canCallWithDelay(_authority(), caller, address(this), bytes4(data[0:4]));
+        LibAccessManaged.AccessManagedStorage storage $ = LibAccessManaged
+            .Storage();
+        (bool immediate, uint32 delay) = AuthorityUtils.canCallWithDelay(
+            _authority(),
+            caller,
+            address(this),
+            bytes4(data[0:4])
+        );
         if (!immediate) {
             if (delay > 0) {
                 $._consumingSchedule = true;

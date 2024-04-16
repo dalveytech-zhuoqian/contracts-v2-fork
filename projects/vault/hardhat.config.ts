@@ -13,7 +13,7 @@ const config: HardhatUserConfig = {
   networks: {
     sepolia: {
       url: "https://ethereum-sepolia.publicnode.com",
-      chainId: 11155111
+      chainId: 11155111,
     },
   },
 };

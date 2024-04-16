@@ -10,7 +10,11 @@ contract OracleHandlerTest is Test {
         uint256 cumulativeFastDelta = 200;
         uint256 maxCumulativeDeltaDiffs = 50;
 
-        bool result = OracleHandler.isFastPriceFavored(cumulativeRefDelta, cumulativeFastDelta, maxCumulativeDeltaDiffs);
+        bool result = OracleHandler.isFastPriceFavored(
+            cumulativeRefDelta,
+            cumulativeFastDelta,
+            maxCumulativeDeltaDiffs
+        );
 
         assertTrue(result, "Fast price should be favored");
     }
@@ -31,7 +35,9 @@ contract OracleHandlerTest is Test {
         bool maximize = true;
 
         // Set up test data
-        OracleHandler.Storage().priceData[market].refTime = uint32(block.timestamp);
+        OracleHandler.Storage().priceData[market].refTime = uint32(
+            block.timestamp
+        );
         OracleHandler.Storage().prices[market] = 150;
         OracleHandler.Storage().config.maxPriceUpdateDelay = 3600;
         OracleHandler.Storage().config.priceDuration = 86400;
@@ -66,7 +72,11 @@ contract OracleHandlerTest is Test {
         uint256 result = OracleHandler._getChainPrice(market, maximize);
 
         // Perform assertions
-        assertEq(result, 120 * OracleHandler.PRICE_PRECISION, "Incorrect chain price");
+        assertEq(
+            result,
+            120 * OracleHandler.PRICE_PRECISION,
+            "Incorrect chain price"
+        );
     }
 }
 
@@ -91,7 +101,9 @@ contract IPriceFeedMock {
         return 18;
     }
 
-    function getRoundData(uint80 _roundId) external view returns (uint80, int256, uint256, uint256, uint80) {
+    function getRoundData(
+        uint80 _roundId
+    ) external view returns (uint80, int256, uint256, uint256, uint80) {
         return (_roundId, roundData[_roundId], 0, 0, 0);
     }
 }

@@ -29,7 +29,7 @@ describe("UserOperationBuilder", () => {
 
         expect(builder.getSender()).toStrictEqual(ethers.constants.AddressZero);
         expect(builder.setSender(mockValue).getSender()).toStrictEqual(
-          ethers.utils.getAddress(mockValue)
+          ethers.utils.getAddress(mockValue),
         );
       });
 
@@ -37,7 +37,7 @@ describe("UserOperationBuilder", () => {
         const mockValue = faker.finance.ethereumAddress();
 
         expect(
-          builder.setPartial({ sender: mockValue }).getSender()
+          builder.setPartial({ sender: mockValue }).getSender(),
         ).toStrictEqual(ethers.utils.getAddress(mockValue));
       });
 
@@ -62,7 +62,7 @@ describe("UserOperationBuilder", () => {
 
         expect(builder.getNonce()).toStrictEqual(ethers.constants.Zero);
         expect(builder.setNonce(mockValue).getNonce()).toStrictEqual(
-          ethers.BigNumber.from(mockValue)
+          ethers.BigNumber.from(mockValue),
         );
       });
 
@@ -70,7 +70,7 @@ describe("UserOperationBuilder", () => {
         const mockValue = "0x2";
 
         expect(
-          builder.setPartial({ nonce: mockValue }).getNonce()
+          builder.setPartial({ nonce: mockValue }).getNonce(),
         ).toStrictEqual(ethers.BigNumber.from(mockValue));
       });
 
@@ -93,13 +93,13 @@ describe("UserOperationBuilder", () => {
       test("Updates via setter with good values", () => {
         expect(builder.getInitCode()).toStrictEqual("0x");
         expect(builder.setInitCode(MOCK_BYTES_1).getInitCode()).toStrictEqual(
-          MOCK_BYTES_1
+          MOCK_BYTES_1,
         );
       });
 
       test("Updates via partial with good values", () => {
         expect(
-          builder.setPartial({ initCode: MOCK_BYTES_2 }).getInitCode()
+          builder.setPartial({ initCode: MOCK_BYTES_2 }).getInitCode(),
         ).toStrictEqual(MOCK_BYTES_2);
       });
 
@@ -122,13 +122,13 @@ describe("UserOperationBuilder", () => {
       test("Updates via setter with good values", () => {
         expect(builder.getCallData()).toStrictEqual("0x");
         expect(builder.setCallData(MOCK_BYTES_1).getCallData()).toStrictEqual(
-          MOCK_BYTES_1
+          MOCK_BYTES_1,
         );
       });
 
       test("Updates via partial with good values", () => {
         expect(
-          builder.setPartial({ callData: MOCK_BYTES_2 }).getCallData()
+          builder.setPartial({ callData: MOCK_BYTES_2 }).getCallData(),
         ).toStrictEqual(MOCK_BYTES_2);
       });
 
@@ -153,7 +153,7 @@ describe("UserOperationBuilder", () => {
 
         expect(builder.getCallGasLimit()).toStrictEqual(DEFAULT_CALL_GAS_LIMIT);
         expect(
-          builder.setCallGasLimit(mockValue).getCallGasLimit()
+          builder.setCallGasLimit(mockValue).getCallGasLimit(),
         ).toStrictEqual(ethers.BigNumber.from(mockValue));
       });
 
@@ -161,7 +161,7 @@ describe("UserOperationBuilder", () => {
         const mockValue = "0x2";
 
         expect(
-          builder.setPartial({ callGasLimit: mockValue }).getCallGasLimit()
+          builder.setPartial({ callGasLimit: mockValue }).getCallGasLimit(),
         ).toStrictEqual(ethers.BigNumber.from(mockValue));
       });
 
@@ -185,10 +185,10 @@ describe("UserOperationBuilder", () => {
         const mockValue = "0x1";
 
         expect(builder.getVerificationGasLimit()).toStrictEqual(
-          DEFAULT_VERIFICATION_GAS_LIMIT
+          DEFAULT_VERIFICATION_GAS_LIMIT,
         );
         expect(
-          builder.setVerificationGasLimit(mockValue).getVerificationGasLimit()
+          builder.setVerificationGasLimit(mockValue).getVerificationGasLimit(),
         ).toStrictEqual(ethers.BigNumber.from(mockValue));
       });
 
@@ -198,7 +198,7 @@ describe("UserOperationBuilder", () => {
         expect(
           builder
             .setPartial({ verificationGasLimit: mockValue })
-            .getVerificationGasLimit()
+            .getVerificationGasLimit(),
         ).toStrictEqual(ethers.BigNumber.from(mockValue));
       });
 
@@ -212,7 +212,7 @@ describe("UserOperationBuilder", () => {
         const mockValue = "NaN";
 
         expect(() =>
-          builder.setPartial({ verificationGasLimit: mockValue })
+          builder.setPartial({ verificationGasLimit: mockValue }),
         ).toThrow();
       });
     });
@@ -224,10 +224,10 @@ describe("UserOperationBuilder", () => {
         const mockValue = "0x1";
 
         expect(builder.getPreVerificationGas()).toStrictEqual(
-          DEFAULT_PRE_VERIFICATION_GAS
+          DEFAULT_PRE_VERIFICATION_GAS,
         );
         expect(
-          builder.setPreVerificationGas(mockValue).getPreVerificationGas()
+          builder.setPreVerificationGas(mockValue).getPreVerificationGas(),
         ).toStrictEqual(ethers.BigNumber.from(mockValue));
       });
 
@@ -237,7 +237,7 @@ describe("UserOperationBuilder", () => {
         expect(
           builder
             .setPartial({ preVerificationGas: mockValue })
-            .getPreVerificationGas()
+            .getPreVerificationGas(),
         ).toStrictEqual(ethers.BigNumber.from(mockValue));
       });
 
@@ -251,7 +251,7 @@ describe("UserOperationBuilder", () => {
         const mockValue = "NaN";
 
         expect(() =>
-          builder.setPartial({ preVerificationGas: mockValue })
+          builder.setPartial({ preVerificationGas: mockValue }),
         ).toThrow();
       });
     });
@@ -264,7 +264,7 @@ describe("UserOperationBuilder", () => {
 
         expect(builder.getMaxFeePerGas()).toStrictEqual(ethers.constants.Zero);
         expect(
-          builder.setMaxFeePerGas(mockValue).getMaxFeePerGas()
+          builder.setMaxFeePerGas(mockValue).getMaxFeePerGas(),
         ).toStrictEqual(ethers.BigNumber.from(mockValue));
       });
 
@@ -272,7 +272,7 @@ describe("UserOperationBuilder", () => {
         const mockValue = "0x2";
 
         expect(
-          builder.setPartial({ maxFeePerGas: mockValue }).getMaxFeePerGas()
+          builder.setPartial({ maxFeePerGas: mockValue }).getMaxFeePerGas(),
         ).toStrictEqual(ethers.BigNumber.from(mockValue));
       });
 
@@ -296,10 +296,10 @@ describe("UserOperationBuilder", () => {
         const mockValue = "0x1";
 
         expect(builder.getMaxPriorityFeePerGas()).toStrictEqual(
-          ethers.constants.Zero
+          ethers.constants.Zero,
         );
         expect(
-          builder.setMaxPriorityFeePerGas(mockValue).getMaxPriorityFeePerGas()
+          builder.setMaxPriorityFeePerGas(mockValue).getMaxPriorityFeePerGas(),
         ).toStrictEqual(ethers.BigNumber.from(mockValue));
       });
 
@@ -309,7 +309,7 @@ describe("UserOperationBuilder", () => {
         expect(
           builder
             .setPartial({ maxPriorityFeePerGas: mockValue })
-            .getMaxPriorityFeePerGas()
+            .getMaxPriorityFeePerGas(),
         ).toStrictEqual(ethers.BigNumber.from(mockValue));
       });
 
@@ -323,7 +323,7 @@ describe("UserOperationBuilder", () => {
         const mockValue = "NaN";
 
         expect(() =>
-          builder.setPartial({ maxPriorityFeePerGas: mockValue })
+          builder.setPartial({ maxPriorityFeePerGas: mockValue }),
         ).toThrow();
       });
     });
@@ -334,7 +334,7 @@ describe("UserOperationBuilder", () => {
       test("Updates via setter with good values", () => {
         expect(builder.getPaymasterAndData()).toStrictEqual("0x");
         expect(
-          builder.setPaymasterAndData(MOCK_BYTES_1).getPaymasterAndData()
+          builder.setPaymasterAndData(MOCK_BYTES_1).getPaymasterAndData(),
         ).toStrictEqual(MOCK_BYTES_1);
       });
 
@@ -342,7 +342,7 @@ describe("UserOperationBuilder", () => {
         expect(
           builder
             .setPartial({ paymasterAndData: MOCK_BYTES_2 })
-            .getPaymasterAndData()
+            .getPaymasterAndData(),
         ).toStrictEqual(MOCK_BYTES_2);
       });
 
@@ -356,7 +356,7 @@ describe("UserOperationBuilder", () => {
         const mockValue = "";
 
         expect(() =>
-          builder.setPartial({ paymasterAndData: mockValue })
+          builder.setPartial({ paymasterAndData: mockValue }),
         ).toThrow();
       });
     });
@@ -367,13 +367,13 @@ describe("UserOperationBuilder", () => {
       test("Updates via setter with good values", () => {
         expect(builder.getSignature()).toStrictEqual("0x");
         expect(builder.setSignature(MOCK_BYTES_1).getSignature()).toStrictEqual(
-          MOCK_BYTES_1
+          MOCK_BYTES_1,
         );
       });
 
       test("Updates via partial with good values", () => {
         expect(
-          builder.setPartial({ signature: MOCK_BYTES_2 }).getSignature()
+          builder.setPartial({ signature: MOCK_BYTES_2 }).getSignature(),
         ).toStrictEqual(MOCK_BYTES_2);
       });
 
@@ -399,7 +399,7 @@ describe("UserOperationBuilder", () => {
       });
 
       expect(builder.resetOp().getSender()).toStrictEqual(
-        ethers.utils.getAddress(mockValue)
+        ethers.utils.getAddress(mockValue),
       );
     });
 
@@ -410,7 +410,7 @@ describe("UserOperationBuilder", () => {
       });
 
       expect(builder.resetDefaults().resetOp().getSender()).toStrictEqual(
-        ethers.constants.AddressZero
+        ethers.constants.AddressZero,
       );
     });
   });
@@ -432,14 +432,14 @@ describe("UserOperationBuilder", () => {
         .useMiddleware(mockMW2);
 
       expect(
-        await builder.buildOp(faker.finance.ethereumAddress(), "0x1")
+        await builder.buildOp(faker.finance.ethereumAddress(), "0x1"),
       ).toStrictEqual(
         OpToJSON({
           ...DEFAULT_USER_OP,
           paymasterAndData: MOCK_BYTES_1,
           maxFeePerGas: ethers.BigNumber.from(mockMaxFeePerGas),
           maxPriorityFeePerGas: ethers.BigNumber.from(mockMaxPriorityFeePerGas),
-        })
+        }),
       );
     });
 
@@ -450,7 +450,7 @@ describe("UserOperationBuilder", () => {
         .resetMiddleware();
 
       expect(
-        await builder.buildOp(faker.finance.ethereumAddress(), "0x1")
+        await builder.buildOp(faker.finance.ethereumAddress(), "0x1"),
       ).toStrictEqual(OpToJSON({ ...DEFAULT_USER_OP }));
     });
   });

@@ -27,13 +27,34 @@ contract PositionHandlerTest is Test {
         expectedPosition.isLong = true;
         expectedPosition.lastTime = uint32(block.timestamp);
 
-        PositionProps memory calculatedPosition = PositionHandler._calGlobalPosition(cache);
+        PositionProps memory calculatedPosition = PositionHandler
+            ._calGlobalPosition(cache);
 
-        assertEq(calculatedPosition.averagePrice, expectedPosition.averagePrice, "Incorrect average price");
-        assertEq(calculatedPosition.size, expectedPosition.size, "Incorrect size");
-        assertEq(calculatedPosition.collateral, expectedPosition.collateral, "Incorrect collateral");
-        assertEq(calculatedPosition.isLong, expectedPosition.isLong, "Incorrect isLong");
-        assertEq(calculatedPosition.lastTime, expectedPosition.lastTime, "Incorrect lastTime");
+        assertEq(
+            calculatedPosition.averagePrice,
+            expectedPosition.averagePrice,
+            "Incorrect average price"
+        );
+        assertEq(
+            calculatedPosition.size,
+            expectedPosition.size,
+            "Incorrect size"
+        );
+        assertEq(
+            calculatedPosition.collateral,
+            expectedPosition.collateral,
+            "Incorrect collateral"
+        );
+        assertEq(
+            calculatedPosition.isLong,
+            expectedPosition.isLong,
+            "Incorrect isLong"
+        );
+        assertEq(
+            calculatedPosition.lastTime,
+            expectedPosition.lastTime,
+            "Incorrect lastTime"
+        );
     }
 
     function testCalGlobalAveragePrice() public {
@@ -45,8 +66,16 @@ contract PositionHandlerTest is Test {
 
         uint256 expectedAveragePrice = 175;
 
-        uint256 calculatedAveragePrice = PositionHandler._calGlobalAveragePrice(position, sizeDelta, markPrice);
+        uint256 calculatedAveragePrice = PositionHandler._calGlobalAveragePrice(
+            position,
+            sizeDelta,
+            markPrice
+        );
 
-        assertEq(calculatedAveragePrice, expectedAveragePrice, "Incorrect average price");
+        assertEq(
+            calculatedAveragePrice,
+            expectedAveragePrice,
+            "Incorrect average price"
+        );
     }
 }

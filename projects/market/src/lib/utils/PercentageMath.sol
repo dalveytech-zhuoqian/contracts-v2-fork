@@ -22,7 +22,10 @@ library PercentageMath {
     }
 
     function valid(uint256 limit) internal pure {
-        require(limit > 0 && limit <= PERCENTAGE_FACTOR, "INVALID_PERCENTAGE_FACTOR");
+        require(
+            limit > 0 && limit <= PERCENTAGE_FACTOR,
+            "INVALID_PERCENTAGE_FACTOR"
+        );
     }
     /**
      * @notice Executes a percentage multiplication
@@ -33,14 +36,30 @@ library PercentageMath {
      *
      */
 
-    function percentMul(uint256 value, uint256 percentage) internal pure returns (uint256 result) {
+    function percentMul(
+        uint256 value,
+        uint256 percentage
+    ) internal pure returns (uint256 result) {
         // to avoid overflow, value <= (type(uint256).max - HALF_PERCENTAGE_FACTOR) / percentage
         assembly {
-            if iszero(or(iszero(percentage), iszero(gt(value, div(sub(not(0), HALF_PERCENTAGE_FACTOR), percentage))))) {
+            if iszero(
+                or(
+                    iszero(percentage),
+                    iszero(
+                        gt(
+                            value,
+                            div(sub(not(0), HALF_PERCENTAGE_FACTOR), percentage)
+                        )
+                    )
+                )
+            ) {
                 revert(0, 0)
             }
 
-            result := div(add(mul(value, percentage), HALF_PERCENTAGE_FACTOR), PERCENTAGE_FACTOR)
+            result := div(
+                add(mul(value, percentage), HALF_PERCENTAGE_FACTOR),
+                PERCENTAGE_FACTOR
+            )
         }
     }
 
@@ -52,14 +71,33 @@ library PercentageMath {
      * @return result value percentdiv percentage
      *
      */
-    function percentDiv(uint256 value, uint256 percentage) internal pure returns (uint256 result) {
+    function percentDiv(
+        uint256 value,
+        uint256 percentage
+    ) internal pure returns (uint256 result) {
         // to avoid overflow, value <= (type(uint256).max - halfPercentage) / PERCENTAGE_FACTOR
         assembly {
             if or(
-                iszero(percentage), iszero(iszero(gt(value, div(sub(not(0), div(percentage, 2)), PERCENTAGE_FACTOR))))
-            ) { revert(0, 0) }
+                iszero(percentage),
+                iszero(
+                    iszero(
+                        gt(
+                            value,
+                            div(
+                                sub(not(0), div(percentage, 2)),
+                                PERCENTAGE_FACTOR
+                            )
+                        )
+                    )
+                )
+            ) {
+                revert(0, 0)
+            }
 
-            result := div(add(mul(value, PERCENTAGE_FACTOR), div(percentage, 2)), percentage)
+            result := div(
+                add(mul(value, PERCENTAGE_FACTOR), div(percentage, 2)),
+                percentage
+            )
         }
     }
 }

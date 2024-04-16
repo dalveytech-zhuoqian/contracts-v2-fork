@@ -26,15 +26,21 @@ contract FeeHandlerTest is Test {
             "FRateFactor should be initialized to 10000"
         );
         assertEq(
-            feeStorage.configs[1][uint8(FeeHandler.ConfigType.MinFRate)], 1250, "MinFRate should be initialized to 1250"
+            feeStorage.configs[1][uint8(FeeHandler.ConfigType.MinFRate)],
+            1250,
+            "MinFRate should be initialized to 1250"
         );
         assertEq(
-            feeStorage.configs[1][uint8(FeeHandler.ConfigType.MinFundingInterval)],
+            feeStorage.configs[1][
+                uint8(FeeHandler.ConfigType.MinFundingInterval)
+            ],
             3600,
             "MinFundingInterval should be initialized to 3600"
         );
         assertEq(
-            feeStorage.configs[1][uint8(FeeHandler.ConfigType.FundingFeeLossOffLimit)],
+            feeStorage.configs[1][
+                uint8(FeeHandler.ConfigType.FundingFeeLossOffLimit)
+            ],
             1000000,
             "FundingFeeLossOffLimit should be initialized to 1000000"
         );
@@ -57,7 +63,11 @@ contract FeeHandlerTest is Test {
 
         fee = FeeHandler.getFeeOfKind(market, sizeDelta, kind);
 
-        assertEq(fee, sizeDelta * 5000 / 10000, "Fee should be 5000 when sizeDelta is not 0");
+        assertEq(
+            fee,
+            (sizeDelta * 5000) / 10000,
+            "Fee should be 5000 when sizeDelta is not 0"
+        );
     }
 
     function testGetFeesReceivable() public {
@@ -84,7 +94,11 @@ contract FeeHandlerTest is Test {
         assertEq(fees[uint8(FeeType.FundFee)], 100, "FundFee should be 100");
         assertEq(fees[uint8(FeeType.OpenFee)], 50, "OpenFee should be 50");
         assertEq(fees[uint8(FeeType.LiqFee)], 0, "LiqFee should be 0");
-        assertEq(fees[uint8(FeeType.ExecFee)], 16000, "ExecFee should be 16000");
+        assertEq(
+            fees[uint8(FeeType.ExecFee)],
+            16000,
+            "ExecFee should be 16000"
+        );
 
         params.isOpen = false;
         fees = FeeHandler._getFeesReceivable(params, 100);

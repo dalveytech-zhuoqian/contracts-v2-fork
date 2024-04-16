@@ -27,15 +27,26 @@ abstract contract PositionFacetBase {
     }
 
     function SELF_updateCumulativeFundingRate(uint16 market) internal {
-        (uint256 _longSize, uint256 _shortSize) = PositionStorage.getMarketSizesForBothDirections(market);
-        _feeFacet().SELF_updateCumulativeFundingRate(market, _longSize, _shortSize); //1
+        (uint256 _longSize, uint256 _shortSize) = PositionStorage
+            .getMarketSizesForBothDirections(market);
+        _feeFacet().SELF_updateCumulativeFundingRate(
+            market,
+            _longSize,
+            _shortSize
+        ); //1
     }
 
-    function _getClosePrice(uint16 market, bool _isLong) internal view returns (uint256 p) {
+    function _getClosePrice(
+        uint16 market,
+        bool _isLong
+    ) internal view returns (uint256 p) {
         return _priceFacet().getPrice(market, !_isLong);
     }
 
-    function _getOpenPrice(uint16 market, bool _isLong) internal view returns (uint256 p) {
+    function _getOpenPrice(
+        uint16 market,
+        bool _isLong
+    ) internal view returns (uint256 p) {
         return _priceFacet().getPrice(market, _isLong);
     }
 
@@ -47,11 +58,12 @@ abstract contract PositionFacetBase {
      * @dev Calculates the delta collateral for decreasing a position.
      * @return deltaCollateral The calculated delta collateral.
      */
-    function getDecreaseDeltaCollateral(bool isKeepLev, uint256 size, uint256 dSize, uint256 collateral)
-        internal
-        pure
-        returns (uint256 deltaCollateral)
-    {
+    function getDecreaseDeltaCollateral(
+        bool isKeepLev,
+        uint256 size,
+        uint256 dSize,
+        uint256 collateral
+    ) internal pure returns (uint256 deltaCollateral) {
         if (isKeepLev) {
             deltaCollateral = (collateral * dSize) / size;
         } else {

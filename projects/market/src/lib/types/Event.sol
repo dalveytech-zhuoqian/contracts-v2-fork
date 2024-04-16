@@ -34,14 +34,32 @@ library Event {
     );
 
     event PositionUpdate(
-        address indexed account, uint16 market, bool isLong, PositionProps oldPosition, PositionProps newPosition
+        address indexed account,
+        uint16 market,
+        bool isLong,
+        PositionProps oldPosition,
+        PositionProps newPosition
     );
 
-    event PositionDelete(address indexed account, uint16 market, bool isLong, PositionProps oldPosition);
+    event PositionDelete(
+        address indexed account,
+        uint16 market,
+        bool isLong,
+        PositionProps oldPosition
+    );
 
     event PositionKeyAdd(address indexed account, uint16 market, bool isLong);
 
-    event PositionKeyDelete(address indexed account, uint16 market, bool isLong);
+    event PositionKeyDelete(
+        address indexed account,
+        uint16 market,
+        bool isLong
+    );
 
-    event GlobalPositionUpdate(uint16 market, bool isLong, PositionProps oldPosition, PositionProps newPosition);
+    event GlobalPositionUpdate(
+        uint16 market,
+        bool isLong,
+        PositionProps oldPosition,
+        PositionProps newPosition
+    );
 }

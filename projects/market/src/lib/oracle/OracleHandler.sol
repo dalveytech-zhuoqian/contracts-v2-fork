@@ -43,10 +43,18 @@ library OracleHandler {
     }
 
     event PriceData(
-        uint16 market, uint256 refPrice, uint256 fastPrice, uint256 cumulativeRefDelta, uint256 cumulativeFastDelta
+        uint16 market,
+        uint256 refPrice,
+        uint256 fastPrice,
+        uint256 cumulativeRefDelta,
+        uint256 cumulativeFastDelta
     );
     event MaxCumulativeDeltaDiffExceeded(
-        uint16 market, uint256 refPrice, uint256 fastPrice, uint256 cumulativeRefDelta, uint256 cumulativeFastDelta
+        uint16 market,
+        uint256 refPrice,
+        uint256 fastPrice,
+        uint256 cumulativeRefDelta,
+        uint256 cumulativeFastDelta
     );
     event UpdatePrice(address feed, uint16 indexed market, uint256 price);
 
@@ -61,7 +69,10 @@ library OracleHandler {
         return Storage().config;
     }
 
-    function setPrices(uint16[] memory _markets, uint256[] memory _prices) internal {
+    function setPrices(
+        uint16[] memory _markets,
+        uint256[] memory _prices
+    ) internal {
         for (uint256 i = 0; i < _markets.length; i++) {
             _setPrice(_markets[i], _prices[i]);
         }
@@ -86,22 +97,34 @@ library OracleHandler {
     // - in case watchers flag an issue
     // - in case the cumulativeFastDelta exceeds the cumulativeRefDelta by the maxCumulativeDeltaDiff
 
-    function getPrice(uint16 market, bool _maximise) internal view returns (uint256) {
+    function getPrice(
+        uint16 market,
+        bool _maximise
+    ) internal view returns (uint256) {
         uint256 chainPrice = getChainPrice(market, _maximise);
         return getFastPrice(market, chainPrice, _maximise);
     }
 
-    function getFastPrice(uint16 market, uint256 _refPrice, bool _maximise) internal view returns (uint256) {
+    function getFastPrice(
+        uint16 market,
+        uint256 _refPrice,
+        bool _maximise
+    ) internal view returns (uint256) {
         uint256 lastUpdate = uint256(Storage().priceData[market].refTime);
         uint256 fastPrice = Storage().prices[market];
         if (
-            block.timestamp > lastUpdate + uint256(Storage().config.maxPriceUpdateDelay)
-                || block.timestamp > lastUpdate + uint256(Storage().config.priceDuration) || fastPrice == 0
+            block.timestamp >
+            lastUpdate + uint256(Storage().config.maxPriceUpdateDelay) ||
+            block.timestamp >
+            lastUpdate + uint256(Storage().config.priceDuration) ||
+            fastPrice == 0
         ) {
             return _refPrice;
         }
 
-        uint256 diffBP = _refPrice > fastPrice ? _refPrice - fastPrice : fastPrice - _refPrice;
+        uint256 diffBP = _refPrice > fastPrice
+            ? _refPrice - fastPrice
+            : fastPrice - _refPrice;
         diffBP = (diffBP * BP_DIVISOR) / _refPrice;
 
         // create a spread between the _refPrice and the fastPrice if the maxDeviationBP is exceeded
@@ -111,18 +134,31 @@ library OracleHandler {
         // 2. 1%
         // 3. fastPricechainlink/, fastPrice
 
-        if (favorFastPrice(market) && diffBP <= uint256(Storage().config.maxDeviationBP)) {
+        if (
+            favorFastPrice(market) &&
+            diffBP <= uint256(Storage().config.maxDeviationBP)
+        ) {
             return fastPrice;
         }
 
         return comparePrices(_refPrice, fastPrice, _maximise);
     }
 
-    function comparePrices(uint256 price1, uint256 price2, bool maximize) internal pure returns (uint256) {
-        return maximize ? (price1 > price2 ? price1 : price2) : (price1 < price2 ? price1 : price2);
+    function comparePrices(
+        uint256 price1,
+        uint256 price2,
+        bool maximize
+    ) internal pure returns (uint256) {
+        return
+            maximize
+                ? (price1 > price2 ? price1 : price2)
+                : (price1 < price2 ? price1 : price2);
     }
 
-    function getChainPrice(uint16 market, bool _maximise) internal view returns (uint256) {
+    function getChainPrice(
+        uint16 market,
+        bool _maximise
+    ) internal view returns (uint256) {
         uint256 xxxUSD = _getChainPrice(market, _maximise);
         uint256 _USDTUSD = _getChainPrice(market, _maximise);
         if (xxxUSD < (2 ** 256 - 1) / PRICE_PRECISION) {
@@ -140,60 +176,106 @@ library OracleHandler {
             uint256 refPrice = _getLatestPriceWithUSDT(market);
             uint256 fastPrice = Storage().prices[market];
 
-            (uint256 prevRefPrice, uint256 refTime, uint256 cumulativeRefDelta, uint256 cumulativeFastDelta) =
-                _getPriceData(market);
+            (
+                uint256 prevRefPrice,
+                uint256 refTime,
+                uint256 cumulativeRefDelta,
+                uint256 cumulativeFastDelta
+            ) = _getPriceData(market);
 
             if (prevRefPrice > 0) {
                 // chainlink
-                uint256 refDeltaAmount = refPrice > prevRefPrice ? refPrice - prevRefPrice : prevRefPrice - refPrice;
+                uint256 refDeltaAmount = refPrice > prevRefPrice
+                    ? refPrice - prevRefPrice
+                    : prevRefPrice - refPrice;
                 // fastPrice
-                uint256 fastDeltaAmount = fastPrice > _price ? fastPrice - _price : _price - fastPrice;
+                uint256 fastDeltaAmount = fastPrice > _price
+                    ? fastPrice - _price
+                    : _price - fastPrice;
 
                 // reset cumulative delta values if it is a new time window
                 if (
-                    refTime / Storage().config.priceDataInterval != block.timestamp / Storage().config.priceDataInterval
+                    refTime / Storage().config.priceDataInterval !=
+                    block.timestamp / Storage().config.priceDataInterval
                 ) {
                     cumulativeRefDelta = 0;
                     cumulativeFastDelta = 0;
                 }
                 //
-                cumulativeRefDelta = cumulativeRefDelta + (refDeltaAmount * CUMULATIVE_DELTA_PRECISION) / prevRefPrice;
-                cumulativeFastDelta = cumulativeFastDelta + (fastDeltaAmount * CUMULATIVE_DELTA_PRECISION) / fastPrice;
+                cumulativeRefDelta =
+                    cumulativeRefDelta +
+                    (refDeltaAmount * CUMULATIVE_DELTA_PRECISION) /
+                    prevRefPrice;
+                cumulativeFastDelta =
+                    cumulativeFastDelta +
+                    (fastDeltaAmount * CUMULATIVE_DELTA_PRECISION) /
+                    fastPrice;
             }
 
             if (
-                cumulativeFastDelta > cumulativeRefDelta
-                    && cumulativeFastDelta - cumulativeRefDelta > Storage().maxCumulativeDeltaDiffs[market]
+                cumulativeFastDelta > cumulativeRefDelta &&
+                cumulativeFastDelta - cumulativeRefDelta >
+                Storage().maxCumulativeDeltaDiffs[market]
             ) {
                 emit MaxCumulativeDeltaDiffExceeded(
-                    market, refPrice, fastPrice, cumulativeRefDelta, cumulativeFastDelta
+                    market,
+                    refPrice,
+                    fastPrice,
+                    cumulativeRefDelta,
+                    cumulativeFastDelta
                 );
             }
 
-            _setPriceData(market, refPrice, cumulativeRefDelta, cumulativeFastDelta);
-            emit PriceData(market, refPrice, fastPrice, cumulativeRefDelta, cumulativeFastDelta);
+            _setPriceData(
+                market,
+                refPrice,
+                cumulativeRefDelta,
+                cumulativeFastDelta
+            );
+            emit PriceData(
+                market,
+                refPrice,
+                fastPrice,
+                cumulativeRefDelta,
+                cumulativeFastDelta
+            );
         }
 
         Storage().prices[market] = _price;
         emit UpdatePrice(msg.sender, market, _price);
     }
 
-    function _setPriceData(uint16 _market, uint256 _refPrice, uint256 _cumulativeRefDelta, uint256 _cumulativeFastDelta)
-        internal
-    {
+    function _setPriceData(
+        uint16 _market,
+        uint256 _refPrice,
+        uint256 _cumulativeRefDelta,
+        uint256 _cumulativeFastDelta
+    ) internal {
         require(_refPrice < MAX_REF_PRICE, "FastPriceFeed: invalid refPrice");
         // skip validation of block.timestamp, it should only be out of range after the year 2100
-        require(_cumulativeRefDelta < MAX_CUMULATIVE_REF_DELTA, "FastPriceFeed: invalid cumulativeRefDelta");
-        require(_cumulativeFastDelta < MAX_CUMULATIVE_FAST_DELTA, "FastPriceFeed: invalid cumulativeFastDelta");
+        require(
+            _cumulativeRefDelta < MAX_CUMULATIVE_REF_DELTA,
+            "FastPriceFeed: invalid cumulativeRefDelta"
+        );
+        require(
+            _cumulativeFastDelta < MAX_CUMULATIVE_FAST_DELTA,
+            "FastPriceFeed: invalid cumulativeFastDelta"
+        );
 
         Storage().priceData[_market] = PriceDataItem(
-            uint160(_refPrice), uint32(block.timestamp), uint32(_cumulativeRefDelta), uint32(_cumulativeFastDelta)
+            uint160(_refPrice),
+            uint32(block.timestamp),
+            uint32(_cumulativeRefDelta),
+            uint32(_cumulativeFastDelta)
         );
     }
 
-    function _getLatestPriceWithUSDT(uint16 market) internal view returns (uint256) {
+    function _getLatestPriceWithUSDT(
+        uint16 market
+    ) internal view returns (uint256) {
         uint256 xxxUSD = _getLatestPrice(market);
-        uint256 _USDTUSD = (IPriceFeed(Storage().USDT).latestAnswer()).toUint256();
+        uint256 _USDTUSD = (IPriceFeed(Storage().USDT).latestAnswer())
+            .toUint256();
         if (xxxUSD < (2 ** 256 - 1) / PRICE_PRECISION) {
             return (xxxUSD * PRICE_PRECISION) / _USDTUSD;
         }
@@ -209,7 +291,10 @@ library OracleHandler {
         return uint256(_price);
     }
 
-    function _getChainPrice(uint16 market, bool _maximise) internal view returns (uint256) {
+    function _getChainPrice(
+        uint16 market,
+        bool _maximise
+    ) internal view returns (uint256) {
         address _feed = Storage().priceFeeds[market];
         require(_feed != address(0), "PriceFeed: invalid price feed");
 
@@ -223,11 +308,13 @@ library OracleHandler {
             uint256 p;
 
             if (i == 0) {
-                int256 _p = IPriceFeed(Storage().priceFeeds[market]).latestAnswer();
+                int256 _p = IPriceFeed(Storage().priceFeeds[market])
+                    .latestAnswer();
                 require(_p > 0, "PriceFeed: invalid price");
                 p = uint256(_p);
             } else {
-                (, int256 _p,,,) = IPriceFeed(Storage().priceFeeds[market]).getRoundData(_id - i);
+                (, int256 _p, , , ) = IPriceFeed(Storage().priceFeeds[market])
+                    .getRoundData(_id - i);
                 require(_p > 0, "PriceFeed: invalid price");
                 p = uint256(_p);
             }
@@ -252,11 +339,16 @@ library OracleHandler {
         return (_price * PRICE_PRECISION) / (10 ** _decimals);
     }
 
-    function setMaxCumulativeDeltaDiff(uint16 market, uint256 _maxCumulativeDeltaDiff) internal {
+    function setMaxCumulativeDeltaDiff(
+        uint16 market,
+        uint256 _maxCumulativeDeltaDiff
+    ) internal {
         Storage().maxCumulativeDeltaDiffs[market] = _maxCumulativeDeltaDiff;
     }
 
-    function _getPriceData(uint16 market) internal view returns (uint256, uint256, uint256, uint256) {
+    function _getPriceData(
+        uint16 market
+    ) internal view returns (uint256, uint256, uint256, uint256) {
         PriceDataItem memory data = Storage().priceData[market];
         return (
             uint256(data.refPrice),
@@ -267,8 +359,18 @@ library OracleHandler {
     }
 
     function favorFastPrice(uint16 market) internal view returns (bool) {
-        (,, uint256 cumulativeRefDelta, uint256 cumulativeFastDelta) = _getPriceData(market);
-        return isFastPriceFavored(cumulativeRefDelta, cumulativeFastDelta, Storage().maxCumulativeDeltaDiffs[market]);
+        (
+            ,
+            ,
+            uint256 cumulativeRefDelta,
+            uint256 cumulativeFastDelta
+        ) = _getPriceData(market);
+        return
+            isFastPriceFavored(
+                cumulativeRefDelta,
+                cumulativeFastDelta,
+                Storage().maxCumulativeDeltaDiffs[market]
+            );
     }
 
     function isFastPriceFavored(
@@ -277,8 +379,8 @@ library OracleHandler {
         uint256 maxCumulativeDeltaDiffs
     ) internal pure returns (bool) {
         if (
-            cumulativeFastDelta > cumulativeRefDelta
-                && cumulativeFastDelta - cumulativeRefDelta > maxCumulativeDeltaDiffs
+            cumulativeFastDelta > cumulativeRefDelta &&
+            cumulativeFastDelta - cumulativeRefDelta > maxCumulativeDeltaDiffs
         ) {
             return false;
         }

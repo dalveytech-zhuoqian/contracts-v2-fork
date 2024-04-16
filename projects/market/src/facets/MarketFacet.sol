@@ -30,8 +30,18 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
 
     using SafeERC20 for IERC20Metadata;
 
-    event OracleAdded(uint16 market, address pricefeed, uint256 maxCumulativeDeltaDiffs);
-    event MarketAdded(uint16 market, string name, address vault, address token, MarketHandler.Props config);
+    event OracleAdded(
+        uint16 market,
+        address pricefeed,
+        uint256 maxCumulativeDeltaDiffs
+    );
+    event MarketAdded(
+        uint16 market,
+        string name,
+        address vault,
+        address token,
+        MarketHandler.Props config
+    );
 
     //================================================================
     // only self
@@ -41,7 +51,10 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
     // ADMIN
     //================================================================
 
-    function setMarketConf(uint16 market, MarketHandler.Props memory data) external restricted {
+    function setMarketConf(
+        uint16 market,
+        MarketHandler.Props memory data
+    ) external restricted {
         // //TODO 查一下当前 market balance
         MarketHandler.Storage().config[market] = data;
     }
@@ -54,13 +67,18 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
         bytes calldata oracle,
         bytes calldata fee
     ) external restricted returns (uint16 market) {
-        market = MarketFacet(address(this)).SELF_addMarket(abi.encode(name, _vault, address(0), config));
+        market = MarketFacet(address(this)).SELF_addMarket(
+            abi.encode(name, _vault, address(0), config)
+        );
         MarketFacet(address(this)).SELF_addOracle(market, oracle);
         MarketFacet(address(this)).SELF_addGValid(market, maxMarketSizeLimit);
         IFeeFacet(address(this)).SELF_addFee(market, fee);
     }
 
-    function SELF_addGValid(uint16 market, uint256 maxMarketSizeLimit) external {
+    function SELF_addGValid(
+        uint16 market,
+        uint256 maxMarketSizeLimit
+    ) external {
         if (address(this) != msg.sender) {
             _checkCanCall(msg.sender, msg.data);
         }
@@ -73,19 +91,28 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
             _checkCanCall(msg.sender, msg.data);
         }
         OracleHandler.StorageStruct storage $ = OracleHandler.Storage();
-        (address pricefeed, uint256 maxCumulativeDeltaDiffs) = abi.decode(oracle, (address, uint256));
+        (address pricefeed, uint256 maxCumulativeDeltaDiffs) = abi.decode(
+            oracle,
+            (address, uint256)
+        );
         $.priceFeeds[market] = pricefeed;
         $.maxCumulativeDeltaDiffs[market] = maxCumulativeDeltaDiffs;
     }
 
-    function SELF_addMarket(bytes calldata data) external returns (uint16 market) {
+    function SELF_addMarket(
+        bytes calldata data
+    ) external returns (uint16 market) {
         if (address(this) != msg.sender) {
             _checkCanCall(msg.sender, msg.data);
         }
 
         market = MarketHandler.Storage().marketIdAutoIncrease + 1;
-        (string memory name, address _vault, address token, MarketHandler.Props memory config) =
-            abi.decode(data, (string, address, address, MarketHandler.Props));
+        (
+            string memory name,
+            address _vault,
+            address token,
+            MarketHandler.Props memory config
+        ) = abi.decode(data, (string, address, address, MarketHandler.Props));
 
         MarketHandler.Storage().name[market] = name;
         if (token == address(0)) {
@@ -93,7 +120,9 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
         } else {
             MarketHandler.Storage().token[market] = token;
         }
-        bool suc = MarketHandler.Storage().marketIds[_vault].add(uint256(market));
+        bool suc = MarketHandler.Storage().marketIds[_vault].add(
+            uint256(market)
+        );
         require(suc, "MarketFacet: market already exists");
         MarketHandler.Storage().vault[market] = _vault;
         MarketHandler.Storage().config[market] = config;
@@ -112,31 +141,51 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
     // view only
     //================================================================
 
-    function markeConfig(uint16 market) external view returns (MarketHandler.Props memory _config) {
+    function markeConfig(
+        uint16 market
+    ) external view returns (MarketHandler.Props memory _config) {
         _config = MarketHandler.Storage().config[market];
     }
 
     function getGlobalPnl(address _vault) public view returns (int256) {
-        EnumerableSet.UintSet storage marketIds = MarketHandler.Storage().marketIds[_vault];
+        EnumerableSet.UintSet storage marketIds = MarketHandler
+            .Storage()
+            .marketIds[_vault];
         uint256[] memory _markets = marketIds.values();
         int256 pnl = 0;
         for (uint256 i = 0; i < _markets.length; i++) {
             uint16 market = uint16(_markets[i]);
-            pnl = pnl
-                + PositionStorage.getMarketPNLInBoth(
-                    market, OracleHandler.getPrice(market, true), OracleHandler.getPrice(market, false)
+            pnl =
+                pnl +
+                PositionStorage.getMarketPNLInBoth(
+                    market,
+                    OracleHandler.getPrice(market, true),
+                    OracleHandler.getPrice(market, false)
                 );
         }
         return pnl;
     }
 
-    function availableLiquidity(address market, address account, bool isLong) external view returns (uint256) {
+    function availableLiquidity(
+        address market,
+        address account,
+        bool isLong
+    ) external view returns (uint256) {
         // todo for front end
     }
 
-    function getMarket(uint16 market) external view returns (bytes memory result) {
+    function getMarket(
+        uint16 market
+    ) external view returns (bytes memory result) {
         MarketHandler.StorageStruct storage $ = MarketHandler.Storage();
-        return abi.encode($.name[market], $.vault[market], $.token[market], $.balance[market], $.config[market]);
+        return
+            abi.encode(
+                $.name[market],
+                $.vault[market],
+                $.token[market],
+                $.balance[market],
+                $.config[market]
+            );
     }
 
     function getMarkets() external view returns (bytes memory result) {
@@ -145,8 +194,13 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
         bytes memory result = new bytes(_markets.length * 32);
         for (uint256 i = 0; i < _markets.length; i++) {
             uint16 market = uint16(_markets[i]);
-            bytes memory data =
-                abi.encode($.name[market], $.vault[market], $.token[market], $.balance[market], $.config[market]);
+            bytes memory data = abi.encode(
+                $.name[market],
+                $.vault[market],
+                $.token[market],
+                $.balance[market],
+                $.config[market]
+            );
             assembly {
                 mstore(add(result, mul(i, 32)), data)
             }
@@ -198,12 +252,9 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
     //     // }
     // }
 
-    function getExecutableOrdersByPrice(OrderFinderCache memory cache)
-        external
-        view
-        override
-        returns (OrderProps[] memory _orders)
-    {
+    function getExecutableOrdersByPrice(
+        OrderFinderCache memory cache
+    ) external view override returns (OrderProps[] memory _orders) {
         return OrderFinder.getExecutableOrdersByPrice(cache);
     }
 }

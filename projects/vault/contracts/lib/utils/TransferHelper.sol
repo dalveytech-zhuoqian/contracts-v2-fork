@@ -11,7 +11,10 @@ library TransferHelper {
      * @param originDigits The number of decimal places for the original asset.
      * @return The parsed vault asset amount.
      */
-    function parseVaultAsset(uint256 amount, uint8 originDigits) internal pure returns (uint256) {
+    function parseVaultAsset(
+        uint256 amount,
+        uint8 originDigits
+    ) internal pure returns (uint256) {
         return (amount * (10 ** uint256(usdDecimals))) / (10 ** originDigits);
     }
 }

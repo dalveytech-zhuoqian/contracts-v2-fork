@@ -7,40 +7,57 @@ contract MultiCallFacet {
         bytes returnData;
     }
 
-    function aggregateCall(bytes[] memory calls) public returns (uint256 blockNumber, bytes[] memory returnData) {
+    function aggregateCall(
+        bytes[] memory calls
+    ) public returns (uint256 blockNumber, bytes[] memory returnData) {
         blockNumber = block.number;
         returnData = new bytes[](calls.length);
         for (uint256 i = 0; i < calls.length; i++) {
-            (address target, bytes memory callData) = abi.decode(calls[i], (address, bytes));
+            (address target, bytes memory callData) = abi.decode(
+                calls[i],
+                (address, bytes)
+            );
             (bool success, bytes memory ret) = target.call(callData);
             require(success, "BlexMulticall aggregate: call failed");
             returnData[i] = ret;
         }
     }
 
-    function aggregateStaticCall(bytes[] memory calls)
-        external
-        view
-        returns (uint256 blockNumber, bytes[] memory returnData)
-    {
+    function aggregateStaticCall(
+        bytes[] memory calls
+    ) external view returns (uint256 blockNumber, bytes[] memory returnData) {
         blockNumber = block.number;
         returnData = new bytes[](calls.length);
         for (uint256 i = 0; i < calls.length; i++) {
-            (address target, bytes memory callData) = abi.decode(calls[i], (address, bytes));
+            (address target, bytes memory callData) = abi.decode(
+                calls[i],
+                (address, bytes)
+            );
             (bool success, bytes memory ret) = target.staticcall(callData);
             require(success, "BlexMulticall aggregate: staticcall call failed");
             returnData[i] = ret;
         }
     }
 
-    function blockAndAggregate(bytes[] memory calls)
+    function blockAndAggregate(
+        bytes[] memory calls
+    )
         public
-        returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData)
+        returns (
+            uint256 blockNumber,
+            bytes32 blockHash,
+            Result[] memory returnData
+        )
     {
-        (blockNumber, blockHash, returnData) = tryBlockAndAggregate(true, calls);
+        (blockNumber, blockHash, returnData) = tryBlockAndAggregate(
+            true,
+            calls
+        );
     }
 
-    function getBlockHash(uint256 blockNumber) public view returns (bytes32 blockHash) {
+    function getBlockHash(
+        uint256 blockNumber
+    ) public view returns (bytes32 blockHash) {
         blockHash = blockhash(blockNumber);
     }
 
@@ -56,7 +73,11 @@ contract MultiCallFacet {
         gaslimit = block.gaslimit;
     }
 
-    function getCurrentBlockTimestamp() public view returns (uint256 timestamp) {
+    function getCurrentBlockTimestamp()
+        public
+        view
+        returns (uint256 timestamp)
+    {
         timestamp = block.timestamp;
     }
 
@@ -68,10 +89,16 @@ contract MultiCallFacet {
         blockHash = blockhash(block.number - 1);
     }
 
-    function tryAggregate(bool requireSuccess, bytes[] memory calls) public returns (Result[] memory returnData) {
+    function tryAggregate(
+        bool requireSuccess,
+        bytes[] memory calls
+    ) public returns (Result[] memory returnData) {
         returnData = new Result[](calls.length);
         for (uint256 i = 0; i < calls.length; i++) {
-            (address target, bytes memory callData) = abi.decode(calls[i], (address, bytes));
+            (address target, bytes memory callData) = abi.decode(
+                calls[i],
+                (address, bytes)
+            );
             (bool success, bytes memory ret) = target.call(callData);
 
             if (requireSuccess) {
@@ -82,9 +109,16 @@ contract MultiCallFacet {
         }
     }
 
-    function tryBlockAndAggregate(bool requireSuccess, bytes[] memory calls)
+    function tryBlockAndAggregate(
+        bool requireSuccess,
+        bytes[] memory calls
+    )
         public
-        returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData)
+        returns (
+            uint256 blockNumber,
+            bytes32 blockHash,
+            Result[] memory returnData
+        )
     {
         blockNumber = block.number;
         blockHash = blockhash(block.number);

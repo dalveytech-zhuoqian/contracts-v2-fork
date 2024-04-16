@@ -12,14 +12,22 @@ contract GValidHandlerTest is Test {
 
         uint256 remaining = GValidHandler.calRemaining(size, limit);
 
-        assertEq(remaining, 0, "Remaining should be 0 when size is greater than or equal to limit");
+        assertEq(
+            remaining,
+            0,
+            "Remaining should be 0 when size is greater than or equal to limit"
+        );
 
         size = 3;
         limit = 5;
 
         remaining = GValidHandler.calRemaining(size, limit);
 
-        assertEq(remaining, 2, "Remaining should be the difference between limit and size");
+        assertEq(
+            remaining,
+            2,
+            "Remaining should be the difference between limit and size"
+        );
     }
 
     function testGetMaxUseableMarketSize() public {
@@ -31,19 +39,35 @@ contract GValidHandlerTest is Test {
 
         GValidHandler.setMaxMarketSizeLimit(market, limit);
 
-        uint256 maxUseableMarketSize = GValidHandler._getMaxUseableMarketSize(market, isLong, longSize, shortSize);
+        uint256 maxUseableMarketSize = GValidHandler._getMaxUseableMarketSize(
+            market,
+            isLong,
+            longSize,
+            shortSize
+        );
 
         assertEq(
-            maxUseableMarketSize, 0, "Max useable market size should be 0 when size is greater than or equal to limit"
+            maxUseableMarketSize,
+            0,
+            "Max useable market size should be 0 when size is greater than or equal to limit"
         );
 
         isLong = false;
         longSize = 3;
         shortSize = 6;
 
-        maxUseableMarketSize = GValidHandler._getMaxUseableMarketSize(market, isLong, longSize, shortSize);
+        maxUseableMarketSize = GValidHandler._getMaxUseableMarketSize(
+            market,
+            isLong,
+            longSize,
+            shortSize
+        );
 
-        assertEq(maxUseableMarketSize, 4, "Max useable market size should be the difference between limit and size");
+        assertEq(
+            maxUseableMarketSize,
+            4,
+            "Max useable market size should be the difference between limit and size"
+        );
     }
 
     function testGetMaxUseableUserNetSize() public {
@@ -52,7 +76,12 @@ contract GValidHandlerTest is Test {
         uint256 aum = 1000;
         bool isLong = true;
 
-        uint256 maxUseableUserNetSize = GValidHandler._getMaxUseableUserNetSize(longSize, shortSize, aum, isLong);
+        uint256 maxUseableUserNetSize = GValidHandler._getMaxUseableUserNetSize(
+            longSize,
+            shortSize,
+            aum,
+            isLong
+        );
 
         assertEq(
             maxUseableUserNetSize,
@@ -64,10 +93,17 @@ contract GValidHandlerTest is Test {
         longSize = 3;
         shortSize = 6;
 
-        maxUseableUserNetSize = GValidHandler._getMaxUseableUserNetSize(longSize, shortSize, aum, isLong);
+        maxUseableUserNetSize = GValidHandler._getMaxUseableUserNetSize(
+            longSize,
+            shortSize,
+            aum,
+            isLong
+        );
 
         assertEq(
-            maxUseableUserNetSize, 997, "Max useable user net size should be the difference between limit and size"
+            maxUseableUserNetSize,
+            997,
+            "Max useable user net size should be the difference between limit and size"
         );
     }
 
@@ -77,17 +113,35 @@ contract GValidHandlerTest is Test {
         uint256 aum = 1000;
         bool isLong = true;
 
-        uint256 maxUseableNetSize = GValidHandler._getMaxUseableNetSize(longSize, shortSize, aum, isLong);
+        uint256 maxUseableNetSize = GValidHandler._getMaxUseableNetSize(
+            longSize,
+            shortSize,
+            aum,
+            isLong
+        );
 
-        assertEq(maxUseableNetSize, 995, "Max useable net size should be 0 when size is greater than or equal to limit");
+        assertEq(
+            maxUseableNetSize,
+            995,
+            "Max useable net size should be 0 when size is greater than or equal to limit"
+        );
 
         isLong = false;
         longSize = 3;
         shortSize = 6;
 
-        maxUseableNetSize = GValidHandler._getMaxUseableNetSize(longSize, shortSize, aum, isLong);
+        maxUseableNetSize = GValidHandler._getMaxUseableNetSize(
+            longSize,
+            shortSize,
+            aum,
+            isLong
+        );
 
-        assertEq(maxUseableNetSize, 997, "Max useable net size should be the difference between limit and size");
+        assertEq(
+            maxUseableNetSize,
+            997,
+            "Max useable net size should be the difference between limit and size"
+        );
     }
 
     function testGetMaxUseableGlobalSize() public {
@@ -98,19 +152,35 @@ contract GValidHandlerTest is Test {
 
         GValidHandler.setMaxSizeLimit(100); // Set the maxSizeLimit to 100 for testing purposes
 
-        uint256 maxUseableGlobalSize = GValidHandler._getMaxUseableGlobalSize(longSize, shortSize, aum, isLong);
+        uint256 maxUseableGlobalSize = GValidHandler._getMaxUseableGlobalSize(
+            longSize,
+            shortSize,
+            aum,
+            isLong
+        );
 
         assertEq(
-            maxUseableGlobalSize, 0, "Max useable global size should be 0 when size is greater than or equal to limit"
+            maxUseableGlobalSize,
+            0,
+            "Max useable global size should be 0 when size is greater than or equal to limit"
         );
 
         isLong = false;
         longSize = 3;
         shortSize = 6;
 
-        maxUseableGlobalSize = GValidHandler._getMaxUseableGlobalSize(longSize, shortSize, aum, isLong);
+        maxUseableGlobalSize = GValidHandler._getMaxUseableGlobalSize(
+            longSize,
+            shortSize,
+            aum,
+            isLong
+        );
 
-        assertEq(maxUseableGlobalSize, 4, "Max useable global size should be the difference between limit and size");
+        assertEq(
+            maxUseableGlobalSize,
+            4,
+            "Max useable global size should be the difference between limit and size"
+        );
     }
 
     function testGetMaxIncreasePositionSize() public {
@@ -127,7 +197,8 @@ contract GValidHandlerTest is Test {
         params.marketLongSizes = 10;
         params.marketShortSizes = 5;
 
-        uint256 maxIncreasePositionSize = GValidHandler.getMaxIncreasePositionSize(params);
+        uint256 maxIncreasePositionSize = GValidHandler
+            .getMaxIncreasePositionSize(params);
 
         assertEq(
             maxIncreasePositionSize,
@@ -146,9 +217,15 @@ contract GValidHandlerTest is Test {
         params.marketLongSizes = 10;
         params.marketShortSizes = 5;
 
-        maxIncreasePositionSize = GValidHandler.getMaxIncreasePositionSize(params);
+        maxIncreasePositionSize = GValidHandler.getMaxIncreasePositionSize(
+            params
+        );
 
-        assertEq(maxIncreasePositionSize, 995, "Max increase in position size should be the minimum of all sizes");
+        assertEq(
+            maxIncreasePositionSize,
+            995,
+            "Max increase in position size should be the minimum of all sizes"
+        );
 
         // Test case 3: Only user net sizes are less than limit
         params.globalLongSizes = 10;
@@ -161,9 +238,15 @@ contract GValidHandlerTest is Test {
         params.marketLongSizes = 10;
         params.marketShortSizes = 5;
 
-        maxIncreasePositionSize = GValidHandler.getMaxIncreasePositionSize(params);
+        maxIncreasePositionSize = GValidHandler.getMaxIncreasePositionSize(
+            params
+        );
 
-        assertEq(maxIncreasePositionSize, 990, "Max increase in position size should be the minimum of all sizes");
+        assertEq(
+            maxIncreasePositionSize,
+            990,
+            "Max increase in position size should be the minimum of all sizes"
+        );
 
         // Test case 4: Only market size is less than limit
         params.globalLongSizes = 10;
@@ -176,9 +259,15 @@ contract GValidHandlerTest is Test {
         params.marketLongSizes = 3;
         params.marketShortSizes = 6;
 
-        maxIncreasePositionSize = GValidHandler.getMaxIncreasePositionSize(params);
+        maxIncreasePositionSize = GValidHandler.getMaxIncreasePositionSize(
+            params
+        );
 
-        assertEq(maxIncreasePositionSize, 990, "Max increase in position size should be the minimum of all sizes");
+        assertEq(
+            maxIncreasePositionSize,
+            990,
+            "Max increase in position size should be the minimum of all sizes"
+        );
 
         // Test case 5: All sizes are less than limit
         params.globalLongSizes = 3;
@@ -191,8 +280,14 @@ contract GValidHandlerTest is Test {
         params.marketLongSizes = 3;
         params.marketShortSizes = 6;
 
-        maxIncreasePositionSize = GValidHandler.getMaxIncreasePositionSize(params);
+        maxIncreasePositionSize = GValidHandler.getMaxIncreasePositionSize(
+            params
+        );
 
-        assertEq(maxIncreasePositionSize, 997, "Max increase in position size should be the minimum of all sizes");
+        assertEq(
+            maxIncreasePositionSize,
+            997,
+            "Max increase in position size should be the minimum of all sizes"
+        );
     }
 }

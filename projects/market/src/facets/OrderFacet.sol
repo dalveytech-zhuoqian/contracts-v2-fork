@@ -44,7 +44,10 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
         if (_inputs.isCreate) {
             // createOrder
             transferIn(
-                MarketHandler.collateralToken(_inputs.market), msg.sender, address(this), _inputs.collateralDelta
+                MarketHandler.collateralToken(_inputs.market),
+                msg.sender,
+                address(this),
+                _inputs.collateralDelta
             );
             if (_inputs.isOpen) {
                 //todo
@@ -53,8 +56,12 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
                 _inputs.collateral = _inputs.pay;
             } else {
                 int256 fees = _feeFacet().getOrderFees(_inputs);
-                PositionProps memory _position =
-                    _positionFacet().getPosition(_inputs.market, _inputs.account, _inputs.oraclePrice, _inputs.isLong);
+                PositionProps memory _position = _positionFacet().getPosition(
+                    _inputs.market,
+                    _inputs.account,
+                    _inputs.oraclePrice,
+                    _inputs.isLong
+                );
                 //todo
                 // _inputs.collateral =
                 //     getDecreaseDeltaCollateral(_inputs.extra3 > 0, _position.size, _inputs.size, _position.collateral);
@@ -65,7 +72,12 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
                     _position.size,
                     _inputs.sizeDelta,
                     fees,
-                    OrderHandler.getOrderNum(_inputs.market, _inputs.isLong, _inputs.isOpen, _inputs.account)
+                    OrderHandler.getOrderNum(
+                        _inputs.market,
+                        _inputs.isLong,
+                        _inputs.isOpen,
+                        _inputs.account
+                    )
                 );
             }
         }
@@ -85,10 +97,13 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
         // );
     }
 
-    function cancelOrder(address account, uint16 market, bool isIncrease, uint256 orderID, bool isLong)
-        external
-        returns (OrderProps[] memory _orders)
-    {
+    function cancelOrder(
+        address account,
+        uint16 market,
+        bool isIncrease,
+        uint256 orderID,
+        bool isLong
+    ) external returns (OrderProps[] memory _orders) {
         if (address(this) != msg.sender && account != msg.sender) {
             _checkCanCall(msg.sender, msg.data);
         }
@@ -99,28 +114,47 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
     //       private functions
     //==========================================================================================
 
-    function transferIn(address tokenAddress, address _from, address _to, uint256 _tokenAmount) private {
+    function transferIn(
+        address tokenAddress,
+        address _from,
+        address _to,
+        uint256 _tokenAmount
+    ) private {
         // If the token amount is 0, return.
         if (_tokenAmount == 0) return;
         // Retrieve the token contract.
         IERC20Metadata coll = IERC20Metadata(tokenAddress);
         // Format the collateral amount based on the token's decimals and transfer the tokens.
-        coll.safeTransferFrom(_from, _to, formatCollateral(_tokenAmount, tokenAddress));
+        coll.safeTransferFrom(
+            _from,
+            _to,
+            formatCollateral(_tokenAmount, tokenAddress)
+        );
     }
 
-    function SELF_addOrders(MarketCache[] memory _inputs) external onlySelf returns (OrderProps[] memory _orders) {
+    function SELF_addOrders(
+        MarketCache[] memory _inputs
+    ) external onlySelf returns (OrderProps[] memory _orders) {
         return _add(_inputs);
     }
 
-    function _add(MarketCache[] memory _inputs) private returns (OrderProps[] memory _orders) {
+    function _add(
+        MarketCache[] memory _inputs
+    ) private returns (OrderProps[] memory _orders) {
         uint256 len = _inputs.length;
         _orders = new OrderProps[](len);
 
-        for (uint256 i; i < len;) {
+        for (uint256 i; i < len; ) {
             OrderProps memory _order; //= _inputs[i].order;
             // _order.version = Order.STRUCT_VERSION;
-            bytes32 sk = OrderHelper.storageKey(_inputs[i].market, _inputs[i].isLong, _inputs[i].isOpen);
-            _order.orderID = uint64(OrderHandler.generateID(sk, _order.account));
+            bytes32 sk = OrderHelper.storageKey(
+                _inputs[i].market,
+                _inputs[i].isLong,
+                _inputs[i].isOpen
+            );
+            _order.orderID = uint64(
+                OrderHandler.generateID(sk, _order.account)
+            );
             _order = _setupTriggerAbove(_inputs[i], _order);
             _orders[i] = _order;
             unchecked {
@@ -133,10 +167,14 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
             _orders[1].pairId = _orders[0].orderID;
         }
 
-        for (uint256 i; i < len;) {
+        for (uint256 i; i < len; ) {
             OrderProps memory _order = _orders[i];
             _validInputParams(_order, _inputs[i].isOpen, _inputs[i].isLong);
-            bytes32 sk = OrderHelper.storageKey(_inputs[i].market, _inputs[i].isLong, _inputs[i].isOpen);
+            bytes32 sk = OrderHelper.storageKey(
+                _inputs[i].market,
+                _inputs[i].isLong,
+                _inputs[i].isOpen
+            );
             OrderHandler.add(sk, _order);
             unchecked {
                 ++i;
@@ -144,7 +182,11 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
         }
     }
 
-    function _validInputParams(OrderProps memory _order, bool _isOpen, bool isLong) private pure {
+    function _validInputParams(
+        OrderProps memory _order,
+        bool _isOpen,
+        bool isLong
+    ) private pure {
         if (_isOpen) {
             // _order.validTPSL(isLong);
             require(_order.collateral > 0, "OB:invalid collateral");
@@ -152,12 +194,24 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
         require(_order.account != address(0), "OrderBook:invalid account");
     }
 
-    function _update(MarketCache memory _inputs) internal returns (OrderProps memory _order) {
+    function _update(
+        MarketCache memory _inputs
+    ) internal returns (OrderProps memory _order) {
         bytes32 okey = OrderHelper.getKey(_inputs.account, _inputs.orderId);
-        bytes32 sk = OrderHelper.storageKey(_inputs.market, _inputs.isLong, _inputs.isOpen);
-        require(OrderHandler.containsKey(sk, okey), "OrderBook:invalid orderKey");
+        bytes32 sk = OrderHelper.storageKey(
+            _inputs.market,
+            _inputs.isLong,
+            _inputs.isOpen
+        );
+        require(
+            OrderHandler.containsKey(sk, okey),
+            "OrderBook:invalid orderKey"
+        );
         _order = OrderHandler.getOrders(sk, okey);
-        require(_order.version == OrderHelper.STRUCT_VERSION, "OrderBook:wrong version"); // ，
+        require(
+            _order.version == OrderHelper.STRUCT_VERSION,
+            "OrderBook:wrong version"
+        ); // ，
         _order.price = _inputs.price;
 
         //******************************************************************
@@ -179,10 +233,13 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
         OrderHandler.set(_order, sk);
     }
 
-    function _cancelOrder(uint16 market, bool isIncrease, bool isLong, address account, uint256 orderID)
-        private
-        returns (OrderProps[] memory _orders)
-    {
+    function _cancelOrder(
+        uint16 market,
+        bool isIncrease,
+        bool isLong,
+        address account,
+        uint256 orderID
+    ) private returns (OrderProps[] memory _orders) {
         bytes32 sk = OrderHelper.storageKey(market, isLong, isIncrease);
         bytes32 ok = OrderHelper.getKey(account, uint64(orderID));
         // TODO
@@ -198,11 +255,10 @@ contract OrderFacet is IAccessManaged, IOrderFacet, PositionFacetBase {
         require(_orders[0].account != address(0), "PositionSubMgr:!account"); // new added
     }
 
-    function _setupTriggerAbove(MarketCache memory _inputs, OrderProps memory _order)
-        private
-        pure
-        returns (OrderProps memory)
-    {
+    function _setupTriggerAbove(
+        MarketCache memory _inputs,
+        OrderProps memory _order
+    ) private pure returns (OrderProps memory) {
         if (_inputs.isFromMarket) {
             _order.triggerAbove = _inputs.isOpen == !_inputs.isLong;
             _order.isFromMarket = true;

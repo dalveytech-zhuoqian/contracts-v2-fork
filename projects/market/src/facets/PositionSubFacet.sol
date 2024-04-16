@@ -41,28 +41,56 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
     // //==========================================================================================
     // //       admin functions
     // //==========================================================================================
-    function liquidate(uint16 market, address accounts, bool _isLong) external restricted {}
+    function liquidate(
+        uint16 market,
+        address accounts,
+        bool _isLong
+    ) external restricted {}
 
-    function execSubOrder(OrderProps memory order, MarketCache memory _params) external restricted {
+    function execSubOrder(
+        OrderProps memory order,
+        MarketCache memory _params
+    ) external restricted {
         _params.oraclePrice = _getClosePrice(_params.market, _params.isLong);
-        PositionProps memory _position =
-            PositionStorage.getPosition(_params.market, order.account, _params.oraclePrice, _params.isLong);
-        (int256[] memory fees, int256 totalFee) = _feeFacet().getFeesReceivable(_params, _position);
+        PositionProps memory _position = PositionStorage.getPosition(
+            _params.market,
+            order.account,
+            _params.oraclePrice,
+            _params.isLong
+        );
+        (int256[] memory fees, int256 totalFee) = _feeFacet().getFeesReceivable(
+            _params,
+            _position
+        );
         if (order.size > 0) {
-            _params.collateralDelta =
-                getDecreaseDeltaCollateral(order.isKeepLev, _position.size, order.size, _position.collateral);
+            _params.collateralDelta = getDecreaseDeltaCollateral(
+                order.isKeepLev,
+                _position.size,
+                order.size,
+                _position.collateral
+            );
         }
 
         //--------------
         // validations
         Validations.validOrderAccountAndID(order);
         require(_params.isOpen == false, "PositionSubMgr:invalid isOpen");
-        Validations.validateLiquidation(_params.market, totalFee, fees[uint8(FeeType.LiqFee)], true);
+        Validations.validateLiquidation(
+            _params.market,
+            totalFee,
+            fees[uint8(FeeType.LiqFee)],
+            true
+        );
 
         //--------------
         // cancel order
-        OrderProps[] memory ods =
-            _orderFacet().cancelOrder(_params.account, _params.market, _params.isOpen, order.orderID, _params.isLong);
+        OrderProps[] memory ods = _orderFacet().cancelOrder(
+            _params.account,
+            _params.market,
+            _params.isOpen,
+            order.orderID,
+            _params.isLong
+        );
 
         for (uint256 i = 0; i < ods.length; i++) {
             OrderProps memory od = ods[i];
@@ -98,7 +126,10 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
     // //       private functions
     // //==========================================================================================
 
-    function SELF_decreasePosition(MarketCache memory _params, PositionProps memory _position) private {
+    function SELF_decreasePosition(
+        MarketCache memory _params,
+        PositionProps memory _position
+    ) private {
         // Return if the position size is zero or the account is invalid
         if (_position.size == 0 || _params.account == address(0)) return;
 
@@ -118,8 +149,12 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
             }
 
             // Remove orders associated with the account
-            OrderProps[] memory _ordersDeleted =
-                OrderHandler.removeByAccount(_params.market, false, _params.isLong, _params.account);
+            OrderProps[] memory _ordersDeleted = OrderHandler.removeByAccount(
+                _params.market,
+                false,
+                _params.isLong,
+                _params.account
+            );
 
             // Iterate over the deleted orders and perform necessary actions
             for (uint256 i = 0; i < _ordersDeleted.length; i++) {
@@ -140,11 +175,13 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
             }
         }
 
-        (int256[] memory _originFees, int256 totalFees) = _feeFacet().getFeesReceivable(_params, _position);
+        (int256[] memory _originFees, int256 totalFees) = _feeFacet()
+            .getFeesReceivable(_params, _position);
 
         if (_params.sizeDelta == 0) {
-            uint256 collateral =
-                totalFees <= 0 ? (_position.collateral.toInt256() - totalFees).toUint256() : _position.collateral;
+            uint256 collateral = totalFees <= 0
+                ? (_position.collateral.toInt256() - totalFees).toUint256()
+                : _position.collateral;
             // Validations.validCollateralDelta(abi.encode(4, collateral, _params.collateralDelta, _position.size, 0, 0));
         } else {
             // Validations.validPosition(_params, _position, _originFees);
@@ -153,19 +190,31 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         int256 dPnl;
         if (_params.sizeDelta > 0) {
             dPnl = _positionFacet().getPNLOfUser(
-                _params.market, _params.account, _params.sizeDelta, _params.oraclePrice, _params.isLong
+                _params.market,
+                _params.account,
+                _params.sizeDelta,
+                _params.oraclePrice,
+                _params.isLong
             );
         }
         _position.realisedPnl = dPnl;
 
         // >>>>>>>>>>>>>>>>>>>>>>>>>开始转账
-        PositionSubMgrLib.DecreaseTransactionOuts memory _outs =
-            _decreaseTransaction(_params, _position, dPnl, _originFees);
+        PositionSubMgrLib.DecreaseTransactionOuts
+            memory _outs = _decreaseTransaction(
+                _params,
+                _position,
+                dPnl,
+                _originFees
+            );
         // <<<<<<<<<<<<<<<<<<<<<<<<<<转账结束
 
         // >>>>>>>>>>>>>>>>>>>>>仓位修改
         //                     获取现在的累计资金费率
-        int256 _nowFundRate = _feeFacet().cumulativeFundingRates(_params.market, _params.isLong);
+        int256 _nowFundRate = _feeFacet().cumulativeFundingRates(
+            _params.market,
+            _params.isLong
+        );
         //                     先把资金费结算给用户
         if (_outs.newCollateralUnsigned > 0 && _outs.withdrawFromFeeVault > 0) {
             _positionFacet().SELF_increasePosition(
@@ -183,7 +232,10 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
 
         // >>>>>>>>>>>>>>>>>>>>>>偿还 CoreVault 的账目
         address colleteralToken = MarketHandler.collateralToken(_params.market);
-        vault(_params.market).repayToVault(_params.market, formatCollateral(_params.sizeDelta, colleteralToken));
+        vault(_params.market).repayToVault(
+            _params.market,
+            formatCollateral(_params.sizeDelta, colleteralToken)
+        );
         PositionProps memory result = _positionFacet().SELF_decreasePosition(
             DecreasePositionInputs({
                 market: _params.market,
@@ -222,16 +274,28 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         //================================================
         //                  Calc
         //================================================
-        _outs = _params.calDecreaseTransactionValues(_position, dPNL, _originFees);
-        uint256 fundfeeLoss = PositionSubMgrLib.calculateFundFeeLoss(_position.collateral.toInt256(), dPNL, _originFees);
+        _outs = _params.calDecreaseTransactionValues(
+            _position,
+            dPNL,
+            _originFees
+        );
+        uint256 fundfeeLoss = PositionSubMgrLib.calculateFundFeeLoss(
+            _position.collateral.toInt256(),
+            dPNL,
+            _originFees
+        );
 
         //================================================
         //            fee vault transactions
         //================================================
-        address _collateralToken = MarketHandler.collateralToken(_params.market);
+        address _collateralToken = MarketHandler.collateralToken(
+            _params.market
+        );
         // IERC20Metadata _collateralTokenERC20 = IERC20Metadata(_collateralToken);
         uint256 amount = formatCollateral(
-            _outs.transToFeeVault >= 0 ? _outs.transToFeeVault.toUint256() : (-_outs.transToFeeVault).toUint256(),
+            _outs.transToFeeVault >= 0
+                ? _outs.transToFeeVault.toUint256()
+                : (-_outs.transToFeeVault).toUint256(),
             _collateralToken
         );
 
@@ -259,7 +323,11 @@ contract PositionSubFacet is IAccessManaged, PositionFacetBase {
         //         usr transactions
         //================================================
         if (_outs.transToUser > 0) {
-            transferOut(_collateralToken, _params.account, uint256(_outs.transToUser));
+            transferOut(
+                _collateralToken,
+                _params.account,
+                uint256(_outs.transToUser)
+            );
         }
     }
 }

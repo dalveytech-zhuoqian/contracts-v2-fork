@@ -21,5 +21,7 @@ struct ReferralDeleteOrderEvent {
 }
 
 interface IReferral {
-    function SELF_updatePositionCallback(ReferralUpdatePositionEvent calldata _event) external;
+    function SELF_updatePositionCallback(
+        ReferralUpdatePositionEvent calldata _event
+    ) external;
 }

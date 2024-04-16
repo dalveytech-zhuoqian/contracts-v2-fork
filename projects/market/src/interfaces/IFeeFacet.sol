@@ -5,23 +5,38 @@ import {MarketCache, PositionProps} from "../lib/types/Types.sol";
 
 interface IFeeFacet {
     function SELF_collectFees(bytes calldata _data) external;
-    function SELF_updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize) external;
+    function SELF_updateCumulativeFundingRate(
+        uint16 market,
+        uint256 longSize,
+        uint256 shortSize
+    ) external;
     //================================================================
     // view functions
     //================================================================
 
-    function getFeeAndRatesOfMarket(uint16 market)
+    function getFeeAndRatesOfMarket(
+        uint16 market
+    )
         external
         view
-        returns (uint256[] memory fees, int256[] memory fundingRates, int256[] memory _cumulativeFundingRates);
+        returns (
+            uint256[] memory fees,
+            int256[] memory fundingRates,
+            int256[] memory _cumulativeFundingRates
+        );
 
-    function getOrderFees(MarketCache calldata data) external view returns (int256 fees);
+    function getOrderFees(
+        MarketCache calldata data
+    ) external view returns (int256 fees);
 
-    function getFeesReceivable(MarketCache calldata params, PositionProps calldata position)
-        external
-        view
-        returns (int256[] memory fees, int256 totalFee);
+    function getFeesReceivable(
+        MarketCache calldata params,
+        PositionProps calldata position
+    ) external view returns (int256[] memory fees, int256 totalFee);
 
-    function cumulativeFundingRates(uint16 market, bool isLong) external view returns (int256);
+    function cumulativeFundingRates(
+        uint16 market,
+        bool isLong
+    ) external view returns (int256);
     function SELF_addFee(uint16 market, bytes calldata fee) external;
 }

@@ -18,8 +18,7 @@ interface IMarketFacet {
     //================================================================
     // view functions
     //================================================================
-    function getExecutableOrdersByPrice(OrderFinderCache memory cache)
-        external
-        view
-        returns (OrderProps[] memory _orders);
+    function getExecutableOrdersByPrice(
+        OrderFinderCache memory cache
+    ) external view returns (OrderProps[] memory _orders);
 }

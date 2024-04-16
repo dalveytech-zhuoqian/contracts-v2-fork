@@ -17,21 +17,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       execute: {
         init: {
           methodName: "initialize",
-          args: [accessManagerAdmin],
-        },
-      },
+          args: [accessManagerAdmin]
+        }
+      }
     },
     log: true,
-    autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
+    autoMine: true // speed up deployment on local network (ganache, hardhat), no effect on live networks
   });
 
-  const BlexAccessManager = await ethers.getContract<BlexAccessManager>(
-    "BlexAccessManager"
-  );
+  const BlexAccessManager = await ethers.getContract<BlexAccessManager>("BlexAccessManager");
   const deployerSigner = await ethers.getSigner(deployer);
-  await waitFor(
-    BlexAccessManager.connect(deployerSigner).grantRole(1, deployer, 0)
-  );
+  await waitFor(BlexAccessManager.connect(deployerSigner).grantRole(1, deployer, 0));
 };
 export default func;
 func.tags = ["BlexAccessManager"];

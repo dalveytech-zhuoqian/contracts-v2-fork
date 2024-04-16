@@ -1,4 +1,3 @@
-import {AaWallet} from "./aaWallet/AaWallet";
+import { AaWallet } from "./aaWallet/AaWallet";
 
-export {AaWallet}
-
+export { AaWallet };

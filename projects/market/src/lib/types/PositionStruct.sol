@@ -4,7 +4,9 @@ pragma solidity ^0.8.0;
 import {OrderProps, PositionProps} from "./Types.sol";
 
 library Position {
-    function createPositionFromOrder(OrderProps memory order) internal view returns (PositionProps memory result) {
+    function createPositionFromOrder(
+        OrderProps memory order
+    ) internal view returns (PositionProps memory result) {
         // new added
         result.size = order.size;
         result.collateral = order.collateral;
@@ -34,13 +36,19 @@ library Position {
         return (markPrice * _size) / _netSize;
     }
 
-    function calLeverage(PositionProps memory position) internal pure returns (uint256) {
+    function calLeverage(
+        PositionProps memory position
+    ) internal pure returns (uint256) {
         return position.size / position.collateral;
     }
 
-    function calPNL(PositionProps memory position, uint256 price) internal pure returns (bool, uint256) {
-        uint256 _priceDelta =
-            position.averagePrice > price ? position.averagePrice - price : price - position.averagePrice;
+    function calPNL(
+        PositionProps memory position,
+        uint256 price
+    ) internal pure returns (bool, uint256) {
+        uint256 _priceDelta = position.averagePrice > price
+            ? position.averagePrice - price
+            : price - position.averagePrice;
         uint256 _pnl = (position.size * _priceDelta) / position.averagePrice;
         bool _hasProfit;
 
@@ -53,12 +61,16 @@ library Position {
         return (_hasProfit, _pnl);
     }
 
-    function isExist(PositionProps memory position) internal pure returns (bool) {
+    function isExist(
+        PositionProps memory position
+    ) internal pure returns (bool) {
         return (position.size > 0);
     }
 
     // only valid data of position, not include the business logic
-    function isValid(PositionProps memory position) internal pure returns (bool) {
+    function isValid(
+        PositionProps memory position
+    ) internal pure returns (bool) {
         if (position.size == 0) {
             return false;
         }
