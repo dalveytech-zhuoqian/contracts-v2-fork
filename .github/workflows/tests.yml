@@ -13,7 +13,7 @@ jobs:
 
     steps: # 作业步骤
       # 检出代码
-      - uses: actions/checkout@v4.2.0
+      - uses: actions/checkout@v4
 
       # 设置 Node.js 环境
       - uses: actions/setup-node@v4
