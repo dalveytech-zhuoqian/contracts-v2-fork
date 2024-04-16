@@ -88,10 +88,10 @@ library PositionHandler {
     }
 
     // =====================================================
-    //           private only
+    //           internal only
     // =====================================================
 
-    function _calGlobalPosition(PositionCache memory cache) private view returns (PositionProps memory) {
+    function _calGlobalPosition(PositionCache memory cache) internal view returns (PositionProps memory) {
         PositionProps memory _position = PositionStorage.Storage().globalPositions[cache.sk];
         if (cache.isOpen) {
             uint256 _averagePrice = _calGlobalAveragePrice(_position, cache.sizeDelta, cache.markPrice);
@@ -112,7 +112,7 @@ library PositionHandler {
     }
 
     function _calGlobalAveragePrice(PositionProps memory position, uint256 sizeDelta, uint256 markPrice)
-        private
+        internal
         pure
         returns (uint256)
     {

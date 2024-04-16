@@ -118,7 +118,7 @@ library OracleHandler {
         return comparePrices(_refPrice, fastPrice, _maximise);
     }
 
-    function comparePrices(uint256 price1, uint256 price2, bool maximize) private pure returns (uint256) {
+    function comparePrices(uint256 price1, uint256 price2, bool maximize) internal pure returns (uint256) {
         return maximize ? (price1 > price2 ? price1 : price2) : (price1 < price2 ? price1 : price2);
     }
 
@@ -132,7 +132,7 @@ library OracleHandler {
     }
 
     //==================================================================================================
-    //================ private functions================================================================
+    //================ internal functions================================================================
     //==================================================================================================
     function _setPrice(uint16 market, uint256 _price) internal {
         // check if the market has a price feed
@@ -179,7 +179,7 @@ library OracleHandler {
     }
 
     function _setPriceData(uint16 _market, uint256 _refPrice, uint256 _cumulativeRefDelta, uint256 _cumulativeFastDelta)
-        private
+        internal
     {
         require(_refPrice < MAX_REF_PRICE, "FastPriceFeed: invalid refPrice");
         // skip validation of block.timestamp, it should only be out of range after the year 2100
@@ -200,7 +200,7 @@ library OracleHandler {
         return (xxxUSD / PRICE_PRECISION) * _USDTUSD;
     }
 
-    function _getLatestPrice(uint16 market) private view returns (uint256) {
+    function _getLatestPrice(uint16 market) internal view returns (uint256) {
         address _feed = Storage().priceFeeds[market];
         require(_feed != address(0), "PriceFeed: invalid price feed");
         IPriceFeed _priceFeed = IPriceFeed(_feed);
@@ -209,7 +209,7 @@ library OracleHandler {
         return uint256(_price);
     }
 
-    function _getChainPrice(uint16 market, bool _maximise) private view returns (uint256) {
+    function _getChainPrice(uint16 market, bool _maximise) internal view returns (uint256) {
         address _feed = Storage().priceFeeds[market];
         require(_feed != address(0), "PriceFeed: invalid price feed");
 
@@ -252,6 +252,10 @@ library OracleHandler {
         return (_price * PRICE_PRECISION) / (10 ** _decimals);
     }
 
+    function setMaxCumulativeDeltaDiff(uint16 market, uint256 _maxCumulativeDeltaDiff) internal {
+        Storage().maxCumulativeDeltaDiffs[market] = _maxCumulativeDeltaDiff;
+    }
+
     function _getPriceData(uint16 market) internal view returns (uint256, uint256, uint256, uint256) {
         PriceDataItem memory data = Storage().priceData[market];
         return (
@@ -264,16 +268,20 @@ library OracleHandler {
 
     function favorFastPrice(uint16 market) internal view returns (bool) {
         (,, uint256 cumulativeRefDelta, uint256 cumulativeFastDelta) = _getPriceData(market);
+        return isFastPriceFavored(cumulativeRefDelta, cumulativeFastDelta, Storage().maxCumulativeDeltaDiffs[market]);
+    }
+
+    function isFastPriceFavored(
+        uint256 cumulativeRefDelta,
+        uint256 cumulativeFastDelta,
+        uint256 maxCumulativeDeltaDiffs
+    ) internal pure returns (bool) {
         if (
             cumulativeFastDelta > cumulativeRefDelta
-                && cumulativeFastDelta - cumulativeRefDelta > Storage().maxCumulativeDeltaDiffs[market]
+                && cumulativeFastDelta - cumulativeRefDelta > maxCumulativeDeltaDiffs
         ) {
-            // fast > chainlink, fast-chainlink >
-            // force a spread if the cumulative delta for the fast price feed exceeds the cumulative delta
-            // for the Chainlink price feed by the maxCumulativeDeltaDiff allowed
             return false;
         }
-
         return true;
     }
 }

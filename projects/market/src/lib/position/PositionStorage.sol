@@ -148,15 +148,15 @@ library PositionStorage {
     }
 
     //==========================================================
-    //    private
+    //    internal
     //==========================================================
 
-    function _getGlobalPosition(bytes32 sk) private view returns (PositionProps memory _position) {
+    function _getGlobalPosition(bytes32 sk) internal view returns (PositionProps memory _position) {
         // DONE
         _position = Storage().globalPositions[sk];
     }
 
-    function _getMarketPNL(uint16 market, uint256 markPrice, bool isLong) private view returns (int256) {
+    function _getMarketPNL(uint16 market, uint256 markPrice, bool isLong) internal view returns (int256) {
         // DONE
         PositionProps memory _position = _getGlobalPosition(storageKey(market, isLong));
         if (_position.size == 0) {
@@ -173,7 +173,7 @@ library PositionStorage {
     }
 
     function _getPositionAndCalcPNL(uint16 market, address account, uint256 markPrice, bool isLong)
-        private
+        internal
         view
         returns (PositionProps memory)
     {
@@ -194,7 +194,7 @@ library PositionStorage {
     }
 
     function _calPNL(PositionProps memory _position, uint256 sizeDelta, uint256 markPrice)
-        private
+        internal
         pure
         returns (int256)
     {
