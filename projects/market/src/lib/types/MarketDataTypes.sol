@@ -4,7 +4,9 @@ pragma solidity ^0.8.0;
 import {MarketCache} from "./Types.sol";
 
 library MarketDataTypes {
-    function decodeCache(bytes memory data) internal pure returns (MarketCache memory inputs) {
+    function decodeCache(
+        bytes memory data
+    ) internal pure returns (MarketCache memory inputs) {
         // (
         //     inputs.pay,
         //     inputs.slippage,

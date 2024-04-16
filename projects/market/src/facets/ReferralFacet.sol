@@ -7,7 +7,11 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/ut
 
 import "../interfaces/IReferral.sol";
 
-contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable, IReferral {
+contract ReferralFacet is
+    IAccessManaged,
+    ReentrancyGuardUpgradeable,
+    IReferral
+{
     //==========================================================================================
     //       external functions
     //==========================================================================================
@@ -19,30 +23,49 @@ contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable, IReferral 
         ReferralHandler.registerCode(_code);
     }
 
-    function setCodeOwner(bytes32 _code, address _newAccount) external nonReentrant {
+    function setCodeOwner(
+        bytes32 _code,
+        address _newAccount
+    ) external nonReentrant {
         ReferralHandler.setCodeOwner(_code, _newAccount);
     }
 
     //==========================================================================================
     //       admin functions
     //==========================================================================================
-    function govSetCodeOwner(bytes32 _code, address _newAccount) external restricted {
+    function govSetCodeOwner(
+        bytes32 _code,
+        address _newAccount
+    ) external restricted {
         ReferralHandler.govSetCodeOwner(_code, _newAccount);
     }
 
-    function setTier(uint256 _tierId, uint256 _totalRebate, uint256 _discountShare) external restricted {
+    function setTier(
+        uint256 _tierId,
+        uint256 _totalRebate,
+        uint256 _discountShare
+    ) external restricted {
         ReferralHandler.setTier(_tierId, _totalRebate, _discountShare);
     }
 
-    function setReferrerTier(address _referrer, uint256 _tierId) external restricted {
+    function setReferrerTier(
+        address _referrer,
+        uint256 _tierId
+    ) external restricted {
         // ReferralHandler.setReferrerTier(_referrer, _tierId);
     }
 
-    function setReferrerDiscountShare(address _account, uint256 _discountShare) external restricted {
+    function setReferrerDiscountShare(
+        address _account,
+        uint256 _discountShare
+    ) external restricted {
         // ReferralHandler.setReferrerDiscountShare(_account, _discountShare);
     }
 
-    function setTraderReferralCodeByGov(address _account, bytes32 _code) external restricted {
+    function setTraderReferralCodeByGov(
+        address _account,
+        bytes32 _code
+    ) external restricted {
         // ReferralHandler._setTraderReferralCode(_account, _code);
     }
 
@@ -50,14 +73,18 @@ contract ReferralFacet is IAccessManaged, ReentrancyGuardUpgradeable, IReferral 
     //       self functions
     //==========================================================================================
 
-    function _updatePositionCallback(ReferralUpdatePositionEvent calldata _event) external override onlySelf {
+    function SELF_updatePositionCallback(
+        ReferralUpdatePositionEvent calldata _event
+    ) external override onlySelf {
         ReferralHandler.updatePositionCallback(_event);
     }
 
     //==========================================================================================
     //       view functions
     //==========================================================================================
-    function getTraderReferralInfo(address _account) internal view returns (bytes32, address) {
+    function getTraderReferralInfo(
+        address _account
+    ) internal view returns (bytes32, address) {
         // return ReferralHandler.getTraderReferralInfo(_account);
     }
 

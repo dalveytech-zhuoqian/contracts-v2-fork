@@ -22,8 +22,13 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  * Account-Abstraction (EIP-4337) singleton EntryPoint implementation.
  * Only one instance required on each chain.
  */
-contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard, OpenZeppelin.ERC165 {
-
+contract EntryPoint is
+    IEntryPoint,
+    StakeManager,
+    NonceManager,
+    ReentrancyGuard,
+    OpenZeppelin.ERC165
+{
     using UserOperationLib for UserOperation;
 
     SenderCreator private immutable senderCreator = new SenderCreator();
@@ -43,9 +48,15 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
     uint256 public constant SIG_VALIDATION_FAILED = 1;
 
     /// @inheritdoc OpenZeppelin.IERC165
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
         // note: solidity "type(IEntryPoint).interfaceId" is without inherited methods but we want to check everything
-        return interfaceId == (type(IEntryPoint).interfaceId ^ type(IStakeManager).interfaceId ^ type(INonceManager).interfaceId) ||
+        return
+            interfaceId ==
+            (type(IEntryPoint).interfaceId ^
+                type(IStakeManager).interfaceId ^
+                type(INonceManager).interfaceId) ||
             interfaceId == type(IEntryPoint).interfaceId ||
             interfaceId == type(IStakeManager).interfaceId ||
             interfaceId == type(INonceManager).interfaceId ||
@@ -86,7 +97,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
             bytes32 innerRevertCode;
             assembly {
                 let len := returndatasize()
-                if eq(32,len) {
+                if eq(32, len) {
                     returndatacopy(0, 0, 32)
                     innerRevertCode := mload(0)
                 }
@@ -148,7 +159,6 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
         UserOpsPerAggregator[] calldata opsPerAggregator,
         address payable beneficiary
     ) public nonReentrant {
-
         uint256 opasLen = opsPerAggregator.length;
         uint256 totalOps = 0;
         for (uint256 i = 0; i < opasLen; i++) {
@@ -492,7 +502,9 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
                 userOp.paymasterAndData
             )
         // solhint-disable-next-line no-empty-blocks
-        {} catch Error(string memory revertReason) {
+        {
+
+        } catch Error(string memory revertReason) {
             if (bytes(revertReason).length != 0) {
                 revert FailedOp(0, revertReason);
             }
@@ -691,7 +703,9 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
         }
         ValidationData memory data = _parseValidationData(validationData);
         // solhint-disable-next-line not-rely-on-time
-        outOfTimeRange = block.timestamp > data.validUntil || block.timestamp < data.validAfter;
+        outOfTimeRange =
+            block.timestamp > data.validUntil ||
+            block.timestamp < data.validAfter;
         aggregator = data.aggregator;
     }
 
@@ -735,11 +749,11 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
             outOpInfo,
             requiredPreFund
         );
-        
+
         if (!_validateAndUpdateNonce(mUserOp.sender, mUserOp.nonce)) {
             revert FailedOp(opIndex, "AA25 invalid account nonce");
         }
-        
+
         // A "marker" where account opcode validation is done and paymaster opcode validation
         // is about to start (used only by off-chain simulateValidation).
         numberMarker();
@@ -806,7 +820,9 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
                                 gas: mUserOp.verificationGasLimit
                             }(mode, context, actualGasCost)
                         // solhint-disable-next-line no-empty-blocks
-                        {} catch Error(string memory reason) {
+                        {
+
+                        } catch Error(string memory reason) {
                             revert FailedOp(
                                 opIndex,
                                 string.concat("AA50 postOp reverted: ", reason)

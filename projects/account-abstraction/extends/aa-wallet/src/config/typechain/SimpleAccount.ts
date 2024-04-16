@@ -22,7 +22,7 @@ import type {
   TypedListener,
   TypedContractMethod,
 } from "./common";
-import {UserOperation} from "../../aaWallet/AaWallet";
+import { UserOperation } from "../../aaWallet/AaWallet";
 
 export interface SimpleAccountInterface extends Interface {
   getFunction(
@@ -44,7 +44,7 @@ export interface SimpleAccountInterface extends Interface {
       | "upgradeTo"
       | "upgradeToAndCall"
       | "validateUserOp"
-      | "withdrawDepositTo"
+      | "withdrawDepositTo",
   ): FunctionFragment;
 
   getEvent(
@@ -53,33 +53,33 @@ export interface SimpleAccountInterface extends Interface {
       | "BeaconUpgraded"
       | "Initialized"
       | "SimpleAccountInitialized"
-      | "Upgraded"
+      | "Upgraded",
   ): EventFragment;
 
   encodeFunctionData(
     functionFragment: "addDeposit",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "entryPoint",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "execute",
-    values: [AddressLike, BigNumberish, BytesLike]
+    values: [AddressLike, BigNumberish, BytesLike],
   ): string;
   encodeFunctionData(
     functionFragment: "executeBatch",
-    values: [AddressLike[], BigNumberish[], BytesLike[]]
+    values: [AddressLike[], BigNumberish[], BytesLike[]],
   ): string;
   encodeFunctionData(
     functionFragment: "getDeposit",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "getNonce", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "initialize",
-    values: [AddressLike]
+    values: [AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "onERC1155BatchReceived",
@@ -88,25 +88,25 @@ export interface SimpleAccountInterface extends Interface {
       AddressLike,
       BigNumberish[],
       BigNumberish[],
-      BytesLike
-    ]
+      BytesLike,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "onERC1155Received",
-    values: [AddressLike, AddressLike, BigNumberish, BigNumberish, BytesLike]
+    values: [AddressLike, AddressLike, BigNumberish, BigNumberish, BytesLike],
   ): string;
   encodeFunctionData(
     functionFragment: "onERC721Received",
-    values: [AddressLike, AddressLike, BigNumberish, BytesLike]
+    values: [AddressLike, AddressLike, BigNumberish, BytesLike],
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "proxiableUUID",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
-    values: [BytesLike]
+    values: [BytesLike],
   ): string;
   encodeFunctionData(
     functionFragment: "tokensReceived",
@@ -116,24 +116,24 @@ export interface SimpleAccountInterface extends Interface {
       AddressLike,
       BigNumberish,
       BytesLike,
-      BytesLike
-    ]
+      BytesLike,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "upgradeTo",
-    values: [AddressLike]
+    values: [AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "upgradeToAndCall",
-    values: [AddressLike, BytesLike]
+    values: [AddressLike, BytesLike],
   ): string;
   encodeFunctionData(
     functionFragment: "validateUserOp",
-    values: [UserOperation, BytesLike, BigNumberish]
+    values: [UserOperation, BytesLike, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawDepositTo",
-    values: [AddressLike, BigNumberish]
+    values: [AddressLike, BigNumberish],
   ): string;
 
   decodeFunctionResult(functionFragment: "addDeposit", data: BytesLike): Result;
@@ -141,48 +141,48 @@ export interface SimpleAccountInterface extends Interface {
   decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "executeBatch",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "getDeposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getNonce", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "onERC1155BatchReceived",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "onERC1155Received",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "onERC721Received",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "proxiableUUID",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "tokensReceived",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "upgradeTo", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "upgradeToAndCall",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "validateUserOp",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawDepositTo",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 }
 
@@ -257,38 +257,38 @@ export interface SimpleAccount extends BaseContract {
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TypedEventLog<TCEvent>>>;
   queryFilter<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TypedEventLog<TCEvent>>>;
 
   on<TCEvent extends TypedContractEvent>(
     event: TCEvent,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
   on<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
 
   once<TCEvent extends TypedContractEvent>(
     event: TCEvent,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
   once<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
 
   listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
+    event: TCEvent,
   ): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
   removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
+    event?: TCEvent,
   ): Promise<this>;
 
   addDeposit: TypedContractMethod<[], [void], "payable">;
@@ -319,7 +319,7 @@ export interface SimpleAccount extends BaseContract {
       arg1: AddressLike,
       arg2: BigNumberish[],
       arg3: BigNumberish[],
-      arg4: BytesLike
+      arg4: BytesLike,
     ],
     [string],
     "view"
@@ -331,7 +331,7 @@ export interface SimpleAccount extends BaseContract {
       arg1: AddressLike,
       arg2: BigNumberish,
       arg3: BigNumberish,
-      arg4: BytesLike
+      arg4: BytesLike,
     ],
     [string],
     "view"
@@ -360,7 +360,7 @@ export interface SimpleAccount extends BaseContract {
       arg2: AddressLike,
       arg3: BigNumberish,
       arg4: BytesLike,
-      arg5: BytesLike
+      arg5: BytesLike,
     ],
     [void],
     "view"
@@ -382,7 +382,7 @@ export interface SimpleAccount extends BaseContract {
     [
       userOp: UserOperation,
       userOpHash: BytesLike,
-      missingAccountFunds: BigNumberish
+      missingAccountFunds: BigNumberish,
     ],
     [bigint],
     "nonpayable"
@@ -395,82 +395,82 @@ export interface SimpleAccount extends BaseContract {
   >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
+    key: string | FunctionFragment,
   ): T;
 
   getFunction(
-    nameOrSignature: "addDeposit"
+    nameOrSignature: "addDeposit",
   ): TypedContractMethod<[], [void], "payable">;
   getFunction(
-    nameOrSignature: "entryPoint"
+    nameOrSignature: "entryPoint",
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: "execute"
+    nameOrSignature: "execute",
   ): TypedContractMethod<
     [dest: AddressLike, value: BigNumberish, func: BytesLike],
     [void],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "executeBatch"
+    nameOrSignature: "executeBatch",
   ): TypedContractMethod<
     [dest: AddressLike[], value: BigNumberish[], func: BytesLike[]],
     [void],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "getDeposit"
+    nameOrSignature: "getDeposit",
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "getNonce"
+    nameOrSignature: "getNonce",
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "initialize"
+    nameOrSignature: "initialize",
   ): TypedContractMethod<[anOwner: AddressLike], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "onERC1155BatchReceived"
+    nameOrSignature: "onERC1155BatchReceived",
   ): TypedContractMethod<
     [
       arg0: AddressLike,
       arg1: AddressLike,
       arg2: BigNumberish[],
       arg3: BigNumberish[],
-      arg4: BytesLike
+      arg4: BytesLike,
     ],
     [string],
     "view"
   >;
   getFunction(
-    nameOrSignature: "onERC1155Received"
+    nameOrSignature: "onERC1155Received",
   ): TypedContractMethod<
     [
       arg0: AddressLike,
       arg1: AddressLike,
       arg2: BigNumberish,
       arg3: BigNumberish,
-      arg4: BytesLike
+      arg4: BytesLike,
     ],
     [string],
     "view"
   >;
   getFunction(
-    nameOrSignature: "onERC721Received"
+    nameOrSignature: "onERC721Received",
   ): TypedContractMethod<
     [arg0: AddressLike, arg1: AddressLike, arg2: BigNumberish, arg3: BytesLike],
     [string],
     "view"
   >;
   getFunction(
-    nameOrSignature: "owner"
+    nameOrSignature: "owner",
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: "proxiableUUID"
+    nameOrSignature: "proxiableUUID",
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: "supportsInterface"
+    nameOrSignature: "supportsInterface",
   ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
   getFunction(
-    nameOrSignature: "tokensReceived"
+    nameOrSignature: "tokensReceived",
   ): TypedContractMethod<
     [
       arg0: AddressLike,
@@ -478,38 +478,38 @@ export interface SimpleAccount extends BaseContract {
       arg2: AddressLike,
       arg3: BigNumberish,
       arg4: BytesLike,
-      arg5: BytesLike
+      arg5: BytesLike,
     ],
     [void],
     "view"
   >;
   getFunction(
-    nameOrSignature: "upgradeTo"
+    nameOrSignature: "upgradeTo",
   ): TypedContractMethod<
     [newImplementation: AddressLike],
     [void],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "upgradeToAndCall"
+    nameOrSignature: "upgradeToAndCall",
   ): TypedContractMethod<
     [newImplementation: AddressLike, data: BytesLike],
     [void],
     "payable"
   >;
   getFunction(
-    nameOrSignature: "validateUserOp"
+    nameOrSignature: "validateUserOp",
   ): TypedContractMethod<
     [
       userOp: UserOperation,
       userOpHash: BytesLike,
-      missingAccountFunds: BigNumberish
+      missingAccountFunds: BigNumberish,
     ],
     [bigint],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "withdrawDepositTo"
+    nameOrSignature: "withdrawDepositTo",
   ): TypedContractMethod<
     [withdrawAddress: AddressLike, amount: BigNumberish],
     [void],
@@ -517,35 +517,35 @@ export interface SimpleAccount extends BaseContract {
   >;
 
   getEvent(
-    key: "AdminChanged"
+    key: "AdminChanged",
   ): TypedContractEvent<
     AdminChangedEvent.InputTuple,
     AdminChangedEvent.OutputTuple,
     AdminChangedEvent.OutputObject
   >;
   getEvent(
-    key: "BeaconUpgraded"
+    key: "BeaconUpgraded",
   ): TypedContractEvent<
     BeaconUpgradedEvent.InputTuple,
     BeaconUpgradedEvent.OutputTuple,
     BeaconUpgradedEvent.OutputObject
   >;
   getEvent(
-    key: "Initialized"
+    key: "Initialized",
   ): TypedContractEvent<
     InitializedEvent.InputTuple,
     InitializedEvent.OutputTuple,
     InitializedEvent.OutputObject
   >;
   getEvent(
-    key: "SimpleAccountInitialized"
+    key: "SimpleAccountInitialized",
   ): TypedContractEvent<
     SimpleAccountInitializedEvent.InputTuple,
     SimpleAccountInitializedEvent.OutputTuple,
     SimpleAccountInitializedEvent.OutputObject
   >;
   getEvent(
-    key: "Upgraded"
+    key: "Upgraded",
   ): TypedContractEvent<
     UpgradedEvent.InputTuple,
     UpgradedEvent.OutputTuple,

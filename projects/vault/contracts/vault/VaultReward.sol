@@ -14,13 +14,18 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IVaultReward} from "../interfaces/IVaultReward.sol";
 import {IVaultRewardFactory} from "../interfaces/IVaultRewardFactory.sol";
 
-contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IVaultReward {
+contract VaultReward is
+    AccessManagedUpgradeable,
+    ReentrancyGuardUpgradeable,
+    IVaultReward
+{
     using SafeCast for int256;
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
     uint256 public constant PRECISION = 1e30;
-    bytes32 constant POS_STORAGE_POSITION = keccak256("blex.vault.reward.storage");
+    bytes32 constant POS_STORAGE_POSITION =
+        keccak256("blex.vault.reward.storage");
 
     struct StorageStruct {
         IVault vault;
@@ -45,7 +50,9 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
     event Harvest(address account, uint256 amount);
 
     function initialize() external override initializer {
-        IVaultRewardFactory.Parameters memory p = IVaultRewardFactory(msg.sender).parameters();
+        IVaultRewardFactory.Parameters memory p = IVaultRewardFactory(
+            msg.sender
+        ).parameters();
 
         require(p.vault != address(0));
         require(p.market != address(0));
@@ -70,15 +77,19 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
      * @return sharesOut The actual number of shares purchased by the buyer.
      */
 
-    function buy(address to, uint256 amount, uint256 minSharesOut)
-        public
-        override
-        nonReentrant
-        returns (uint256 sharesOut)
-    {
+    function buy(
+        address to,
+        uint256 amount,
+        uint256 minSharesOut
+    ) public override nonReentrant returns (uint256 sharesOut) {
         IVault vault = _getStorage().vault;
         address _token = vault.asset();
-        SafeERC20.safeTransferFrom(IERC20(_token), msg.sender, address(this), amount);
+        SafeERC20.safeTransferFrom(
+            IERC20(_token),
+            msg.sender,
+            address(this),
+            amount
+        );
         IERC20(_token).approve(address(vault), amount);
         if ((sharesOut = vault.deposit(amount, to)) < minSharesOut) {
             revert("MinSharesError");
@@ -93,12 +104,11 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
      * @param minAssetsOut The minimum amount of assets the caller expects to receive from the sale.
      * @return assetOut The resulting number of shares received by the `to` address.
      */
-    function sell(address to, uint256 shares, uint256 minAssetsOut)
-        public
-        override
-        nonReentrant
-        returns (uint256 assetOut)
-    {
+    function sell(
+        address to,
+        uint256 shares,
+        uint256 minAssetsOut
+    ) public override nonReentrant returns (uint256 assetOut) {
         IVault vault = _getStorage().vault;
         if ((assetOut = vault.redeem(shares, to, to)) < minAssetsOut) {
             revert("MinOutError");
@@ -142,13 +152,18 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
      * @param _account needs to update the account address for rewards. If it is 0, the rewards for all accounts will be updated.
      */
     function updateRewardsByAccount(address _account) public override {
-        uint256 blockReward = IRewardDistributor(_getStorage().distributor).distribute(); //
+        uint256 blockReward = IRewardDistributor(_getStorage().distributor)
+            .distribute(); //
         uint256 supply = _getStorage().vault.totalSupply();
         // LP
-        uint256 _cumulativeRewardPerToken = _getStorage().cumulativeRewardPerToken; //
+        uint256 _cumulativeRewardPerToken = _getStorage()
+            .cumulativeRewardPerToken; //
         if (supply > 0 && blockReward > 0) {
             // ，
-            _cumulativeRewardPerToken = _cumulativeRewardPerToken + (blockReward * PRECISION) / supply;
+            _cumulativeRewardPerToken =
+                _cumulativeRewardPerToken +
+                (blockReward * PRECISION) /
+                supply;
             // GLP = GLP + ERewards * Epoch/ GLP；
             _getStorage().cumulativeRewardPerToken = _cumulativeRewardPerToken; //
             emit LogUpdatePool(supply, _getStorage().cumulativeRewardPerToken);
@@ -162,20 +177,32 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
         if (_account != address(0)) {
             // SumRewards = Sum（IRewards 1 : IRewards n）
             uint256 stakedAmount = stakedAmounts(_account); //
-            uint256 accountReward = (
-                stakedAmount * (_cumulativeRewardPerToken - _getStorage().previousCumulatedRewardPerToken[_account])
-            ) / PRECISION; //
-            uint256 _claimableReward = _getStorage().claimableReward[_account] + accountReward;
+            uint256 accountReward = (stakedAmount *
+                (_cumulativeRewardPerToken -
+                    _getStorage().previousCumulatedRewardPerToken[_account])) /
+                PRECISION; //
+            uint256 _claimableReward = _getStorage().claimableReward[_account] +
+                accountReward;
 
             _getStorage().claimableReward[_account] = _claimableReward; //
-            _getStorage().previousCumulatedRewardPerToken[_account] = _cumulativeRewardPerToken;
+            _getStorage().previousCumulatedRewardPerToken[
+                _account
+            ] = _cumulativeRewardPerToken;
             //
             if (_claimableReward > 0 && stakedAmounts(_account) > 0) {
-                uint256 nextCumulativeReward = _getStorage().lpEarnedRewards[_account] + accountReward;
+                uint256 nextCumulativeReward = _getStorage().lpEarnedRewards[
+                    _account
+                ] + accountReward;
                 // ，
-                _getStorage().averageStakedAmounts[_account] = _getStorage().averageStakedAmounts[_account].mul(
-                    _getStorage().lpEarnedRewards[_account]
-                ).div(nextCumulativeReward).add(stakedAmount.mul(accountReward).div(nextCumulativeReward));
+                _getStorage().averageStakedAmounts[_account] = _getStorage()
+                    .averageStakedAmounts[_account]
+                    .mul(_getStorage().lpEarnedRewards[_account])
+                    .div(nextCumulativeReward)
+                    .add(
+                        stakedAmount.mul(accountReward).div(
+                            nextCumulativeReward
+                        )
+                    );
                 _getStorage().lpEarnedRewards[_account] = nextCumulativeReward; //
             }
         }
@@ -187,10 +214,14 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
      * The function returns the amount of rewards earned by the calling account as a `uint256`.
      * @return The amount of rewards earned by the calling account as a `uint256`.
      */
-    function getLPReward(address _account) public view override returns (uint256) {
+    function getLPReward(
+        address _account
+    ) public view override returns (uint256) {
         if (_getStorage().lpEarnedRewards[_account] == 0) return 0;
         // return lpEarnedRewards[msg.sender] - claimable(msg.sender);
-        return _getStorage().lpEarnedRewards[_account] - _getStorage().claimableReward[_account];
+        return
+            _getStorage().lpEarnedRewards[_account] -
+            _getStorage().claimableReward[_account];
     }
 
     function getAPR() external view override returns (uint256) {
@@ -203,7 +234,8 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
      * @return The number of reward tokens distributed per interval in the market as a `uint256`.
      */
     function tokensPerInterval() external view returns (uint256) {
-        return IRewardDistributor(_getStorage().distributor).tokensPerInterval();
+        return
+            IRewardDistributor(_getStorage().distributor).tokensPerInterval();
     }
 
     function pendingRewards() external view override returns (uint256) {
@@ -221,18 +253,32 @@ contract VaultReward is AccessManagedUpgradeable, ReentrancyGuardUpgradeable, IV
      * @param _account The user's account address.
      * @return The amount of rewards claimable by the user in the market as a `uint256`.
      */
-    function claimable(address _account) public view override returns (uint256) {
+    function claimable(
+        address _account
+    ) public view override returns (uint256) {
         uint256 stakedAmount = stakedAmounts(_account);
         if (stakedAmount == 0) {
             return _getStorage().claimableReward[_account];
         }
         uint256 supply = _getStorage().vault.totalSupply();
-        uint256 _pendingRewards = IRewardDistributor(_getStorage().distributor).pendingRewards().mul(PRECISION);
-        uint256 nextCumulativeRewardPerToken = _getStorage().cumulativeRewardPerToken.add(_pendingRewards.div(supply));
-        return _getStorage().claimableReward[_account].add(
-            stakedAmount.mul(nextCumulativeRewardPerToken.sub(_getStorage().previousCumulatedRewardPerToken[_account]))
-                .div(PRECISION)
-        );
+        uint256 _pendingRewards = IRewardDistributor(_getStorage().distributor)
+            .pendingRewards()
+            .mul(PRECISION);
+        uint256 nextCumulativeRewardPerToken = _getStorage()
+            .cumulativeRewardPerToken
+            .add(_pendingRewards.div(supply));
+        return
+            _getStorage().claimableReward[_account].add(
+                stakedAmount
+                    .mul(
+                        nextCumulativeRewardPerToken.sub(
+                            _getStorage().previousCumulatedRewardPerToken[
+                                _account
+                            ]
+                        )
+                    )
+                    .div(PRECISION)
+            );
 
         /* uint256 accountReward = (stakedAmount *
             (cumulativeRewardPerToken -

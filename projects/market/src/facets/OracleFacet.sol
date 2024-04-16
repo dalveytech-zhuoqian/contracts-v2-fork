@@ -27,21 +27,28 @@ contract OracleFacet is IAccessManaged, IPrice, UsingDiamondOwner {
         store.config = _config;
     }
 
-    function setOracleConfig(OracleHandler.ConfigStruct memory _config) external restricted {
+    function setOracleConfig(
+        OracleHandler.ConfigStruct memory _config
+    ) external restricted {
         OracleHandler.StorageStruct storage store = OracleHandler.Storage();
         store.config = _config;
     }
 
-    function setPrices(uint16[] memory _markets, uint256[] memory _prices) external restricted {
+    function setPrices(
+        uint16[] memory _markets,
+        uint256[] memory _prices
+    ) external restricted {
         OracleHandler.setPrices(_markets, _prices);
     }
 
-    function setMaxCumulativeDeltaDiffs(uint16[] memory _market, uint256[] memory _maxCumulativeDeltaDiffs)
-        external
-        restricted
-    {
+    function setMaxCumulativeDeltaDiffs(
+        uint16[] memory _market,
+        uint256[] memory _maxCumulativeDeltaDiffs
+    ) external restricted {
         for (uint256 i = 0; i < _market.length; i++) {
-            OracleHandler.Storage().maxCumulativeDeltaDiffs[_market[i]] = _maxCumulativeDeltaDiffs[i];
+            OracleHandler.Storage().maxCumulativeDeltaDiffs[
+                _market[i]
+            ] = _maxCumulativeDeltaDiffs[i];
         }
     }
 
@@ -62,15 +69,25 @@ contract OracleFacet is IAccessManaged, IPrice, UsingDiamondOwner {
         return OracleHandler.Storage().USDT;
     }
 
-    function getPrice(uint16 market, bool _maximise) external view override returns (uint256) {
+    function getPrice(
+        uint16 market,
+        bool _maximise
+    ) external view override returns (uint256) {
         return OracleHandler.getPrice(market, _maximise);
     }
 
-    function getChainPrice(uint16 market, bool _maximise) external view returns (uint256) {
+    function getChainPrice(
+        uint16 market,
+        bool _maximise
+    ) external view returns (uint256) {
         return OracleHandler.getChainPrice(market, _maximise);
     }
 
-    function getFastPrice(uint16 market, uint256 _referencePrice, bool _maximise) external view returns (uint256) {
+    function getFastPrice(
+        uint16 market,
+        uint256 _referencePrice,
+        bool _maximise
+    ) external view returns (uint256) {
         return OracleHandler.getFastPrice(market, _referencePrice, _maximise);
     }
 }

@@ -8,7 +8,7 @@ library OrderHelper {
     uint8 internal constant STRUCT_VERSION = 0x01;
 
     function getKey(OrderProps memory order) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(order.account, order.orderID));
+        return keccak256(abi.encode(order.account, order.orderID));
     }
 
     function updateTime(OrderProps memory _order) internal view {
@@ -19,19 +19,31 @@ library OrderHelper {
     // 创建结构体
     // valid
     // 转换结构体
-    function getKey(address account, uint64 orderID) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(account, orderID));
+    function getKey(
+        address account,
+        uint64 orderID
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encode(account, orderID));
     }
 
-    function storageKey(uint16 market, bool isLong, bool isIncrease) internal pure returns (bytes32 orderKey) {
-        return bytes32(abi.encodePacked(isLong, isIncrease, market));
+    function storageKey(
+        uint16 market,
+        bool isLong,
+        bool isIncrease
+    ) internal pure returns (bytes32 orderKey) {
+        return bytes32(abi.encode(isLong, isIncrease, market));
     }
 
-    function getPairKey(OrderProps memory order) internal pure returns (bytes32) {
+    function getPairKey(
+        OrderProps memory order
+    ) internal pure returns (bytes32) {
         return getKey(order.account, order.pairId);
     }
 
-    function isMarkPriceValid(OrderProps memory _order, uint256 _oraclePrice) internal pure returns (bool) {
+    function isMarkPriceValid(
+        OrderProps memory _order,
+        uint256 _oraclePrice
+    ) internal pure returns (bool) {
         if (_order.triggerAbove) return _oraclePrice >= uint256(_order.price);
         else return _oraclePrice <= uint256(_order.price);
     }

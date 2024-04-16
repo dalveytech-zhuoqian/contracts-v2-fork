@@ -22,12 +22,13 @@ contract VaultRewardFactory is IVaultRewardFactory, AccessManagedUpgradeable {
         return _parameters;
     }
 
-    function deploy(Parameters calldata p) external restricted returns (address proxy) {
+    function deploy(
+        Parameters calldata p
+    ) external restricted returns (address proxy) {
         _parameters = p;
-        BeaconProxy beaconProxy = new BeaconProxy{salt: keccak256(abi.encode(
-            p.vault, 
-            block.timestamp
-            ))}(beacon, bytes(""));
+        BeaconProxy beaconProxy = new BeaconProxy{
+            salt: keccak256(abi.encode(p.vault, block.timestamp))
+        }(beacon, bytes(""));
         proxy = address(beaconProxy);
         IVaultReward(proxy).initialize();
         delete _parameters;

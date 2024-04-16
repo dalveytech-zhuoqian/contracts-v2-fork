@@ -24,7 +24,11 @@ library ReferralHandler {
     }
 
     event SetTraderReferralCode(address account, bytes32 code);
-    event SetTraderReferralCodeWithInviter(address account, address inviter, bytes32 code);
+    event SetTraderReferralCodeWithInviter(
+        address account,
+        address inviter,
+        bytes32 code
+    );
     event SetTier(uint256 tierId, uint256 totalRebate, uint256 discountShare);
     event SetReferrerTier(address referrer, uint256 tierId);
     event SetReferrerDiscountShare(address referrer, uint256 discountShare);
@@ -33,11 +37,19 @@ library ReferralHandler {
     event GovSetCodeOwner(bytes32 code, address newAccount);
 
     event IncreasePositionReferral(
-        address account, uint256 sizeDelta, uint256 marginFeeBP, bytes32 referralCode, address referrer
+        address account,
+        uint256 sizeDelta,
+        uint256 marginFeeBP,
+        bytes32 referralCode,
+        address referrer
     );
 
     event DecreasePositionReferral(
-        address account, uint256 sizeDelta, uint256 marginFeeBP, bytes32 referralCode, address referrer
+        address account,
+        uint256 sizeDelta,
+        uint256 marginFeeBP,
+        bytes32 referralCode,
+        address referrer
     );
 
     function Storage() internal pure returns (StorageStruct storage fs) {
@@ -47,9 +59,16 @@ library ReferralHandler {
         }
     }
 
-    function setTier(uint256 _tierId, uint256 _totalRebate, uint256 _discountShare) internal {
+    function setTier(
+        uint256 _tierId,
+        uint256 _totalRebate,
+        uint256 _discountShare
+    ) internal {
         require(_totalRebate <= BASIS_POINTS, "Referral: invalid totalRebate");
-        require(_discountShare <= BASIS_POINTS, "Referral: invalid discountShare");
+        require(
+            _discountShare <= BASIS_POINTS,
+            "Referral: invalid discountShare"
+        );
 
         Tier memory tier = Storage().tiers[_tierId];
         tier.totalRebate = _totalRebate;
@@ -63,8 +82,14 @@ library ReferralHandler {
         emit SetReferrerTier(_referrer, _tierId);
     }
 
-    function setReferrerDiscountShare(address _account, uint256 _discountShare) internal {
-        require(_discountShare <= BASIS_POINTS, "Referral: invalid discountShare");
+    function setReferrerDiscountShare(
+        address _account,
+        uint256 _discountShare
+    ) internal {
+        require(
+            _discountShare <= BASIS_POINTS,
+            "Referral: invalid discountShare"
+        );
 
         Storage().referrerDiscountShares[_account] = _discountShare;
         emit SetReferrerDiscountShare(_account, _discountShare);
@@ -72,7 +97,10 @@ library ReferralHandler {
 
     function registerCode(bytes32 _code) internal {
         require(_code != bytes32(0), "Referral: invalid _code");
-        require(Storage().codeOwners[_code] == address(0), "Referral: code already exists");
+        require(
+            Storage().codeOwners[_code] == address(0),
+            "Referral: code already exists"
+        );
 
         Storage().codeOwners[_code] = msg.sender;
         emit RegisterCode(msg.sender, _code);
@@ -89,7 +117,10 @@ library ReferralHandler {
      * Only the original owner of the code has the authority to change the owner
      * address of the code.
      */
-    function setCodeOwner(bytes32 _code, address _newAccount) internal onlyCodeOwner(_code) {
+    function setCodeOwner(
+        bytes32 _code,
+        address _newAccount
+    ) internal onlyCodeOwner(_code) {
         require(_code != bytes32(0), "Referral: invalid _code");
         Storage().codeOwners[_code] = _newAccount;
         emit SetCodeOwner(msg.sender, _newAccount, _code);
@@ -101,7 +132,9 @@ library ReferralHandler {
         emit GovSetCodeOwner(_code, _newAccount);
     }
 
-    function getTraderReferralInfo(address _account) internal view returns (bytes32, address) {
+    function getTraderReferralInfo(
+        address _account
+    ) internal view returns (bytes32, address) {
         bytes32 code = Storage().traderReferralCodes[_account];
         address referrer;
         if (code != bytes32(0)) {
@@ -113,10 +146,16 @@ library ReferralHandler {
     function _setTraderReferralCode(address _account, bytes32 _code) internal {
         Storage().traderReferralCodes[_account] = _code;
         emit SetTraderReferralCode(_account, _code);
-        emit SetTraderReferralCodeWithInviter(_account, Storage().codeOwners[_code], _code);
+        emit SetTraderReferralCodeWithInviter(
+            _account,
+            Storage().codeOwners[_code],
+            _code
+        );
     }
 
-    function getCodeOwners(bytes32[] memory _codes) internal view returns (address[] memory) {
+    function getCodeOwners(
+        bytes32[] memory _codes
+    ) internal view returns (address[] memory) {
         address[] memory owners = new address[](_codes.length);
 
         for (uint256 i = 0; i < _codes.length; i++) {
@@ -127,13 +166,20 @@ library ReferralHandler {
         return owners;
     }
 
-    function updatePositionCallback(ReferralUpdatePositionEvent calldata _event) internal {
-        (bytes32 referralCode, address referrer) = getTraderReferralInfo(_event.inputs.account);
+    function updatePositionCallback(
+        ReferralUpdatePositionEvent calldata _event
+    ) internal {
+        (bytes32 referralCode, address referrer) = getTraderReferralInfo(
+            _event.inputs.account
+        );
 
         if (referralCode == bytes32(0)) {
             referrer = Storage().codeOwners[_event.inputs.refCode];
             if (referrer == address(0)) return;
-            _setTraderReferralCode(_event.inputs.account, _event.inputs.refCode);
+            _setTraderReferralCode(
+                _event.inputs.account,
+                _event.inputs.refCode
+            );
             referralCode = _event.inputs.refCode;
         }
 

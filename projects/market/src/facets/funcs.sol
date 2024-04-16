@@ -12,19 +12,32 @@ function vault(uint16 market) view returns (IVault) {
     return IVault(MarketHandler.vault(market));
 }
 
-function formatCollateral(uint256 amount, address colleteralToken) view returns (uint256) {
+function formatCollateral(
+    uint256 amount,
+    address colleteralToken
+) view returns (uint256) {
     uint8 collateralTokenDigits = IERC20Metadata(colleteralToken).decimals();
-    return (amount * (10 ** uint256(collateralTokenDigits))) / (10 ** usdDecimals);
+    return
+        (amount * (10 ** uint256(collateralTokenDigits))) / (10 ** usdDecimals);
 }
 
-function parseVaultAsset(uint256 amount, address colleteralToken) view returns (uint256) {
+function parseVaultAsset(
+    uint256 amount,
+    address colleteralToken
+) view returns (uint256) {
     uint8 collateralTokenDigits = IERC20Metadata(colleteralToken).decimals();
-    return (amount * (10 ** uint256(usdDecimals))) / (10 ** collateralTokenDigits);
+    return
+        (amount * (10 ** uint256(usdDecimals))) / (10 ** collateralTokenDigits);
 }
 
-function parseVaultAssetSigned(int256 amount, address colleteralToken) view returns (int256) {
+function parseVaultAssetSigned(
+    int256 amount,
+    address colleteralToken
+) view returns (int256) {
     uint8 collateralTokenDigits = IERC20Metadata(colleteralToken).decimals();
-    return (amount * int256(10 ** uint256(collateralTokenDigits))) / int256(10 ** uint256(usdDecimals));
+    return
+        (amount * int256(10 ** uint256(collateralTokenDigits))) /
+        int256(10 ** uint256(usdDecimals));
 }
 
 function transferOut(address tokenAddress, address _to, uint256 _tokenAmount) {

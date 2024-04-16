@@ -8,7 +8,7 @@ const { Relayer } = require('defender-relay-client');
   交易详细信息包括收件人地址（“to”）、要发送的资金金额（“value”）、交易速度（“speed”）和
   Gas 限制（“gasLimit”）。 
 */
-exports.main = async function(relayer) {
+exports.main = async function (relayer) {
   // Send funds to a target address
   const txRes = await relayer.sendTransaction({
     to: '0xc7dd3ff5b387db0130854fe5f141a78586f417c6',
@@ -19,19 +19,23 @@ exports.main = async function(relayer) {
 
   console.log(`Sent transaction ${txRes.hash}`);
   return txRes.hash;
-}
+};
 
 // Entrypoint for the Autotask
-exports.handler = async function(credentials) {
+exports.handler = async function (credentials) {
   const relayer = new Relayer(credentials);
-  return exports.main(relayer);  
-}
+  return exports.main(relayer);
+};
 
 // To run locally (this code will not be executed in Autotasks)
 if (require.main === module) {
   require('dotenv').config();
   const { API_KEY: apiKey, API_SECRET: apiSecret } = process.env;
-  exports.handler({ apiKey, apiSecret })
+  exports
+    .handler({ apiKey, apiSecret })
     .then(() => process.exit(0))
-    .catch(error => { console.error(error); process.exit(1); });
+    .catch(error => {
+      console.error(error);
+      process.exit(1);
+    });
 }

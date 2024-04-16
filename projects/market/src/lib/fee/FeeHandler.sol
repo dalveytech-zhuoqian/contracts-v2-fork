@@ -57,19 +57,43 @@ library FeeHandler {
     event UpdateCalInterval(uint16 indexed market, uint256 interval);
     event AddSkipTime(uint256 indexed startTime, uint256 indexed endTime);
     event UpdateConfig(uint256 index, uint256 oldFRate, uint256 newFRate);
-    event UpdateFee(address indexed account, uint16 indexed market, int256[] fees, uint256 amount);
-    event UpdateFeeAndRates(uint16 indexed market, uint8 kind, uint256 oldFeeOrRate, uint256 feeOrRate);
-    event UpdateCumulativeFundRate(uint16 indexed market, int256 longRate, int256 shortRate);
-    event UpdateFundRate(uint16 indexed market, int256 longRate, int256 shortRate);
+    event UpdateFee(
+        address indexed account,
+        uint16 indexed market,
+        int256[] fees,
+        uint256 amount
+    );
+    event UpdateFeeAndRates(
+        uint16 indexed market,
+        uint8 kind,
+        uint256 oldFeeOrRate,
+        uint256 feeOrRate
+    );
+    event UpdateCumulativeFundRate(
+        uint16 indexed market,
+        int256 longRate,
+        int256 shortRate
+    );
+    event UpdateFundRate(
+        uint16 indexed market,
+        int256 longRate,
+        int256 shortRate
+    );
     event UpdateLastFundTime(uint16 indexed market, uint256 timestamp);
     event AddNegativeFeeLoss(
-        uint16 indexed market, address account, uint256 amount, uint256 lossBefore, uint256 lossAfter
+        uint16 indexed market,
+        address account,
+        uint256 amount,
+        uint256 lossBefore,
+        uint256 lossAfter
     );
 
     function initialize(uint16 market) internal {
         FeeStorage storage fs = Storage();
-        fs.configs[market][uint8(ConfigType.MaxFRatePerDay)] = PercentageMath.PERCENTAGE_FACTOR;
-        fs.configs[market][uint8(ConfigType.FRateFactor)] = PercentageMath.PERCENTAGE_FACTOR;
+        fs.configs[market][uint8(ConfigType.MaxFRatePerDay)] = PercentageMath
+            .PERCENTAGE_FACTOR;
+        fs.configs[market][uint8(ConfigType.FRateFactor)] = PercentageMath
+            .PERCENTAGE_FACTOR;
         fs.configs[market][uint8(ConfigType.MinFRate)] = 1250;
         fs.configs[market][uint8(ConfigType.MinFundingInterval)] = 1 hours;
         fs.configs[market][uint8(ConfigType.FundingFeeLossOffLimit)] = 0.1e7;
@@ -82,41 +106,69 @@ library FeeHandler {
         }
     }
 
-    function getOrderFees(MarketCache calldata data) internal view returns (int256 fees) {
-        //todo
+    function getOrderFees(
+        MarketCache memory data
+    ) internal view returns (int256 fees) {
+        FeeStorage storage $ = Storage();
+        uint8 _kind;
+
+        if (data.isOpen) {
+            _kind = uint8(FeeType.OpenFee);
+        } else {
+            _kind = uint8(FeeType.CloseFee);
+        }
+
+        uint256 _tradeFee = getFeeOfKind(data.market, data.sizeDelta, _kind);
+        uint256 _execFee = getExecFee(data.market);
+        return int256(_tradeFee + _execFee);
     }
 
     function getExecFee(uint16 market) internal view returns (uint256) {
-        //todo
+        return Storage().feeAndRates[market][uint8(FeeType.ExecFee)];
     }
 
-    function payoutFees(address account, address token, int256[] memory fees, uint256 feesTotal) internal {
+    function payoutFees(
+        address account,
+        address token,
+        int256[] memory fees,
+        uint256 feesTotal
+    ) internal {
         // todo
     }
 
-    function getFundingRate(uint16 market, bool isLong) internal view returns (int256) {
+    function getFundingRate(
+        uint16 market,
+        bool isLong
+    ) internal view returns (int256) {
         // todo
     }
-    function getFundingFee(uint16 market, uint256 size, int256 entryFundingRate, bool isLong)
-        internal
-        view
-        returns (int256)
-    {
+    function getFundingFee(
+        uint16 market,
+        uint256 size,
+        int256 entryFundingRate,
+        bool isLong
+    ) internal view returns (int256) {
         //todo
     }
 
-    function totalFees(int256[] memory fees) internal pure returns (int256 total) {
+    function totalFees(
+        int256[] memory fees
+    ) internal pure returns (int256 total) {
         for (uint256 i = 0; i < fees.length; i++) {
             total += fees[i];
         }
     }
 
-    function getFeesReceivable(MarketCache calldata params, PositionProps calldata position)
-        internal
-        view
-        returns (int256[] memory fees)
-    {
-        int256 fundfee = getFundingFee(params.market, params.sizeDelta, position.entryFundingRate, params.isLong);
+    function getFeesReceivable(
+        MarketCache memory params,
+        PositionProps memory position
+    ) internal view returns (int256[] memory fees) {
+        int256 fundfee = getFundingFee(
+            params.market,
+            params.sizeDelta,
+            position.entryFundingRate,
+            params.isLong
+        );
         fees = _getFeesReceivable(params, fundfee);
         return fees;
     }
@@ -128,12 +180,18 @@ library FeeHandler {
      * @param kind The fee kind.
      * @return The fee amount.
      */
-    function getFeeOfKind(uint16 market, uint256 sizeDelta, uint8 kind) internal view returns (uint256) {
+    function getFeeOfKind(
+        uint16 market,
+        uint256 sizeDelta,
+        uint8 kind
+    ) internal view returns (uint256) {
         if (sizeDelta == 0) {
             return 0;
         }
 
-        uint256 _point = PercentageMath.maxPctIfZero(Storage().feeAndRates[market][kind]);
+        uint256 _point = PercentageMath.maxPctIfZero(
+            Storage().feeAndRates[market][kind]
+        );
         return sizeDelta.percentMul(_point);
     }
 
@@ -161,21 +219,40 @@ library FeeHandler {
         emit UpdateLastFundTime(market, timestamp);
     }
 
-    function _getLastCollectTimes(uint16 market) private view returns (uint256) {
+    function _getLastCollectTimes(
+        uint16 market
+    ) private view returns (uint256) {
         return Storage().lastFundingTimes[market];
     }
 
-    function _calFeeRate(uint16 _market, uint256 _longSize, uint256 _shortSize) private view returns (uint256) {}
+    function _calFeeRate(
+        uint16 _market,
+        uint256 _longSize,
+        uint256 _shortSize
+    ) private view returns (uint256) {}
 
-    function _getMaxFRate(uint16 market, uint256 openInterest, uint256 aum) internal view returns (uint256) {
+    function _getMaxFRate(
+        uint16 market,
+        uint256 openInterest,
+        uint256 aum
+    ) internal view returns (uint256) {
         uint256 fundingInterval = _getCalInterval(market);
-        return FundingRateCalculator.calculateMaxFundingRate(openInterest, aum, maxFRatePerDay(market), fundingInterval);
+        return
+            FundingRateCalculator.calculateMaxFundingRate(
+                openInterest,
+                aum,
+                maxFRatePerDay(market),
+                fundingInterval
+            );
     }
 
-    function _getCalInterval(uint16 market) private view returns (uint256 _interval) {
+    function _getCalInterval(
+        uint16 market
+    ) private view returns (uint256 _interval) {
         FeeStorage storage fs = Storage();
         _interval = fs.fundingIntervals[market];
-        if (_interval == 0) return FundingRateCalculator.MIN_FUNDING_INTERVAL_3600;
+        if (_interval == 0)
+            return FundingRateCalculator.MIN_FUNDING_INTERVAL_3600;
     }
 
     function maxFRatePerDay(uint16 market) internal view returns (uint256) {
@@ -183,18 +260,19 @@ library FeeHandler {
         return fs.configs[market][uint8(ConfigType.MaxFRatePerDay)];
     }
 
-    function getCalFundingRates(address market) internal view returns (int256, int256) {
+    function getCalFundingRates(
+        address market
+    ) internal view returns (int256, int256) {
         //todo
     }
 
     /**
      * 只是获取根据当前仓位获取各种费用应该收取多少, 并不包含收费顺序和是否能收得到
      */
-    function _getFeesReceivable(MarketCache calldata params, int256 _fundFee)
-        private
-        view
-        returns (int256[] memory fees)
-    {
+    function _getFeesReceivable(
+        MarketCache memory params,
+        int256 _fundFee
+    ) internal view returns (int256[] memory fees) {
         // todo merge with feeAndRates?
         fees = new int256[](uint8(FeeType.Counter));
 
@@ -206,21 +284,36 @@ library FeeHandler {
 
         // open position
         if (params.isOpen) {
-            fees[uint8(FeeType.OpenFee)] = int256(getFeeOfKind(params.market, params.sizeDelta, uint8(FeeType.OpenFee)));
+            fees[uint8(FeeType.OpenFee)] = int256(
+                getFeeOfKind(
+                    params.market,
+                    params.sizeDelta,
+                    uint8(FeeType.OpenFee)
+                )
+            );
         } else {
             // close position
-            fees[uint8(FeeType.CloseFee)] =
-                int256(getFeeOfKind(params.market, params.sizeDelta, uint8(FeeType.CloseFee)));
+            fees[uint8(FeeType.CloseFee)] = int256(
+                getFeeOfKind(
+                    params.market,
+                    params.sizeDelta,
+                    uint8(FeeType.CloseFee)
+                )
+            );
 
             // liquidate position
             if (params.liqState == LiquidationState.Collateral) {
-                uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.LiqFee)];
+                uint256 _fee = Storage().feeAndRates[params.market][
+                    uint8(FeeType.LiqFee)
+                ];
                 fees[uint8(FeeType.LiqFee)] = int256(_fee);
             }
         }
         if (params.execNum > 0) {
             // exec fee
-            uint256 _fee = Storage().feeAndRates[params.market][uint8(FeeType.ExecFee)];
+            uint256 _fee = Storage().feeAndRates[params.market][
+                uint8(FeeType.ExecFee)
+            ];
             _fee = _fee * params.execNum;
 
             fees[uint8(FeeType.ExecFee)] = int256(_fee);

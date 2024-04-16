@@ -10,7 +10,13 @@ contract VaultFactory is IVaultFactory, AccessManagedUpgradeable {
     Parameters internal _parameters;
     address public beacon;
 
-    event NewVault(address indexed vault, address indexed asset, address indexed market, string name, string symbol);
+    event NewVault(
+        address indexed vault,
+        address indexed asset,
+        address indexed market,
+        string name,
+        string symbol
+    );
 
     function initialize(address _beacon, address _auth) external initializer {
         beacon = _beacon;
@@ -21,13 +27,13 @@ contract VaultFactory is IVaultFactory, AccessManagedUpgradeable {
         return _parameters;
     }
 
-    function deploy(Parameters calldata p) external restricted returns (address proxy) {
+    function deploy(
+        Parameters calldata p
+    ) external restricted returns (address proxy) {
         _parameters = p;
-        BeaconProxy beaconProxy = new BeaconProxy{salt: keccak256(abi.encode(
-            p.name, 
-            p.symbol, 
-            block.timestamp
-            ))}(beacon, bytes(""));
+        BeaconProxy beaconProxy = new BeaconProxy{
+            salt: keccak256(abi.encode(p.name, p.symbol, block.timestamp))
+        }(beacon, bytes(""));
         proxy = address(beaconProxy);
         IVault(proxy).initialize();
         delete _parameters;

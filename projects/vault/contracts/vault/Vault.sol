@@ -2,10 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
-import {
-    IERC4626,
-    ERC4626Upgradeable
-} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
+import {IERC4626, ERC4626Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IMarket} from "../interfaces/IMarket.sol";
 import {IVaultReward} from "../interfaces/IVaultReward.sol";
@@ -50,9 +47,19 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
     event AllowBuyUpdated(bool allow);
     event CoolDownDurationUpdated(uint256 duration);
     event LPFeeUpdated(bool isBuy, uint256 fee);
-    event FundsUsedUpdated(uint16 indexed market, uint256 amount, uint256 totalFundsUsed);
+    event FundsUsedUpdated(
+        uint16 indexed market,
+        uint256 amount,
+        uint256 totalFundsUsed
+    );
     event MarketUpdated(address market);
-    event DepositAsset(address indexed sender, address indexed owner, uint256 assets, uint256 shares, uint256 fee);
+    event DepositAsset(
+        address indexed sender,
+        address indexed owner,
+        uint256 assets,
+        uint256 shares,
+        uint256 fee
+    );
     event WithdrawAsset(
         address indexed sender,
         address indexed receiver,
@@ -67,8 +74,9 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         _;
     }
 
-    function initialize() external initializer override {
-        IVaultFactory.Parameters memory p = IVaultFactory(msg.sender).parameters();
+    function initialize() external override initializer {
+        IVaultFactory.Parameters memory p = IVaultFactory(msg.sender)
+            .parameters();
 
         super.__AccessManaged_init(p.auth);
         super.__ERC20_init(p.name, p.symbol);
@@ -116,19 +124,28 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         emit CoolDownDurationUpdated(_duration);
     }
 
-    function withdrawFromVault(address to, uint256 amount) external override onlyMarket {
+    function withdrawFromVault(
+        address to,
+        uint256 amount
+    ) external override onlyMarket {
         StorageStruct storage $ = _getStorage();
         require(false == $.isFreezeTransfer, "VaultRouter:freeze");
         SafeERC20.safeTransfer(IERC20(asset()), to, amount);
     }
 
-    function borrowFromVault(uint16 market, uint256 amount) external override onlyMarket {
+    function borrowFromVault(
+        uint16 market,
+        uint256 amount
+    ) external override onlyMarket {
         StorageStruct storage $ = _getStorage();
         require(false == $.isFreezeAccouting, "VaultRouter:freeze");
         _updateFundsUsed(market, amount, true);
     }
 
-    function repayToVault(uint16 market, uint256 amount) external override onlyMarket {
+    function repayToVault(
+        uint16 market,
+        uint256 amount
+    ) external override onlyMarket {
         StorageStruct storage $ = _getStorage();
         require(false == $.isFreezeAccouting, "VaultRouter:freeze");
         _updateFundsUsed(market, amount, false);
@@ -145,7 +162,13 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         return _getStorage().fundsUsed[market];
     }
 
-    function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function totalAssets()
+        public
+        view
+        virtual
+        override(ERC4626Upgradeable, IERC4626)
+        returns (uint256)
+    {
         return getAUM();
     }
 
@@ -191,7 +214,11 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
     //     private functions
     //================================================================================================
 
-    function _updateFundsUsed(uint16 market, uint256 amount, bool isBorrow) private {
+    function _updateFundsUsed(
+        uint16 market,
+        uint256 amount,
+        bool isBorrow
+    ) private {
         StorageStruct storage $ = _getStorage();
         if (isBorrow) {
             uint256 pendingFundsUsed = $.totalFundsUsed + amount;
@@ -209,20 +236,31 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         emit FundsUsedUpdated(market, $.fundsUsed[market], $.totalFundsUsed);
     }
 
-    function _convertToShares(uint256 assets, Math.Rounding rounding) internal view override returns (uint256 shares) {
+    function _convertToShares(
+        uint256 assets,
+        Math.Rounding rounding
+    ) internal view override returns (uint256 shares) {
         StorageStruct storage $ = _getStorage();
         shares = super._convertToShares(assets, rounding);
         bool isBuy = rounding == Math.Rounding.Floor;
         if (isBuy) return shares - computationalCosts(isBuy, shares);
-        else return (shares * FEE_RATE_PRECISION) / (FEE_RATE_PRECISION - $.sellLpFee);
+        else
+            return
+                (shares * FEE_RATE_PRECISION) /
+                (FEE_RATE_PRECISION - $.sellLpFee);
     }
 
-    function _convertToAssets(uint256 shares, Math.Rounding rounding) internal view override returns (uint256 assets) {
+    function _convertToAssets(
+        uint256 shares,
+        Math.Rounding rounding
+    ) internal view override returns (uint256 assets) {
         StorageStruct storage $ = _getStorage();
         assets = super._convertToAssets(shares, rounding);
         bool isBuy = rounding == Math.Rounding.Ceil;
         if (isBuy) {
-            return (assets * FEE_RATE_PRECISION) / (FEE_RATE_PRECISION - $.buyLpFee);
+            return
+                (assets * FEE_RATE_PRECISION) /
+                (FEE_RATE_PRECISION - $.buyLpFee);
         } else {
             return assets - computationalCosts(isBuy, assets);
         }
@@ -240,17 +278,29 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         uint8 kind = (isBuy ? 5 : 6);
         int256[] memory fees = new int256[](kind + 1);
         IERC20(_asset).approve(address($.market), fee);
-        fees[kind] = int256(TransferHelper.parseVaultAsset(fee, IERC20Metadata(_asset).decimals()));
+        fees[kind] = int256(
+            TransferHelper.parseVaultAsset(
+                fee,
+                IERC20Metadata(_asset).decimals()
+            )
+        );
         IMarket($.market).collectFees(abi.encode(account, _asset, fees));
     }
 
-    function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
+    function _deposit(
+        address caller,
+        address receiver,
+        uint256 assets,
+        uint256 shares
+    ) internal override {
         StorageStruct storage $ = _getStorage();
         require($.allowBuy, "buy is not allowed");
         require(false == $.isFreezeTransfer, "vault:freeze");
         $.lastDepositAt[receiver] = block.timestamp;
         uint256 s_assets = super._convertToAssets(shares, Math.Rounding.Ceil);
-        uint256 cost = assets > s_assets ? assets - s_assets : s_assets - assets;
+        uint256 cost = assets > s_assets
+            ? assets - s_assets
+            : s_assets - assets;
         uint256 _assets = assets > s_assets ? assets : s_assets;
 
         if (totalSupply() == 0) {
@@ -263,13 +313,19 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         emit DepositAsset(caller, receiver, assets, shares, cost);
     }
 
-    function _withdraw(address caller, address receiver, address _owner, uint256 assets, uint256 shares)
-        internal
-        override
-    {
+    function _withdraw(
+        address caller,
+        address receiver,
+        address _owner,
+        uint256 assets,
+        uint256 shares
+    ) internal override {
         StorageStruct storage $ = _getStorage();
         require(false == $.isFreezeTransfer, "vault:freeze");
-        require(block.timestamp > $.cooldownDuration + $.lastDepositAt[_owner], "vault:cooldown");
+        require(
+            block.timestamp > $.cooldownDuration + $.lastDepositAt[_owner],
+            "vault:cooldown"
+        );
         uint256 s_assets = super._convertToAssets(shares, Math.Rounding.Floor);
         bool exceeds_assets = s_assets > assets;
 
@@ -291,7 +347,11 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         emit WithdrawAsset(caller, receiver, _owner, assets, shares, cost);
     }
 
-    function _update(address from, address to, uint256 value) internal override {
+    function _update(
+        address from,
+        address to,
+        uint256 value
+    ) internal override {
         _beforeTokenTransfer(from, to);
         super._update(from, to, value);
     }
@@ -308,7 +368,10 @@ contract Vault is ERC4626Upgradeable, AccessManagedUpgradeable, IVault {
         revert("transfer not allowed");
     }
 
-    function computationalCosts(bool isBuy, uint256 amount) public view override returns (uint256) {
+    function computationalCosts(
+        bool isBuy,
+        uint256 amount
+    ) public view override returns (uint256) {
         StorageStruct storage $ = _getStorage();
         if (isBuy) {
             return (amount * ($.buyLpFee)) / FEE_RATE_PRECISION;

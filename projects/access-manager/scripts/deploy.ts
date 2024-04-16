@@ -5,14 +5,17 @@ import hre, { ethers, upgrades } from "hardhat";
 async function main() {
   const [owner] = await ethers.getSigners();
   // console.log(await owner.getAddress())
-  const AccessManager = await ethers.getContractFactory("AccessManagerUpgradeable", owner);
+  const AccessManager = await ethers.getContractFactory(
+    "AccessManagerUpgradeable",
+    owner,
+  );
   const signerAddress = await owner.getAddress();
   const upgradeProxy = await upgrades.deployProxy(
     AccessManager,
     [signerAddress],
     {
-      initializer: "initialize"
-    }
+      initializer: "initialize",
+    },
   );
   await upgradeProxy.waitForDeployment();
   console.log("AccessManager Address", await upgradeProxy.getAddress());
@@ -23,12 +26,11 @@ async function verify(contractAddress: string) {
   return new Promise(function () {
     setTimeout(async () => {
       await hre.run("verify", {
-        address: contractAddress
-      })
-    }, 10000)
+        address: contractAddress,
+      });
+    }, 10000);
   });
 }
-
 
 main().catch((error) => {
   console.error(error);

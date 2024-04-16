@@ -11,11 +11,25 @@ interface IVaultReward {
 
     function setMarket(address market, address vault) external;
 
-    function initialize(address _coreVault, address _vaultRouter, address _feeRouter) external;
+    function initialize(
+        address _coreVault,
+        address _vaultRouter,
+        address _feeRouter
+    ) external;
 
-    function buy(IERC4626 vault, address to, uint256 amount, uint256 minSharesOut) external returns (uint256); // move
+    function buy(
+        IERC4626 vault,
+        address to,
+        uint256 amount,
+        uint256 minSharesOut
+    ) external returns (uint256); // move
 
-    function sell(IERC4626 vault, address to, uint256 amount, uint256 minAssetsOut) external returns (uint256); // move
+    function sell(
+        IERC4626 vault,
+        address to,
+        uint256 amount,
+        uint256 minAssetsOut
+    ) external returns (uint256); // move
 
     function calimLPReward() external;
 

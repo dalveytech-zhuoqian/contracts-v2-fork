@@ -13,7 +13,8 @@ import {IRewardDistributor} from "../interfaces/IRewardDistributor.sol";
 contract RewardDistributor is AccessManagedUpgradeable, IRewardDistributor {
     using SafeERC20 for IERC20;
 
-    bytes32 constant POS_STORAGE_POSITION = keccak256("blex.reward.distributor.storage");
+    bytes32 constant POS_STORAGE_POSITION =
+        keccak256("blex.reward.distributor.storage");
 
     struct StorageStruct {
         address rewardToken;
@@ -36,17 +37,24 @@ contract RewardDistributor is AccessManagedUpgradeable, IRewardDistributor {
      */
 
     modifier onlyRewardTracker() {
-        require(msg.sender == _getStorage().rewardTracker, "RewardDistributor: invalid msg.sender");
+        require(
+            msg.sender == _getStorage().rewardTracker,
+            "RewardDistributor: invalid msg.sender"
+        );
         _;
     }
 
     function setRewardTracker(address _rewardTracker) external {
-        require(_getStorage().rewardTracker == address(0), "RewardDistributor: reward tracker already set");
+        require(
+            _getStorage().rewardTracker == address(0),
+            "RewardDistributor: reward tracker already set"
+        );
         _getStorage().rewardTracker = _rewardTracker;
     }
 
     function initialize() external override initializer {
-        IRewardDistributorFactory.Parameters memory p = IRewardDistributorFactory(msg.sender).parameters();
+        IRewardDistributorFactory.Parameters
+            memory p = IRewardDistributorFactory(msg.sender).parameters();
         require(p.rewardToken != address(0));
         require(p.auth != address(0));
         super.__AccessManaged_init(p.auth);
@@ -60,7 +68,11 @@ contract RewardDistributor is AccessManagedUpgradeable, IRewardDistributor {
      * @param _account The address to transfer the tokens to.
      * @param _amount The amount of tokens to withdraw.
      */
-    function withdrawToken(address _token, address _account, uint256 _amount) external restricted {
+    function withdrawToken(
+        address _token,
+        address _account,
+        uint256 _amount
+    ) external restricted {
         IERC20(_token).safeTransfer(_account, _amount);
     }
 
@@ -78,7 +90,8 @@ contract RewardDistributor is AccessManagedUpgradeable, IRewardDistributor {
      * @param _amount The number of tokens per interval.
      */
     function setTokensPerInterval(uint256 _amount) external restricted {
-        if (_getStorage().lastDistributionTime == 0) _getStorage().lastDistributionTime = block.timestamp;
+        if (_getStorage().lastDistributionTime == 0)
+            _getStorage().lastDistributionTime = block.timestamp;
         IVaultReward(_getStorage().rewardTracker).updateRewards();
         _getStorage().tokensPerInterval = _amount;
         emit TokensPerIntervalChange(_amount);
@@ -97,7 +110,9 @@ contract RewardDistributor is AccessManagedUpgradeable, IRewardDistributor {
 
         _getStorage().lastDistributionTime = block.timestamp;
 
-        uint256 balance = IERC20(_getStorage().rewardToken).balanceOf(address(this));
+        uint256 balance = IERC20(_getStorage().rewardToken).balanceOf(
+            address(this)
+        );
         if (amount > balance) {
             amount = balance;
         }

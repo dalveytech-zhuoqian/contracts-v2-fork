@@ -18,7 +18,10 @@ contract MockVault {
 
     function buyLpFee() external view returns (uint256) {}
 
-    function computationalCosts(bool isBuy, uint256 amount) external view returns (uint256) {}
+    function computationalCosts(
+        bool isBuy,
+        uint256 amount
+    ) external view returns (uint256) {}
 
     function getLPFee(bool isBuy) external view returns (uint256) {}
 

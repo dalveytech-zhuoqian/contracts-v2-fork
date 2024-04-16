@@ -4,6 +4,16 @@ This project demonstrates a basic Hardhat use case. It comes with a sample contr
 
 Try running some of the following tasks:
 
+# requirments
+
+- prettier
+- husky
+- node version 20
+
+# install
+
+`yarn`
+
 # install submodules
 
 ```shell

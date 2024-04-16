@@ -1,3 +1,4 @@
+node_modules/
 projects/market/etherscan_requests/fantom_test/_DefaultDiamondCutFacet_multi-source.json
 projects/market/etherscan_requests/fantom_test/_DefaultDiamondCutFacet.formdata
 projects/market/etherscan_requests/fantom_test/_DefaultDiamondCutFacet.json

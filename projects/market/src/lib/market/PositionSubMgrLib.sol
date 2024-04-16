@@ -17,7 +17,9 @@ library PositionSubMgrLib {
      * @return withdrawFromFeeVault 应该提取到 market 的费用总数
      * @return afterFees 按照费用优先级, 在考虑盈亏数据之后, 返回的真实费用数组
      */
-    function calculateWithdrawFromFeeVault(int256[] memory _originFees)
+    function calculateWithdrawFromFeeVault(
+        int256[] memory _originFees
+    )
         internal
         pure
         returns (int256 withdrawFromFeeVault, int256[] memory afterFees)
@@ -46,10 +48,13 @@ library PositionSubMgrLib {
         int256 remain = _position.collateral.toInt256() + dPNL; // 计算剩余金额
         if (fees < 0) revert TotalFeesLtZero(fees); // 如果手续费小于0，则抛出异常
         if (remain > 0) return SignedMath.min(remain, fees); // 如果剩余金额大于0，则返回剩余金额和手续费中较小的一个
-            // 默认返回 0
+        // 默认返回 0
     }
 
-    function calculateTransToVault(int256 collateral, int256 dPNL) internal pure returns (int256) {
+    function calculateTransToVault(
+        int256 collateral,
+        int256 dPNL
+    ) internal pure returns (int256) {
         return collateral + dPNL <= 0 ? collateral : -dPNL;
     }
 
@@ -132,7 +137,10 @@ library PositionSubMgrLib {
         int256[] memory _originFees
     ) internal pure returns (DecreaseTransactionOuts memory outs) {
         // 从手续费保险库中计算提取金额和剩余手续费
-        (int256 withdrawFromFeeVault, int256[] memory afterFees) = calculateWithdrawFromFeeVault(_originFees);
+        (
+            int256 withdrawFromFeeVault,
+            int256[] memory afterFees
+        ) = calculateWithdrawFromFeeVault(_originFees);
         int256 totalFees; // = afterFees.totoalFees();
         // 如果提取金额大于0，则增加头寸保证金
         if (withdrawFromFeeVault > 0) {
@@ -141,13 +149,28 @@ library PositionSubMgrLib {
             outs.withdrawFromFeeVault = withdrawFromFeeVault;
         }
         // 计算转入手续费保险库的金额
-        outs.transToFeeVault = calculateTransToFeeVault(_position, dPNL, totalFees) - withdrawFromFeeVault;
+        outs.transToFeeVault =
+            calculateTransToFeeVault(_position, dPNL, totalFees) -
+            withdrawFromFeeVault;
         // 计算转入保险库的金额
-        outs.transToVault = calculateTransToVault(_position.collateral.toInt256(), dPNL);
+        outs.transToVault = calculateTransToVault(
+            _position.collateral.toInt256(),
+            dPNL
+        );
         // 计算新的保证金金额（无符号）
-        outs.newCollateralUnsigned = calculateNewCollateral(_params, _position, dPNL, totalFees);
+        outs.newCollateralUnsigned = calculateNewCollateral(
+            _params,
+            _position,
+            dPNL,
+            totalFees
+        );
         // 计算转入用户的金额
-        outs.transToUser = calculateTransToUser(_params, _position, dPNL, totalFees);
+        outs.transToUser = calculateTransToUser(
+            _params,
+            _position,
+            dPNL,
+            totalFees
+        );
         // 计算完毕, 数据还原
 
         // 如果仓位大小等于参数中的大小变化，则从保证金中扣除提取的金额
@@ -157,7 +180,9 @@ library PositionSubMgrLib {
         }
 
         // 计算保证金减少的金额
-        outs.collateralDecreased = _position.collateral - outs.newCollateralUnsigned;
+        outs.collateralDecreased =
+            _position.collateral -
+            outs.newCollateralUnsigned;
 
         // 计算保证金变化后的值，如果仓位大小等于参数中的大小变化，则为保证金本身，否则为保证金减少的金额减去提取的金额
         outs.collateralDeltaAfter = (_position.size == _params.sizeDelta)
@@ -169,7 +194,9 @@ library PositionSubMgrLib {
         MarketCache memory _params, // 定义更新仓位所需的参数
         PositionProps memory _position // 定义当前仓位的属性
     ) internal pure returns (bool) {
-        return (_params.liqState != LiquidationState.Collateral || _params.liqState != LiquidationState.Leverage)
-            && _params.sizeDelta != _position.size;
+        return
+            (_params.liqState != LiquidationState.Collateral ||
+                _params.liqState != LiquidationState.Leverage) &&
+            _params.sizeDelta != _position.size;
     }
 }

@@ -24,7 +24,6 @@ enum CancelReason {
     Canceled, //5
     SysCancel, //6invalid order
     LeverageLiquidation //7
-
 }
 
 enum FeeType {

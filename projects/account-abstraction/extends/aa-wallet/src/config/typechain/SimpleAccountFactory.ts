@@ -23,29 +23,29 @@ import type {
 
 export interface SimpleAccountFactoryInterface extends Interface {
   getFunction(
-    nameOrSignature: "accountImplementation" | "createAccount" | "getAddress"
+    nameOrSignature: "accountImplementation" | "createAccount" | "getAddress",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "accountImplementation",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "createAccount",
-    values: [AddressLike, BigNumberish]
+    values: [AddressLike, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "getAddress",
-    values: [AddressLike, BigNumberish]
+    values: [AddressLike, BigNumberish],
   ): string;
 
   decodeFunctionResult(
     functionFragment: "accountImplementation",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "createAccount",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "getAddress", data: BytesLike): Result;
 }
@@ -59,38 +59,38 @@ export interface SimpleAccountFactory extends BaseContract {
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TypedEventLog<TCEvent>>>;
   queryFilter<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TypedEventLog<TCEvent>>>;
 
   on<TCEvent extends TypedContractEvent>(
     event: TCEvent,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
   on<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
 
   once<TCEvent extends TypedContractEvent>(
     event: TCEvent,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
   once<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
 
   listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
+    event: TCEvent,
   ): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
   removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
+    event?: TCEvent,
   ): Promise<this>;
 
   accountImplementation: TypedContractMethod<[], [string], "view">;
@@ -108,21 +108,21 @@ export interface SimpleAccountFactory extends BaseContract {
   >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
+    key: string | FunctionFragment,
   ): T;
 
   getFunction(
-    nameOrSignature: "accountImplementation"
+    nameOrSignature: "accountImplementation",
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: "createAccount"
+    nameOrSignature: "createAccount",
   ): TypedContractMethod<
     [owner: AddressLike, salt: BigNumberish],
     [string],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "getAddress"
+    nameOrSignature: "getAddress",
   ): TypedContractMethod<
     [owner: AddressLike, salt: BigNumberish],
     [string],

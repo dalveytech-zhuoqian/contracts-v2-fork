@@ -1,9 +1,9 @@
 require('dotenv').config();
 
-usePlugin("@nomiclabs/buidler-ethers");
-usePlugin("@nomiclabs/buidler-waffle");
+usePlugin('@nomiclabs/buidler-ethers');
+usePlugin('@nomiclabs/buidler-waffle');
 
-task("accounts", "Prints the list of accounts", async () => {
+task('accounts', 'Prints the list of accounts', async () => {
   const accounts = await ethers.getSigners();
 
   for (const account of accounts) {
@@ -13,7 +13,7 @@ task("accounts", "Prints the list of accounts", async () => {
 
 module.exports = {
   solc: {
-    version: "0.6.12",
+    version: '0.6.12',
   },
   defaultNetwork: 'buidlerevm',
 };

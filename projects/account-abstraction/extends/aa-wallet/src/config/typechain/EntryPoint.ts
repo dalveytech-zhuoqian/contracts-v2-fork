@@ -22,7 +22,7 @@ import type {
   TypedListener,
   TypedContractMethod,
 } from "./common";
-import {UserOperation} from "../../aaWallet/AaWallet";
+import { UserOperation } from "../../aaWallet/AaWallet";
 
 export declare namespace IStakeManager {
   export type DepositInfoStruct = {
@@ -38,7 +38,7 @@ export declare namespace IStakeManager {
     staked: boolean,
     stake: bigint,
     unstakeDelaySec: bigint,
-    withdrawTime: bigint
+    withdrawTime: bigint,
   ] & {
     deposit: bigint;
     staked: boolean;
@@ -58,7 +58,7 @@ export declare namespace IEntryPoint {
   export type UserOpsPerAggregatorStructOutput = [
     userOps: UserOperation[],
     aggregator: string,
-    signature: string
+    signature: string,
   ] & {
     userOps: UserOperation[];
     aggregator: string;
@@ -86,7 +86,7 @@ export declare namespace EntryPoint {
     preVerificationGas: bigint,
     paymaster: string,
     maxFeePerGas: bigint,
-    maxPriorityFeePerGas: bigint
+    maxPriorityFeePerGas: bigint,
   ] & {
     sender: string;
     nonce: bigint;
@@ -111,7 +111,7 @@ export declare namespace EntryPoint {
     userOpHash: string,
     prefund: bigint,
     contextOffset: bigint,
-    preOpGas: bigint
+    preOpGas: bigint,
   ] & {
     mUserOp: EntryPoint.MemoryUserOpStructOutput;
     userOpHash: string;
@@ -144,7 +144,7 @@ export interface EntryPointInterface extends Interface {
       | "supportsInterface"
       | "unlockStake"
       | "withdrawStake"
-      | "withdrawTo"
+      | "withdrawTo",
   ): FunctionFragment;
 
   getEvent(
@@ -158,101 +158,101 @@ export interface EntryPointInterface extends Interface {
       | "StakeWithdrawn"
       | "UserOperationEvent"
       | "UserOperationRevertReason"
-      | "Withdrawn"
+      | "Withdrawn",
   ): EventFragment;
 
   encodeFunctionData(
     functionFragment: "SIG_VALIDATION_FAILED",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "_validateSenderAndPaymaster",
-    values: [BytesLike, AddressLike, BytesLike]
+    values: [BytesLike, AddressLike, BytesLike],
   ): string;
   encodeFunctionData(
     functionFragment: "addStake",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
-    values: [AddressLike]
+    values: [AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "depositTo",
-    values: [AddressLike]
+    values: [AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "deposits",
-    values: [AddressLike]
+    values: [AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "getDepositInfo",
-    values: [AddressLike]
+    values: [AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "getNonce",
-    values: [AddressLike, BigNumberish]
+    values: [AddressLike, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "getSenderAddress",
-    values: [BytesLike]
+    values: [BytesLike],
   ): string;
   encodeFunctionData(
     functionFragment: "getUserOpHash",
-    values: [UserOperation]
+    values: [UserOperation],
   ): string;
   encodeFunctionData(
     functionFragment: "handleAggregatedOps",
-    values: [IEntryPoint.UserOpsPerAggregatorStruct[], AddressLike]
+    values: [IEntryPoint.UserOpsPerAggregatorStruct[], AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "handleOps",
-    values: [UserOperation[], AddressLike]
+    values: [UserOperation[], AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "incrementNonce",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "innerHandleOp",
-    values: [BytesLike, EntryPoint.UserOpInfoStruct, BytesLike]
+    values: [BytesLike, EntryPoint.UserOpInfoStruct, BytesLike],
   ): string;
   encodeFunctionData(
     functionFragment: "nonceSequenceNumber",
-    values: [AddressLike, BigNumberish]
+    values: [AddressLike, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "simulateHandleOp",
-    values: [UserOperation, AddressLike, BytesLike]
+    values: [UserOperation, AddressLike, BytesLike],
   ): string;
   encodeFunctionData(
     functionFragment: "simulateValidation",
-    values: [UserOperation]
+    values: [UserOperation],
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
-    values: [BytesLike]
+    values: [BytesLike],
   ): string;
   encodeFunctionData(
     functionFragment: "unlockStake",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawStake",
-    values: [AddressLike]
+    values: [AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawTo",
-    values: [AddressLike, BigNumberish]
+    values: [AddressLike, BigNumberish],
   ): string;
 
   decodeFunctionResult(
     functionFragment: "SIG_VALIDATION_FAILED",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "_validateSenderAndPaymaster",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "addStake", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
@@ -260,53 +260,53 @@ export interface EntryPointInterface extends Interface {
   decodeFunctionResult(functionFragment: "deposits", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getDepositInfo",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "getNonce", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getSenderAddress",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getUserOpHash",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "handleAggregatedOps",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "handleOps", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "incrementNonce",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "innerHandleOp",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "nonceSequenceNumber",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "simulateHandleOp",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "simulateValidation",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "unlockStake",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawStake",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "withdrawTo", data: BytesLike): Result;
 }
@@ -316,13 +316,13 @@ export namespace AccountDeployedEvent {
     userOpHash: BytesLike,
     sender: AddressLike,
     factory: AddressLike,
-    paymaster: AddressLike
+    paymaster: AddressLike,
   ];
   export type OutputTuple = [
     userOpHash: string,
     sender: string,
     factory: string,
-    paymaster: string
+    paymaster: string,
   ];
   export interface OutputObject {
     userOpHash: string;
@@ -375,12 +375,12 @@ export namespace StakeLockedEvent {
   export type InputTuple = [
     account: AddressLike,
     totalStaked: BigNumberish,
-    unstakeDelaySec: BigNumberish
+    unstakeDelaySec: BigNumberish,
   ];
   export type OutputTuple = [
     account: string,
     totalStaked: bigint,
-    unstakeDelaySec: bigint
+    unstakeDelaySec: bigint,
   ];
   export interface OutputObject {
     account: string;
@@ -410,12 +410,12 @@ export namespace StakeWithdrawnEvent {
   export type InputTuple = [
     account: AddressLike,
     withdrawAddress: AddressLike,
-    amount: BigNumberish
+    amount: BigNumberish,
   ];
   export type OutputTuple = [
     account: string,
     withdrawAddress: string,
-    amount: bigint
+    amount: bigint,
   ];
   export interface OutputObject {
     account: string;
@@ -436,7 +436,7 @@ export namespace UserOperationEventEvent {
     nonce: BigNumberish,
     success: boolean,
     actualGasCost: BigNumberish,
-    actualGasUsed: BigNumberish
+    actualGasUsed: BigNumberish,
   ];
   export type OutputTuple = [
     userOpHash: string,
@@ -445,7 +445,7 @@ export namespace UserOperationEventEvent {
     nonce: bigint,
     success: boolean,
     actualGasCost: bigint,
-    actualGasUsed: bigint
+    actualGasUsed: bigint,
   ];
   export interface OutputObject {
     userOpHash: string;
@@ -467,13 +467,13 @@ export namespace UserOperationRevertReasonEvent {
     userOpHash: BytesLike,
     sender: AddressLike,
     nonce: BigNumberish,
-    revertReason: BytesLike
+    revertReason: BytesLike,
   ];
   export type OutputTuple = [
     userOpHash: string,
     sender: string,
     nonce: bigint,
-    revertReason: string
+    revertReason: string,
   ];
   export interface OutputObject {
     userOpHash: string;
@@ -491,12 +491,12 @@ export namespace WithdrawnEvent {
   export type InputTuple = [
     account: AddressLike,
     withdrawAddress: AddressLike,
-    amount: BigNumberish
+    amount: BigNumberish,
   ];
   export type OutputTuple = [
     account: string,
     withdrawAddress: string,
-    amount: bigint
+    amount: bigint,
   ];
   export interface OutputObject {
     account: string;
@@ -518,38 +518,38 @@ export interface EntryPoint extends BaseContract {
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TypedEventLog<TCEvent>>>;
   queryFilter<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TypedEventLog<TCEvent>>>;
 
   on<TCEvent extends TypedContractEvent>(
     event: TCEvent,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
   on<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
 
   once<TCEvent extends TypedContractEvent>(
     event: TCEvent,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
   once<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
 
   listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
+    event: TCEvent,
   ): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
   removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
+    event?: TCEvent,
   ): Promise<this>;
 
   SIG_VALIDATION_FAILED: TypedContractMethod<[], [bigint], "view">;
@@ -579,7 +579,7 @@ export interface EntryPoint extends BaseContract {
         stake: bigint;
         unstakeDelaySec: bigint;
         withdrawTime: bigint;
-      }
+      },
     ],
     "view"
   >;
@@ -602,16 +602,12 @@ export interface EntryPoint extends BaseContract {
     "nonpayable"
   >;
 
-  getUserOpHash: TypedContractMethod<
-    [userOp: UserOperation],
-    [string],
-    "view"
-  >;
+  getUserOpHash: TypedContractMethod<[userOp: UserOperation], [string], "view">;
 
   handleAggregatedOps: TypedContractMethod<
     [
       opsPerAggregator: IEntryPoint.UserOpsPerAggregatorStruct[],
-      beneficiary: AddressLike
+      beneficiary: AddressLike,
     ],
     [void],
     "nonpayable"
@@ -633,7 +629,7 @@ export interface EntryPoint extends BaseContract {
     [
       callData: BytesLike,
       opInfo: EntryPoint.UserOpInfoStruct,
-      context: BytesLike
+      context: BytesLike,
     ],
     [bigint],
     "nonpayable"
@@ -678,31 +674,29 @@ export interface EntryPoint extends BaseContract {
   >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
+    key: string | FunctionFragment,
   ): T;
 
   getFunction(
-    nameOrSignature: "SIG_VALIDATION_FAILED"
+    nameOrSignature: "SIG_VALIDATION_FAILED",
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "_validateSenderAndPaymaster"
+    nameOrSignature: "_validateSenderAndPaymaster",
   ): TypedContractMethod<
     [initCode: BytesLike, sender: AddressLike, paymasterAndData: BytesLike],
     [void],
     "view"
   >;
   getFunction(
-    nameOrSignature: "addStake"
+    nameOrSignature: "addStake",
   ): TypedContractMethod<[unstakeDelaySec: BigNumberish], [void], "payable">;
   getFunction(
-    nameOrSignature: "balanceOf"
+    nameOrSignature: "balanceOf",
   ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
   getFunction(
-    nameOrSignature: "depositTo"
+    nameOrSignature: "depositTo",
   ): TypedContractMethod<[account: AddressLike], [void], "payable">;
-  getFunction(
-    nameOrSignature: "deposits"
-  ): TypedContractMethod<
+  getFunction(nameOrSignature: "deposits"): TypedContractMethod<
     [arg0: AddressLike],
     [
       [bigint, boolean, bigint, bigint, bigint] & {
@@ -711,89 +705,89 @@ export interface EntryPoint extends BaseContract {
         stake: bigint;
         unstakeDelaySec: bigint;
         withdrawTime: bigint;
-      }
+      },
     ],
     "view"
   >;
   getFunction(
-    nameOrSignature: "getDepositInfo"
+    nameOrSignature: "getDepositInfo",
   ): TypedContractMethod<
     [account: AddressLike],
     [IStakeManager.DepositInfoStructOutput],
     "view"
   >;
   getFunction(
-    nameOrSignature: "getNonce"
+    nameOrSignature: "getNonce",
   ): TypedContractMethod<
     [sender: AddressLike, key: BigNumberish],
     [bigint],
     "view"
   >;
   getFunction(
-    nameOrSignature: "getSenderAddress"
+    nameOrSignature: "getSenderAddress",
   ): TypedContractMethod<[initCode: BytesLike], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "getUserOpHash"
+    nameOrSignature: "getUserOpHash",
   ): TypedContractMethod<[userOp: UserOperation], [string], "view">;
   getFunction(
-    nameOrSignature: "handleAggregatedOps"
+    nameOrSignature: "handleAggregatedOps",
   ): TypedContractMethod<
     [
       opsPerAggregator: IEntryPoint.UserOpsPerAggregatorStruct[],
-      beneficiary: AddressLike
+      beneficiary: AddressLike,
     ],
     [void],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "handleOps"
+    nameOrSignature: "handleOps",
   ): TypedContractMethod<
     [ops: UserOperation[], beneficiary: AddressLike],
     [void],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "incrementNonce"
+    nameOrSignature: "incrementNonce",
   ): TypedContractMethod<[key: BigNumberish], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "innerHandleOp"
+    nameOrSignature: "innerHandleOp",
   ): TypedContractMethod<
     [
       callData: BytesLike,
       opInfo: EntryPoint.UserOpInfoStruct,
-      context: BytesLike
+      context: BytesLike,
     ],
     [bigint],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "nonceSequenceNumber"
+    nameOrSignature: "nonceSequenceNumber",
   ): TypedContractMethod<
     [arg0: AddressLike, arg1: BigNumberish],
     [bigint],
     "view"
   >;
   getFunction(
-    nameOrSignature: "simulateHandleOp"
+    nameOrSignature: "simulateHandleOp",
   ): TypedContractMethod<
     [op: UserOperation, target: AddressLike, targetCallData: BytesLike],
     [void],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "simulateValidation"
+    nameOrSignature: "simulateValidation",
   ): TypedContractMethod<[userOp: UserOperation], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "supportsInterface"
+    nameOrSignature: "supportsInterface",
   ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
   getFunction(
-    nameOrSignature: "unlockStake"
+    nameOrSignature: "unlockStake",
   ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "withdrawStake"
+    nameOrSignature: "withdrawStake",
   ): TypedContractMethod<[withdrawAddress: AddressLike], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "withdrawTo"
+    nameOrSignature: "withdrawTo",
   ): TypedContractMethod<
     [withdrawAddress: AddressLike, withdrawAmount: BigNumberish],
     [void],
@@ -801,70 +795,70 @@ export interface EntryPoint extends BaseContract {
   >;
 
   getEvent(
-    key: "AccountDeployed"
+    key: "AccountDeployed",
   ): TypedContractEvent<
     AccountDeployedEvent.InputTuple,
     AccountDeployedEvent.OutputTuple,
     AccountDeployedEvent.OutputObject
   >;
   getEvent(
-    key: "BeforeExecution"
+    key: "BeforeExecution",
   ): TypedContractEvent<
     BeforeExecutionEvent.InputTuple,
     BeforeExecutionEvent.OutputTuple,
     BeforeExecutionEvent.OutputObject
   >;
   getEvent(
-    key: "Deposited"
+    key: "Deposited",
   ): TypedContractEvent<
     DepositedEvent.InputTuple,
     DepositedEvent.OutputTuple,
     DepositedEvent.OutputObject
   >;
   getEvent(
-    key: "SignatureAggregatorChanged"
+    key: "SignatureAggregatorChanged",
   ): TypedContractEvent<
     SignatureAggregatorChangedEvent.InputTuple,
     SignatureAggregatorChangedEvent.OutputTuple,
     SignatureAggregatorChangedEvent.OutputObject
   >;
   getEvent(
-    key: "StakeLocked"
+    key: "StakeLocked",
   ): TypedContractEvent<
     StakeLockedEvent.InputTuple,
     StakeLockedEvent.OutputTuple,
     StakeLockedEvent.OutputObject
   >;
   getEvent(
-    key: "StakeUnlocked"
+    key: "StakeUnlocked",
   ): TypedContractEvent<
     StakeUnlockedEvent.InputTuple,
     StakeUnlockedEvent.OutputTuple,
     StakeUnlockedEvent.OutputObject
   >;
   getEvent(
-    key: "StakeWithdrawn"
+    key: "StakeWithdrawn",
   ): TypedContractEvent<
     StakeWithdrawnEvent.InputTuple,
     StakeWithdrawnEvent.OutputTuple,
     StakeWithdrawnEvent.OutputObject
   >;
   getEvent(
-    key: "UserOperationEvent"
+    key: "UserOperationEvent",
   ): TypedContractEvent<
     UserOperationEventEvent.InputTuple,
     UserOperationEventEvent.OutputTuple,
     UserOperationEventEvent.OutputObject
   >;
   getEvent(
-    key: "UserOperationRevertReason"
+    key: "UserOperationRevertReason",
   ): TypedContractEvent<
     UserOperationRevertReasonEvent.InputTuple,
     UserOperationRevertReasonEvent.OutputTuple,
     UserOperationRevertReasonEvent.OutputObject
   >;
   getEvent(
-    key: "Withdrawn"
+    key: "Withdrawn",
   ): TypedContractEvent<
     WithdrawnEvent.InputTuple,
     WithdrawnEvent.OutputTuple,

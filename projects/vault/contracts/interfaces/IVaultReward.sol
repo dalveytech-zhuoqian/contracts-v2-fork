@@ -5,9 +5,17 @@ pragma solidity ^0.8.20;
 interface IVaultReward {
     function initialize() external;
 
-    function buy(address to, uint256 amount, uint256 minSharesOut) external returns (uint256); // move
+    function buy(
+        address to,
+        uint256 amount,
+        uint256 minSharesOut
+    ) external returns (uint256); // move
 
-    function sell(address to, uint256 amount, uint256 minAssetsOut) external returns (uint256); // move
+    function sell(
+        address to,
+        uint256 amount,
+        uint256 minAssetsOut
+    ) external returns (uint256); // move
 
     function claimLPReward() external;
 

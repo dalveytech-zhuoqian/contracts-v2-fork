@@ -13,8 +13,7 @@ Folder Structure
 - out_forge: compiled ABI output from Foundry (used for unit testing)
 - scripts: scripts
 - src: contract source code
-- test: functional tests
-- test_forge: unit test scripts
+- test: integration tests
 - typechains: compiled TypeScript interface compatibility files from TypeChain
 - utils: deployment-related files provided by the framework (do not modify)
 

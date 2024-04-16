@@ -12,9 +12,17 @@ contract VaultBuilder is AccessManagedUpgradeable {
     address public vaultRewardFactory;
     address public rewardDistributorFactory;
 
-    event NewFactory(address vaultFactory, address vaultRewardFactory, address rewardDistributorFactory);
+    event NewFactory(
+        address vaultFactory,
+        address vaultRewardFactory,
+        address rewardDistributorFactory
+    );
 
-    event NewBuild(address indexed vault, address indexed vaultReward, address indexed vaultRewardDistributor);
+    event NewBuild(
+        address indexed vault,
+        address indexed vaultReward,
+        address indexed vaultRewardDistributor
+    );
 
     function initialize(
         address _vaultFactory,
@@ -26,7 +34,11 @@ contract VaultBuilder is AccessManagedUpgradeable {
         vaultFactory = _vaultFactory;
         vaultRewardFactory = _vaultRewardFactory;
         rewardDistributorFactory = _rewardDistributorFactory;
-        emit NewFactory(_vaultFactory, _vaultRewardFactory, _rewardDistributorFactory);
+        emit NewFactory(
+            _vaultFactory,
+            _vaultRewardFactory,
+            _rewardDistributorFactory
+        );
     }
 
     struct Parameters {
@@ -39,12 +51,23 @@ contract VaultBuilder is AccessManagedUpgradeable {
 
     function deploy(Parameters calldata p) external restricted {
         address vault = IVaultFactory(vaultFactory).deploy(
-            IVaultFactory.Parameters({asset: p.asset, market: p.market, name: p.name, symbol: p.symbol, auth: p.auth})
+            IVaultFactory.Parameters({
+                asset: p.asset,
+                market: p.market,
+                name: p.name,
+                symbol: p.symbol,
+                auth: p.auth
+            })
         );
 
-        address vaultRewardDistributor = IRewardDistributorFactory(rewardDistributorFactory).deploy(
-            IRewardDistributorFactory.Parameters({rewardToken: p.asset, auth: p.auth})
-        );
+        address vaultRewardDistributor = IRewardDistributorFactory(
+            rewardDistributorFactory
+        ).deploy(
+                IRewardDistributorFactory.Parameters({
+                    rewardToken: p.asset,
+                    auth: p.auth
+                })
+            );
 
         address vaultReward = IVaultRewardFactory(vaultRewardFactory).deploy(
             IVaultRewardFactory.Parameters({
@@ -55,7 +78,9 @@ contract VaultBuilder is AccessManagedUpgradeable {
             })
         );
 
-        IRewardDistributor(vaultRewardDistributor).setRewardTracker(vaultReward);
+        IRewardDistributor(vaultRewardDistributor).setRewardTracker(
+            vaultReward
+        );
 
         emit NewBuild(vault, vaultReward, vaultRewardDistributor);
     }

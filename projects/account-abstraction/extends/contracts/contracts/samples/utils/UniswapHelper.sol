@@ -9,16 +9,19 @@ import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/IPeripheryPayments.sol";
 
 abstract contract UniswapHelper {
-    event UniswapReverted(address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOutMin);
+    event UniswapReverted(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 amountOutMin
+    );
 
     uint256 private constant PRICE_DENOMINATOR = 1e26;
 
     struct UniswapHelperConfig {
         /// @notice Minimum native asset amount to receive from a single swap
         uint256 minSwapAmount;
-
         uint24 uniswapPoolFee;
-
         uint8 slippage;
     }
 
@@ -42,7 +45,7 @@ abstract contract UniswapHelper {
         ISwapRouter _uniswap,
         uint256 _tokenDecimalPower,
         UniswapHelperConfig memory _uniswapHelperConfig
-    ){
+    ) {
         _token.approve(address(_uniswap), type(uint256).max);
         token = _token;
         wrappedNative = _wrappedNative;
@@ -51,37 +54,54 @@ abstract contract UniswapHelper {
         _setUniswapHelperConfiguration(_uniswapHelperConfig);
     }
 
-    function _setUniswapHelperConfiguration(UniswapHelperConfig memory _uniswapHelperConfig) internal {
+    function _setUniswapHelperConfiguration(
+        UniswapHelperConfig memory _uniswapHelperConfig
+    ) internal {
         uniswapHelperConfig = _uniswapHelperConfig;
     }
 
-    function _maybeSwapTokenToWeth(IERC20 tokenIn, uint256 quote) internal returns (uint256) {
+    function _maybeSwapTokenToWeth(
+        IERC20 tokenIn,
+        uint256 quote
+    ) internal returns (uint256) {
         uint256 tokenBalance = tokenIn.balanceOf(address(this));
-        uint256 amountOutMin = addSlippage(tokenToWei(tokenBalance, quote), uniswapHelperConfig.slippage);
+        uint256 amountOutMin = addSlippage(
+            tokenToWei(tokenBalance, quote),
+            uniswapHelperConfig.slippage
+        );
         if (amountOutMin < uniswapHelperConfig.minSwapAmount) {
             return 0;
         }
         // note: calling 'swapToToken' but destination token is Wrapped Ether
-        return swapToToken(
-            address(tokenIn),
-            address(wrappedNative),
-            tokenBalance,
-            amountOutMin,
-            uniswapHelperConfig.uniswapPoolFee
-        );
+        return
+            swapToToken(
+                address(tokenIn),
+                address(wrappedNative),
+                tokenBalance,
+                amountOutMin,
+                uniswapHelperConfig.uniswapPoolFee
+            );
     }
 
-    function addSlippage(uint256 amount, uint8 slippage) private pure returns (uint256) {
-        return amount * (1000 - slippage) / 1000;
+    function addSlippage(
+        uint256 amount,
+        uint8 slippage
+    ) private pure returns (uint256) {
+        return (amount * (1000 - slippage)) / 1000;
     }
 
-
-    function tokenToWei(uint256 amount, uint256 price) public pure returns (uint256) {
-        return amount * price / PRICE_DENOMINATOR;
+    function tokenToWei(
+        uint256 amount,
+        uint256 price
+    ) public pure returns (uint256) {
+        return (amount * price) / PRICE_DENOMINATOR;
     }
 
-    function weiToToken(uint256 amount, uint256 price) public pure returns (uint256) {
-        return amount * PRICE_DENOMINATOR / price;
+    function weiToToken(
+        uint256 amount,
+        uint256 price
+    ) public pure returns (uint256) {
+        return (amount * PRICE_DENOMINATOR) / price;
     }
 
     // turn ERC-20 tokens into wrapped ETH at market price
@@ -91,16 +111,17 @@ abstract contract UniswapHelper {
         uint256 amountOut,
         uint24 fee
     ) internal returns (uint256 amountIn) {
-        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter.ExactOutputSingleParams(
-            tokenIn,
-            wethOut, //tokenOut
-            fee,
-            address(uniswap), //recipient - keep WETH at SwapRouter for withdrawal
-            block.timestamp, //deadline
-            amountOut,
-            type(uint256).max,
-            0
-        );
+        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+            .ExactOutputSingleParams(
+                tokenIn,
+                wethOut, //tokenOut
+                fee,
+                address(uniswap), //recipient - keep WETH at SwapRouter for withdrawal
+                block.timestamp, //deadline
+                amountOut,
+                type(uint256).max,
+                0
+            );
         amountIn = uniswap.exactOutputSingle(params);
     }
 
@@ -116,16 +137,17 @@ abstract contract UniswapHelper {
         uint256 amountOutMin,
         uint24 fee
     ) internal returns (uint256 amountOut) {
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
-            tokenIn, //tokenIn
-            tokenOut, //tokenOut
-            fee,
-            address(uniswap),
-            block.timestamp, //deadline
-            amountIn,
-            amountOutMin,
-            0
-        );
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams(
+                tokenIn, //tokenIn
+                tokenOut, //tokenOut
+                fee,
+                address(uniswap),
+                block.timestamp, //deadline
+                amountIn,
+                amountOutMin,
+                0
+            );
         try uniswap.exactInputSingle(params) returns (uint256 _amountOut) {
             amountOut = _amountOut;
         } catch {

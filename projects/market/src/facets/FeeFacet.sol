@@ -26,9 +26,14 @@ contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
     // // only self
     // //================================================================
 
-    function _collectFees(bytes calldata _data) external onlySelf {
-        (address account, address token, int256[] memory fees, uint256 fundfeeLoss, uint16 market) =
-            abi.decode(_data, (address, address, int256[], uint256, uint16));
+    function SELF_collectFees(bytes calldata _data) external onlySelf {
+        (
+            address account,
+            address token,
+            int256[] memory fees,
+            uint256 fundfeeLoss,
+            uint16 market
+        ) = abi.decode(_data, (address, address, int256[], uint256, uint16));
         uint256 _amount = IERC20(token).allowance(msg.sender, address(this));
         // todo 会存在这种现象嘛 如果存在要不要更新event
         //if (_amount == 0 && fundfeeLoss == 0) return;
@@ -44,7 +49,7 @@ contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
         emit FeeHandler.UpdateFee(account, market, fees, _amount);
     }
 
-    function _addFee(uint16 market, bytes calldata fee) external {
+    function SELF_addFee(uint16 market, bytes calldata fee) external {
         if (address(this) != msg.sender) {
             _checkCanCall(msg.sender, msg.data);
         }
@@ -55,19 +60,28 @@ contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
             uint256 minFundingInterval,
             uint256 fundingFeeLossOffLimit
         ) = abi.decode(fee, (uint256, uint256, uint256, uint256, uint256));
-        FeeHandler.Storage().configs[market][uint8(FeeHandler.ConfigType.MaxFRatePerDay)] = maxFRatePerDay;
-        FeeHandler.Storage().configs[market][uint8(FeeHandler.ConfigType.FRateFactor)] = fRateFactor;
-        FeeHandler.Storage().configs[market][uint8(FeeHandler.ConfigType.MinFRate)] = mintFRate;
-        FeeHandler.Storage().configs[market][uint8(FeeHandler.ConfigType.MinFundingInterval)] = minFundingInterval;
-        FeeHandler.Storage().configs[market][uint8(FeeHandler.ConfigType.FundingFeeLossOffLimit)] =
-            fundingFeeLossOffLimit;
+        FeeHandler.Storage().configs[market][
+            uint8(FeeHandler.ConfigType.MaxFRatePerDay)
+        ] = maxFRatePerDay;
+        FeeHandler.Storage().configs[market][
+            uint8(FeeHandler.ConfigType.FRateFactor)
+        ] = fRateFactor;
+        FeeHandler.Storage().configs[market][
+            uint8(FeeHandler.ConfigType.MinFRate)
+        ] = mintFRate;
+        FeeHandler.Storage().configs[market][
+            uint8(FeeHandler.ConfigType.MinFundingInterval)
+        ] = minFundingInterval;
+        FeeHandler.Storage().configs[market][
+            uint8(FeeHandler.ConfigType.FundingFeeLossOffLimit)
+        ] = fundingFeeLossOffLimit;
     }
 
-    function _updateCumulativeFundingRate(uint16 market, uint256 longSize, uint256 shortSize)
-        external
-        override
-        onlySelf
-    {
+    function SELF_updateCumulativeFundingRate(
+        uint16 market,
+        uint256 longSize,
+        uint256 shortSize
+    ) external override onlySelf {
         // TODO too much to do
     }
     // //================================================================
@@ -78,42 +92,71 @@ contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
         FeeHandler.initialize(market);
     }
 
-    function feeWithdraw(uint16 market, address to, uint256 amount) external restricted {
+    function feeWithdraw(
+        uint16 market,
+        address to,
+        uint256 amount
+    ) external restricted {
         // TODO
         address token = MarketHandler.Storage().token[market];
         BalanceHandler.feeToReward(token, market, to, amount);
     }
 
-    function setFeeAndRates(uint16 market, uint8 feeType, uint256 feeAndRate) external restricted {
+    function setFeeAndRates(
+        uint16 market,
+        uint8 feeType,
+        uint256 feeAndRate
+    ) external restricted {
         // TODO
         FeeHandler.Storage().feeAndRates[market][feeType] = feeAndRate;
     }
 
-    function setFundingRates(uint16 market, bool isLong, int256 fundingRate, int256 cumulativeFundingRate)
-        external
-        restricted
-    {
+    function setFundingRates(
+        uint16 market,
+        bool isLong,
+        int256 fundingRate,
+        int256 cumulativeFundingRate
+    ) external restricted {
         FeeHandler.Storage().fundingRates[market][isLong] = fundingRate;
-        FeeHandler.Storage().cumulativeFundingRates[market][isLong] = cumulativeFundingRate;
+        FeeHandler.Storage().cumulativeFundingRates[market][
+            isLong
+        ] = cumulativeFundingRate;
     }
 
-    function setFundingIntervals(uint16 market, uint256 interval) external restricted {
+    function setFundingIntervals(
+        uint16 market,
+        uint256 interval
+    ) external restricted {
         FeeHandler.Storage().fundingIntervals[market] = interval;
     }
 
-    function setFeeConfigs(uint16 market, uint8 configType, uint256 value) external restricted {
+    function setFeeConfigs(
+        uint16 market,
+        uint8 configType,
+        uint256 value
+    ) external restricted {
         FeeHandler.Storage().configs[market][configType] = value;
     }
 
-    function setCalIntervals(uint16 market, uint256 interval) external restricted {
+    function setCalIntervals(
+        uint16 market,
+        uint256 interval
+    ) external restricted {
         FeeHandler.Storage().calIntervals[market] = interval;
     }
 
-    function setLastCalTimes(uint16 market, uint256 lastCalTime) external restricted {
+    function setLastCalTimes(
+        uint16 market,
+        uint256 lastCalTime
+    ) external restricted {
         FeeHandler.Storage().lastCalTimes[market] = lastCalTime;
     }
 
-    function setCalFundingRates(uint16 market, bool isLong, int256 calFundingRate) external restricted {
+    function setCalFundingRates(
+        uint16 market,
+        bool isLong,
+        int256 calFundingRate
+    ) external restricted {
         FeeHandler.Storage().calFundingRates[market][isLong] = calFundingRate;
     }
 
@@ -121,14 +164,20 @@ contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
         FeeHandler.Storage().fundFeeLoss[market] = loss;
     }
 
-    function addSkipTime(uint16 market, uint256 start, uint256 end) external restricted {
+    function addSkipTime(
+        uint16 market,
+        uint256 start,
+        uint256 end
+    ) external restricted {
         // FeeHandler.addSkipTime(market, start, end);
     }
 
     // //================================================
     // // view functions
     // //================================================
-    function getOrderFees(MarketCache calldata data) external view override returns (int256 fees) {
+    function getOrderFees(
+        MarketCache calldata data
+    ) external view override returns (int256 fees) {
         return FeeHandler.getOrderFees(data);
     }
 
@@ -136,37 +185,48 @@ contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
         return FeeHandler.getExecFee(market);
     }
 
-    function getFeesReceivable(MarketCache calldata params, PositionProps calldata position)
-        external
-        view
-        override
-        returns (int256[] memory fees, int256 totalFee)
-    {
+    function getFeesReceivable(
+        MarketCache calldata params,
+        PositionProps calldata position
+    ) external view override returns (int256[] memory fees, int256 totalFee) {
         fees = FeeHandler.getFeesReceivable(params, position);
         totalFee = FeeHandler.totalFees(fees);
     }
 
-    function getFundingRate(uint16 market, bool isLong) internal view returns (int256) {
+    function getFundingRate(
+        uint16 market,
+        bool isLong
+    ) internal view returns (int256) {
         return FeeHandler.getFundingRate(market, isLong);
     }
 
-    function cumulativeFundingRates(uint16 market, bool isLong) external view override returns (int256) {
+    function cumulativeFundingRates(
+        uint16 market,
+        bool isLong
+    ) external view override returns (int256) {
         return FeeHandler.Storage().cumulativeFundingRates[market][isLong];
     }
 
-    function getNextFundingRate(address market, uint256 longSize, uint256 shortSize) public {
+    function getNextFundingRate(
+        address market,
+        uint256 longSize,
+        uint256 shortSize
+    ) public {
         //todo
     }
 
-    function getFundingFee(uint16 market, uint256 size, int256 entryFundingRate, bool isLong)
-        external
-        view
-        returns (int256)
-    {
+    function getFundingFee(
+        uint16 market,
+        uint256 size,
+        int256 entryFundingRate,
+        bool isLong
+    ) external view returns (int256) {
         return FeeHandler.getFundingFee(market, size, entryFundingRate, isLong);
     }
 
-    function getGlobalOpenInterest(uint16 market) public view returns (uint256 _globalSize) {
+    function getGlobalOpenInterest(
+        uint16 market
+    ) public view returns (uint256 _globalSize) {
         MarketHandler.StorageStruct storage $ = MarketHandler.Storage();
         uint256 openInterest = 0;
         EnumerableSet.UintSet storage marketIds = $.marketIds[address(0)];
@@ -178,11 +238,17 @@ contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
         return openInterest;
     }
 
-    function getFeeAndRatesOfMarket(uint16 market)
+    function getFeeAndRatesOfMarket(
+        uint16 market
+    )
         external
         view
         override
-        returns (uint256[] memory fees, int256[] memory fundingRates, int256[] memory _cumulativeFundingRates)
+        returns (
+            uint256[] memory fees,
+            int256[] memory fundingRates,
+            int256[] memory _cumulativeFundingRates
+        )
     {
         //todo merge with getfees?
         fees = new uint256[](uint8(FeeType.Counter));
@@ -193,7 +259,11 @@ contract FeeFacet is IAccessManaged, IFeeFacet, UsingDiamondOwner {
         fundingRates[0] = FeeHandler.Storage().fundingRates[market][true];
         fundingRates[1] = FeeHandler.Storage().fundingRates[market][false];
         _cumulativeFundingRates = new int256[](2);
-        _cumulativeFundingRates[0] = FeeHandler.Storage().cumulativeFundingRates[market][true];
-        _cumulativeFundingRates[1] = FeeHandler.Storage().cumulativeFundingRates[market][false];
+        _cumulativeFundingRates[0] = FeeHandler
+            .Storage()
+            .cumulativeFundingRates[market][true];
+        _cumulativeFundingRates[1] = FeeHandler
+            .Storage()
+            .cumulativeFundingRates[market][false];
     }
 }
