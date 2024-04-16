@@ -13,21 +13,21 @@ jobs:
 
     steps: # 作业步骤
       # 检出代码
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4.2.0
 
       # 设置 Node.js 环境
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20.x # 使用 Node.js 版本 12.x
+          node-version: 20.x # 使用 Node.js 版本 20.x
 
       # 缓存 Yarn 依赖
       - id: yarn-cache
         run: cd projects/market && echo "::set-output name=dir::$(yarn cache dir)" # 设置输出变量以缓存 Yarn 依赖目录
 
-      - uses: actions/cache@v1
+      - uses: actions/cache@v3
         with:
           path: ${{ steps.yarn-cache.outputs.dir }} # 缓存 Yarn 依赖目录
-          key: yarn-${{ hashFiles('**/yarn.lock') }} # 缓存键值，根据 yarn.lock 文件生成
+          key: yarn-${{ hashFiles('projects/market/yarn.lock') }} # 缓存键值，根据 yarn.lock 文件生成
           restore-keys: |
             yarn-  # 恢复缓存的键值
 
