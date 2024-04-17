@@ -55,5 +55,5 @@ jobs:
       - run: git config --global user.email "zhuoqian.zhou@dalveytech.com"
       - run: git config --global user.name "CD Bot"
       - run: git remote set-url --push origin git@github.com:dalveytech-zhuoqian/contracts-v2-fork.git
-      - run: cd projects/market && yarn deploy base_sepolia && git commit -m "Deploy contracts on base sepolia" && git push
+      - run: cd projects/market && yarn deploy base_sepolia && git add projects/market/deployments/base_sepolia && git commit -m "Deploy contracts on base sepolia" && git push
 
