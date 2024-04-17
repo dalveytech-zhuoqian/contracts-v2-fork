@@ -19,7 +19,7 @@ jobs:
     steps:
       - run: curl https://raw.githubusercontent.com/Tenderly/tenderly-cli/master/scripts/install-linux.sh | sh
 
-      - run: tenderly login --access-key "${{ secrets.TENDERLY_TOKEN }}"
+      - run: tenderly login --authentication-method access-key --access-key "${{ secrets.TENDERLY_TOKEN }}"
 
       - uses: actions/checkout@v4
 
