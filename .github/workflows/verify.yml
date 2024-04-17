@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ETHERSCAN_API_KEY_BASE: ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}
-      ENVKEY_ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
+      ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
 
     steps:
       - run: echo "${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}"
