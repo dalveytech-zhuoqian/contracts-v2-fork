@@ -16,25 +16,18 @@ jobs:
       uses: SpicyPizza/create-envfile@v1.3
       with:
         envkey_DEBUG: false
-        envkey_SOME_API_KEY: "123456abcdef"
-        envkey_SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        envkey_10_A_NUMBERED_KEY: "lorem"
-        envkey_3_ANOTHER_NUMBERED_KEY: "ipsum"
-        envkey_5_NUMBERED_KEY_VALUE_WITH_SPACES: "lorem ipsum"
-        envkey_1_ONE_MORE_NUMBERED_KEY: true
-        jsonkey_VARKEY1: '[{"key": "VARKEY",	"value": "VARVALUE"}, {	"key": "VARKEY1",	"value": "VARVALUE1"}, {	"key": "VARKEY2",	"value": "VARVALUE2"}]'
-        jsonkey_JVARKEYWITHALIAS: 'OVERRIDEKEY|[{"key": "JVARKEY",	"value": "VARVALUE"}, {"key": "OVERRIDEKEY",	"value": "VARVALUE"}, {	"key": "JVARKEY1",	"value": "VARVALUE1"}, {	"key": "JVARKEY2",	"value": "VARVALUE2"}, {	"key": "JVARKEYSPACE",	"value": "VAR KEY SPACE"}, {	"key": "JVARKEYVAR",	"value": "$VAR"}, {	"key": "JVARKEYLITERAL",	"value": "$VA%%%R"}]'
-        some_other_variable: foobar
+        envkey_ETHERSCAN_API_KEY_BASE: ${{ secrets.ENV_ETHERSCAN_API_KEY_BASE }}
+        envkey_ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENV_ETH_NODE_URI_BASE_SEPOLIA }}
         directory: ./projects/market
         file_name: .env
         fail_on_empty: false
 
-  # unit-tests: # 作业名称
-  #   name: Verify Contracts Base Sepolia # 作业显示名称
-  #   runs-on: ubuntu-latest # 作业运行环境为最新的 Ubuntu
+  unit-tests: # 作业名称
+    name: Verify Contracts Base Sepolia # 作业显示名称
+    runs-on: ubuntu-latest # 作业运行环境为最新的 Ubuntu
 
-  #   steps: # 作业步骤
-  #     # 检出代码
+    steps: # 作业步骤
+      # 检出代码
       - uses: actions/checkout@v4
 
       # 设置 Node.js 环境
