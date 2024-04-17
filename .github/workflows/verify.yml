@@ -14,12 +14,12 @@ jobs:
       - name: Use Secret
         run: echo "Secret is ${{ secrets.ENV_ETHERSCAN_API_KEY_BASE }}"
         env:
-          SECRET_ENV: ${{ secrets.ENV_ETH_NODE_URI_BASE_SEPOLIA }}
-          
+          SECRET_ENV: base-sepolia
+
       - name: Use Secret
         run: echo "Secret is ${{ secrets.ETHERSCAN_API_KEY_BASE }}"
         env:
-          SECRET_ENV: ${{ secrets.ETH_NODE_URI_BASE_SEPOLIA }}
+          SECRET_ENV: base-sepolia
           
     # steps:
     #   - uses: actions/checkout@v4
