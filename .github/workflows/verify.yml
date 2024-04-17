@@ -8,7 +8,7 @@ on:
 
 jobs:
   create-envfile:
-    environment: staging_environment
+    environment: base-sepolia
     runs-on: ubuntu-latest
     env:
       ETHERSCAN_API_KEY_BASE: ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}
@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - run: echo "${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}"
-      
+
       # - uses: actions/checkout@v4
 
       # # 设置 Node.js 环境
