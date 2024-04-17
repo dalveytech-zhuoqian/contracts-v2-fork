@@ -23,19 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x # 使用 Node.js 版本 20.x
-  
-      缓存 Yarn 依赖
-      - id: yarn-cache
-        run: cd projects/market && echo "::set-output name=dir::$(yarn cache dir)" # 设置输出变量以缓存 Yarn 依赖目录
 
-      - uses: actions/cache@v3
-        with:
-          path: ${{ steps.yarn-cache.outputs.dir }} # 缓存 Yarn 依赖目录
-          key: yarn-${{ hashFiles('projects/market/package-lock.lock') }} # 缓存键值，根据 yarn.lock 文件生成
-          restore-keys: |
-            yarn-  # 恢复缓存的键值
-
-      安装依赖
+      # 安装依赖
       - name: Install submodule
         run: git submodule update --init --recursive
 
