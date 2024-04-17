@@ -39,7 +39,7 @@ jobs:
 
       # verify代码
       - name: Verify
-        run: cd projects/market && yarn verify base_sepolia && cd ../.. # 编译代码
+        run: cd projects/market && yarn verify base_sepolia --sleep && cd ../.. # 编译代码
 
       - name: upload Tenderly
         run: cd projects/market && yarn tenderly:push base_sepolia && cd ../.. # 编译代码
