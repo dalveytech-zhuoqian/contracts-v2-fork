@@ -8,18 +8,21 @@ on:
 
 jobs:
   create-envfile:
+    environment: staging_environment
     runs-on: ubuntu-latest
     env:
       ETHERSCAN_API_KEY_BASE: ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}
       ENVKEY_ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
 
     steps:
-      - uses: actions/checkout@v4
+      - run: echo "${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}"
+      
+      # - uses: actions/checkout@v4
 
-      # 设置 Node.js 环境
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.x # 使用 Node.js 版本 20.x
+      # # 设置 Node.js 环境
+      # - uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 20.x # 使用 Node.js 版本 20.x
   
       # 缓存 Yarn 依赖
       # - id: yarn-cache
@@ -33,16 +36,16 @@ jobs:
       #       yarn-  # 恢复缓存的键值
 
       # 安装依赖
-      - name: Install submodule
-        run: git submodule update --init --recursive
+      # - name: Install submodule
+      #   run: git submodule update --init --recursive
 
-      - name: Install dependencies
-        run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+      # - name: Install dependencies
+      #   run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
 
-      # 编译代码
-      - name: Compile
-        run: cd projects/market && yarn compile && cd ../.. # 编译代码
+      # # 编译代码
+      # - name: Compile
+      #   run: cd projects/market && yarn compile && cd ../.. # 编译代码
 
-      # verify代码
-      - name: Verify
-        run: cd projects/market && yarn verify base_sepolia && cd ../.. # 编译代码
+      # # verify代码
+      # - name: Verify
+      #   run: cd projects/market && yarn verify base_sepolia && cd ../.. # 编译代码
