@@ -15,7 +15,7 @@ import { node_url, accounts, addForkConfiguration } from "./utils/network";
 
 const config: HardhatUserConfig = {
   typechain: {
-    externalArtifacts: ["deployments/localhost/MarketDiamond.json"],
+    externalArtifacts: ["deployments/MarketDiamond.json"],
   },
   solidity: {
     compilers: [
