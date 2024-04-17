@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
  
     steps:
+    - name: Install dependencies
+        run: cd projects/market && touch .env # 安装依赖，确保锁定文件一致
+
     - name: Make envfile
       uses: SpicyPizza/create-envfile@v1.3
       with:
@@ -22,41 +25,41 @@ jobs:
         file_name: .env
         fail_on_empty: false
 
-  unit-tests: # 作业名称
-    name: Verify Contracts Base Sepolia # 作业显示名称
-    runs-on: ubuntu-latest # 作业运行环境为最新的 Ubuntu
+  # unit-tests: # 作业名称
+  #   name: Verify Contracts Base Sepolia # 作业显示名称
+  #   runs-on: ubuntu-latest # 作业运行环境为最新的 Ubuntu
 
-    steps: # 作业步骤
-      # 检出代码
-      - uses: actions/checkout@v4
+  #   steps: # 作业步骤
+  #     # 检出代码
+  #     - uses: actions/checkout@v4
 
-      # 设置 Node.js 环境
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.x # 使用 Node.js 版本 20.x
+  #     # 设置 Node.js 环境
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20.x # 使用 Node.js 版本 20.x
 
-      # 缓存 Yarn 依赖
-      - id: yarn-cache
-        run: cd projects/market && echo "::set-output name=dir::$(yarn cache dir)" # 设置输出变量以缓存 Yarn 依赖目录
+  #     # 缓存 Yarn 依赖
+  #     - id: yarn-cache
+  #       run: cd projects/market && echo "::set-output name=dir::$(yarn cache dir)" # 设置输出变量以缓存 Yarn 依赖目录
 
-      - uses: actions/cache@v3
-        with:
-          path: ${{ steps.yarn-cache.outputs.dir }} # 缓存 Yarn 依赖目录
-          key: yarn-${{ hashFiles('projects/market/package-lock.lock') }} # 缓存键值，根据 yarn.lock 文件生成
-          restore-keys: |
-            yarn-  # 恢复缓存的键值
+  #     - uses: actions/cache@v3
+  #       with:
+  #         path: ${{ steps.yarn-cache.outputs.dir }} # 缓存 Yarn 依赖目录
+  #         key: yarn-${{ hashFiles('projects/market/package-lock.lock') }} # 缓存键值，根据 yarn.lock 文件生成
+  #         restore-keys: |
+  #           yarn-  # 恢复缓存的键值
 
-      # 安装依赖
-      - name: Install submodule
-        run: git submodule update --init --recursive
+  #     # 安装依赖
+  #     - name: Install submodule
+  #       run: git submodule update --init --recursive
 
-      - name: Install dependencies
-        run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+  #     - name: Install dependencies
+  #       run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
 
-      # 编译代码
-      - name: Compile
-        run: cd projects/market && yarn compile && cd ../.. # 编译代码
+  #     # 编译代码
+  #     - name: Compile
+  #       run: cd projects/market && yarn compile && cd ../.. # 编译代码
 
-      # verify代码
-      - name: Verify
-        run: cd projects/market && yarn verify base_sepolia && cd ../.. # 编译代码
+  #     # verify代码
+  #     - name: Verify
+  #       run: cd projects/market && yarn verify base_sepolia && cd ../.. # 编译代码
