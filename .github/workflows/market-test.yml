@@ -2,9 +2,9 @@ name: Tests # 工作流名称
 
 on:
   push:
-    paths: 
-      - 'projects/market/src/**' 
-      - 'projects/market/test/**'
+    # paths: 
+    #   - 'projects/market/src/**' 
+    #   - 'projects/market/test/**'
     branches:
       - dev # 当 main 分支有代码推送时触发工作流
 
