@@ -10,30 +10,39 @@ jobs:
   create-envfile:
  
     runs-on: ubuntu-latest
- 
     steps:
-      - uses: actions/checkout@v4
+      - name: Use Secret
+        run: echo "Secret is ${{ secrets.ENV_ETHERSCAN_API_KEY_BASE }}"
+        env:
+          SECRET_ENV: ${{ secrets.ENV_ETH_NODE_URI_BASE_SEPOLIA }}
+          
+    # steps:
+    #   - uses: actions/checkout@v4
 
-      # 设置 Node.js 环境
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.x # 使用 Node.js 版本 20.x
+    #   # 设置 Node.js 环境
+    #   - uses: actions/setup-node@v4
+    #     with:
+    #       node-version: 20.x # 使用 Node.js 版本 20.x
   
-      - name: Install dependencies
-        run: cd projects/market && touch .env # 安装依赖，确保锁定文件一致
 
-      - name: Make envfile
-        uses: SpicyPizza/create-envfile@v1.3
-        with:
-          envkey_DEBUG: false
-          envkey_ETHERSCAN_API_KEY_BASE: ${{ secrets.ENV_ETHERSCAN_API_KEY_BASE }}
-          envkey_ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENV_ETH_NODE_URI_BASE_SEPOLIA }}
-          directory: ./projects/market
-          file_name: .env
-          fail_on_empty: false
+    #   - name: Install dependencies
+    #     run: cd projects/market && touch .env # 安装依赖，确保锁定文件一致
 
-      - name: cat .env
-        run: cd projects/market && cat .env # 安装依赖，确保锁定文件一致
+    #   - name: Install dependencies
+    #     run: cd projects/market && touch .env # 安装依赖，确保锁定文件一致
+
+    #   - name: Make envfile
+    #     uses: SpicyPizza/create-envfile@v1.3
+    #     with:
+    #       envkey_DEBUG: false
+    #       envkey_ETHERSCAN_API_KEY_BASE: ${{ secrets.ENV_ETHERSCAN_API_KEY_BASE }}
+    #       envkey_ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENV_ETH_NODE_URI_BASE_SEPOLIA }}
+    #       directory: ./projects/market
+    #       file_name: .env
+    #       fail_on_empty: false
+
+    #   - name: cat .env
+    #     run: cd projects/market && cat .env # 安装依赖，确保锁定文件一致
 
       # # 缓存 Yarn 依赖
       # - id: yarn-cache
