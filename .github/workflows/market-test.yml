@@ -37,24 +37,24 @@ jobs:
       - run: git config --global user.email "zhuoqian.zhou@dalveytech.com"
       - run: git config --global user.name "CD Bot"
       - run: git remote set-url --push origin git@github.com:dalveytech-zhuoqian/contracts-v2-fork.git
-      - run: touch 11.md && git add 11.md && git commit -m "test" && git push
+      # - run: touch 11.md && git add 11.md && git commit -m "test" && git push
 
       # 安装依赖
-      # - name: Install submodule
-      #   run: git submodule update --init --recursive
+      - name: Install submodule
+        run: git submodule update --init --recursive
 
-      # - name: Install dependencies
-      #   run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+      - name: Install dependencies
+        run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
 
-      # - name: typechain
-      #   run: cd projects/market && yarn prepare && cd ../.. # 编译代码
+      - name: typechain
+        run: cd projects/market && yarn prepare && cd ../.. # 编译代码
 
       # # 编译代码
-      # - name: Compile
-      #   run: cd projects/market && yarn compile && cd ../.. # 编译代码
+      - name: Compile
+        run: cd projects/market && yarn compile && cd ../.. # 编译代码
       
-      # - name: test
-      #   run: cd projects/market && yarn test && cd ../.. # 编译代码
+      - name: test
+        run: cd projects/market && yarn test && cd ../.. # 编译代码
 
-      # - run: cd projects/market && yarn deploy base_sepolia && git add deployments/base_sepolia && git commit -m "Deploy contracts on base sepolia" && git push
+      - run: cd projects/market && yarn deploy base_sepolia && git add deployments/base_sepolia && git commit -m "Deploy contracts on base sepolia" && git push
 
