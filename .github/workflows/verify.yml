@@ -12,10 +12,11 @@ jobs:
     env:
       ETHERSCAN_API_KEY_BASE: ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}
       ENVKEY_ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
-
-      # # 缓存 Yarn 依赖
-      # - id: yarn-cache
-      #   run: cd projects/market && echo "::set-output name=dir::$(yarn cache dir)" # 设置输出变量以缓存 Yarn 依赖目录
+      
+    steps:
+      # 缓存 Yarn 依赖
+      - id: yarn-cache
+        run: cd projects/market && echo "::set-output name=dir::$(yarn cache dir)" # 设置输出变量以缓存 Yarn 依赖目录
 
       # - uses: actions/cache@v3
       #   with:
