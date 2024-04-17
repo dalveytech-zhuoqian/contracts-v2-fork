@@ -2,9 +2,10 @@ name: Tests # 工作流名称
 
 on:
   push:
+    paths: 
+      - 'projects/market/**'
     branches:
       - dev # 当 main 分支有代码推送时触发工作流
-  pull_request: # 当有 pull request 时触发工作流
 
 jobs:
   market-verify:
