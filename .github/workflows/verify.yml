@@ -12,12 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Use Secret
-        run: echo "Secret is ${{ secrets.ENV_ETHERSCAN_API_KEY_BASE }}"
-        env:
-          SECRET_ENV: base-sepolia
-
-      - name: Use Secret
-        run: echo "Secret is ${{ secrets.ETHERSCAN_API_KEY_BASE }}"
+        run: echo "Secret is ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}"
         env:
           SECRET_ENV: base-sepolia
           
