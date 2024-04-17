@@ -17,7 +17,9 @@ jobs:
       TENDERLY_USERNAME: ${{ secrets.TENDERLY_USERNAME }}
 
     steps:
-      - run: echo "${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}"
+      - run: curl https://raw.githubusercontent.com/Tenderly/tenderly-cli/master/scripts/install-linux.sh | sh
+
+      - run: tenderly login --access-key "${{ secrets.TENDERLY_TOKEN }}"
 
       - uses: actions/checkout@v4
 
@@ -42,4 +44,4 @@ jobs:
         run: cd projects/market && yarn verify base_sepolia --sleep && cd ../.. # 编译代码
 
       - name: upload Tenderly
-        run: cd projects/market && yarn tenderly:push base_sepolia && cd ../.. # 编译代码
+        run: cd projects/market && yarn tenderly:verify base_sepolia && cd ../.. # 编译代码
