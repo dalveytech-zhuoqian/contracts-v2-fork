@@ -27,12 +27,12 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: ${{ steps.yarn-cache.outputs.dir }} # 缓存 Yarn 依赖目录
-          key: yarn-${{ hashFiles('projects/market/yarn.lock') }} # 缓存键值，根据 yarn.lock 文件生成
+          key: yarn-${{ hashFiles('projects/market/package-lock.lock') }} # 缓存键值，根据 yarn.lock 文件生成
           restore-keys: |
             yarn-  # 恢复缓存的键值
 
       # 安装依赖
-      - name: Install dependencies
+      - name: Install submodule
         run: git submodule update --init --recursive
 
       - name: Install dependencies
