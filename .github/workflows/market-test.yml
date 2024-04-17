@@ -34,7 +34,7 @@ jobs:
 
       # verify代码
       - name: market diamond abi
-        run: cd projects/market && yarn deploy localhost && cd ../.. # 编译代码
+        run: cd projects/market && yarn dev && cd ../.. # 编译代码
 
       - name: typechain
         run: cd projects/market && yarn hardhat typechain && cd ../.. # 编译代码
