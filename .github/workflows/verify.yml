@@ -41,4 +41,7 @@ jobs:
       # 编译代码
       - name: Compile
         run: cd projects/market && yarn compile && cd ../.. # 编译代码
- 
+
+      # verify代码
+      - name: Verify
+        run: cd projects/market && yarn verify base_sepolia && cd ../.. # 编译代码
