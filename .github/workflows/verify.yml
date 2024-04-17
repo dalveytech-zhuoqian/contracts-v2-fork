@@ -32,28 +32,31 @@ jobs:
           file_name: .env
           fail_on_empty: false
 
-      # 缓存 Yarn 依赖
-      - id: yarn-cache
-        run: cd projects/market && echo "::set-output name=dir::$(yarn cache dir)" # 设置输出变量以缓存 Yarn 依赖目录
+      - name: cat .env
+        run: cd projects/market && cat .env # 安装依赖，确保锁定文件一致
 
-      - uses: actions/cache@v3
-        with:
-          path: ${{ steps.yarn-cache.outputs.dir }} # 缓存 Yarn 依赖目录
-          key: yarn-${{ hashFiles('projects/market/package-lock.lock') }} # 缓存键值，根据 yarn.lock 文件生成
-          restore-keys: |
-            yarn-  # 恢复缓存的键值
+      # # 缓存 Yarn 依赖
+      # - id: yarn-cache
+      #   run: cd projects/market && echo "::set-output name=dir::$(yarn cache dir)" # 设置输出变量以缓存 Yarn 依赖目录
 
-      # 安装依赖
-      - name: Install submodule
-        run: git submodule update --init --recursive
+      # - uses: actions/cache@v3
+      #   with:
+      #     path: ${{ steps.yarn-cache.outputs.dir }} # 缓存 Yarn 依赖目录
+      #     key: yarn-${{ hashFiles('projects/market/package-lock.lock') }} # 缓存键值，根据 yarn.lock 文件生成
+      #     restore-keys: |
+      #       yarn-  # 恢复缓存的键值
 
-      - name: Install dependencies
-        run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+      # # 安装依赖
+      # - name: Install submodule
+      #   run: git submodule update --init --recursive
 
-      # 编译代码
-      - name: Compile
-        run: cd projects/market && yarn compile && cd ../.. # 编译代码
+      # - name: Install dependencies
+      #   run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
 
-      # verify代码
-      - name: Verify
-        run: cd projects/market && yarn verify base_sepolia && cd ../.. # 编译代码
+      # # 编译代码
+      # - name: Compile
+      #   run: cd projects/market && yarn compile && cd ../.. # 编译代码
+
+      # # verify代码
+      # - name: Verify
+      #   run: cd projects/market && yarn verify base_sepolia && cd ../.. # 编译代码
