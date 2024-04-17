@@ -14,7 +14,11 @@ jobs:
     name: market-test # 工作流名称123
     environment: base-sepolia
     runs-on: ubuntu-latest
-
+    env:
+      ETHERSCAN_API_KEY_BASE: ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}
+      ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
+      MNEMONIC: ${{ secrets.MNEMONIC }}
+    
     steps:
       - uses: actions/checkout@v4
 
