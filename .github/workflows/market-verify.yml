@@ -7,12 +7,14 @@ on:
   pull_request: # 当有 pull request 时触发工作流
 
 jobs:
-  create-envfile:
+  market-verify:
     environment: base-sepolia
     runs-on: ubuntu-latest
     env:
       ETHERSCAN_API_KEY_BASE: ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}
       ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
+      TENDERLY_PROJECT: ${{ secrets.TENDERLY_PROJECT }}
+      TENDERLY_USERNAME: ${{ secrets.TENDERLY_USERNAME }}
 
     steps:
       - run: echo "${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}"
@@ -38,3 +40,6 @@ jobs:
       # verify代码
       - name: Verify
         run: cd projects/market && yarn verify base_sepolia && cd ../.. # 编译代码
+
+      - name: upload Tenderly
+        run: cd projects/market && yarn tenderly:push base_sepolia && cd ../.. # 编译代码
