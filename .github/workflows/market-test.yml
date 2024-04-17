@@ -9,7 +9,7 @@ on:
       - dev # 当 main 分支有代码推送时触发工作流
 
 jobs:
-  market-verify:
+  market-test:
     # environment: base-sepolia
     runs-on: ubuntu-latest
 
