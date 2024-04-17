@@ -28,17 +28,13 @@ jobs:
       - name: Install dependencies
         run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
 
+      - name: typechain
+        run: cd projects/market && yarn prepare && cd ../.. # 编译代码
+
       # 编译代码
       - name: Compile
         run: cd projects/market && yarn compile && cd ../.. # 编译代码
-
-      # verify代码
-      - name: market diamond abi
-        run: cd projects/market && yarn dev && cd ../.. # 编译代码
-
-      - name: typechain
-        run: cd projects/market && yarn hardhat typechain && cd ../.. # 编译代码
-
+      
       - name: test
         run: cd projects/market && yarn test && cd ../.. # 编译代码
 
