@@ -68,6 +68,7 @@ const config: HardhatUserConfig = {
     base_sepolia: {
       url: node_url("base_sepolia"),
       accounts: accounts(),
+      chainId: 84532,
       verify: {
         etherscan: {
           apiUrl: "https://api-sepolia.basescan.org",
