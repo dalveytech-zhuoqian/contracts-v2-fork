@@ -3,7 +3,7 @@ name: market-verify # 工作流名称
 on:
   push:
     tags:
-      - 'release/*/*/*'
+      - 'release/base_sepolia/**' # Match tags with format release/xxx
 
 jobs:
   market-verify:
@@ -21,25 +21,6 @@ jobs:
       - run: tenderly login --authentication-method access-key --access-key "${{ secrets.TENDERLY_TOKEN }}"
 
       - uses: actions/checkout@v4
-
-      - name: Extract Network and Project Name
-        id: extract
-        run: |
-          TAG_REF=${GITHUB_REF/refs\/tags\/release\//}
-          IFS='/' read -ra ADDR <<< "$TAG_REF"
-          echo "Network Name: ${ADDR[0]}"
-          echo "Project Name: ${ADDR[1]}"
-          echo "Version: ${ADDR[2]}"
-          echo "::set-output name=network_name::${ADDR[0]}"
-          echo "::set-output name=project_name::${ADDR[1]}"
-          echo "::set-output name=version::${ADDR[2]}"
-
-      - name: Use Variables
-        run: |
-          echo "Network Name: ${{ steps.extract.outputs.network_name }}"
-          echo "Project Name: ${{ steps.extract.outputs.project_name }}"
-          echo "Project Name: ${{ steps.extract.outputs.version }}"
-
 
       # 设置 Node.js 环境
       - uses: actions/setup-node@v4
@@ -65,15 +46,15 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
-        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+        run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
 
       # 编译代码
       - name: Compile
-        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn compile && cd ../.. # 编译代码
+        run: cd projects/market && yarn compile && cd ../.. # 编译代码
 
       # verify代码
       - name: Verify
-        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn verify ${{ steps.extract.outputs.network_name }} --sleep && cd ../.. # 编译代码
+        run: cd projects/market && yarn verify base_sepolia --sleep && cd ../.. # 编译代码
 
       - name: upload Tenderly
-        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn tenderly:verify ${{ steps.extract.outputs.network_name }} && cd ../.. # 编译代码
+        run: cd projects/market && yarn tenderly:verify base_sepolia && cd ../.. # 编译代码
