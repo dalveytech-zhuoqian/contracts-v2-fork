@@ -1,17 +1,16 @@
-name: Tests # 工作流名称
+name: Deploy # 工作流名称
 
 on:
   push:
     paths: 
       - '.github/**'
-      # - 'projects/market/src/**' 
-    #   - 'projects/market/test/**'
+      - 'projects/market/src/**' 
+      - 'projects/market/test/**'
     branches:
-      - dev # 当 main 分支有代码推送时触发工作流
+      - base_sepolia # 当 main 分支有代码推送时触发工作流
 
 jobs:
   market-test:
-    name: market-test # 工作流名称123
     environment: base-sepolia
     runs-on: ubuntu-latest
     env:
@@ -56,5 +55,6 @@ jobs:
       - name: test
         run: cd projects/market && yarn test && cd ../.. # 编译代码
 
-      - run: cd projects/market && yarn deploy base_sepolia && git add deployments/base_sepolia && git commit -m "Deploy contracts on base sepolia" && git push
+      - run: cd projects/market && yarn deploy base_sepolia && git add deployments/base_sepolia && git commit -m "Deploy contracts on base sepolia" && git push && git tag release/base_sepolia/$(date +'%Y%m%d%H%M%S') && git push origin --tags
+
 
