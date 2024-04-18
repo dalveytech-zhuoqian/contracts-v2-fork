@@ -3,7 +3,7 @@ name: Deploy # 工作流名称
 on:
   push:
     tags:
-      - 'release/*/*/*'
+      - 'pre-release/*/*/*'
 
 jobs:
   market-test:
@@ -57,19 +57,18 @@ jobs:
         run: git submodule update --init --recursive
 
       - name: Install dependencies
-        run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
 
       - name: typechain
-        run: cd projects/market && yarn prepare && cd ../.. # 编译代码
+        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn prepare && cd ../.. 
 
-      # # 编译代码
       - name: Compile
-        run: cd projects/market && yarn compile && cd ../.. # 编译代码
+        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn compile && cd ../.. 
       
       - name: test
-        run: cd projects/market && yarn test && cd ../.. # 编译代码
+        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn test && cd ../.. 
 
       - name: deploy, commit, push tag
-        run: cd projects/market && yarn deploy ${{ steps.extract.outputs.network_name }} && git add deployments/${{ steps.extract.outputs.network_name }} && git commit -m "Deploy contracts" && git push && git tag release/${{ steps.extract.outputs.network_name }}/${{ steps.extract.outputs.project_name }}/${{ steps.extract.outputs.version }} && git push origin --tags
+        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn deploy ${{ steps.extract.outputs.network_name }} && git add deployments/${{ steps.extract.outputs.network_name }} && git commit -m "Deploy contracts" && git push && git tag release/${{ steps.extract.outputs.network_name }}/${{ steps.extract.outputs.project_name }}/${{ steps.extract.outputs.version }} && git push origin --tags
 
 
