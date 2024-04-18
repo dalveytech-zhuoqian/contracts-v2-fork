@@ -2,12 +2,8 @@ name: Deploy # 工作流名称
 
 on:
   push:
-    paths: 
-      - '.github/**'
-      - 'projects/market/src/**' 
-      - 'projects/market/test/**'
-    branches:
-      - base_sepolia # 当 main 分支有代码推送时触发工作流
+    tags:
+      - 'release/*/*/*'
 
 jobs:
   market-test:
@@ -20,6 +16,24 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Extract Network and Project Name
+        id: extract
+        run: |
+          TAG_REF=${GITHUB_REF/refs\/tags\/release\//}
+          IFS='/' read -ra ADDR <<< "$TAG_REF"
+          echo "Network Name: ${ADDR[0]}"
+          echo "Project Name: ${ADDR[1]}"
+          echo "Version: ${ADDR[2]}"
+          echo "::set-output name=network_name::${ADDR[0]}"
+          echo "::set-output name=project_name::${ADDR[1]}"
+          echo "::set-output name=version::${ADDR[2]}"
+
+      - name: Use Variables
+        run: |
+          echo "Network Name: ${{ steps.extract.outputs.network_name }}"
+          echo "Project Name: ${{ steps.extract.outputs.project_name }}"
+          echo "Project Name: ${{ steps.extract.outputs.version }}"
 
       # 设置 Node.js 环境
       - uses: actions/setup-node@v4
@@ -55,6 +69,7 @@ jobs:
       - name: test
         run: cd projects/market && yarn test && cd ../.. # 编译代码
 
-      - run: cd projects/market && yarn deploy base_sepolia && git add deployments/base_sepolia && git commit -m "Deploy contracts on base sepolia" && git push && git tag release/base_sepolia/$(date +'%Y%m%d%H%M%S') && git push origin --tags
+      - name: deploy, commit, push tag
+        run: cd projects/market && yarn deploy ${{ steps.extract.outputs.network_name }} && git add deployments/${{ steps.extract.outputs.network_name }} && git commit -m "Deploy contracts" && git push && git tag release/${{ steps.extract.outputs.network_name }}/${{ steps.extract.outputs.project_name }}/${{ steps.extract.outputs.version }} && git push origin --tags
 
 
