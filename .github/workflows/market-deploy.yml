@@ -2,8 +2,12 @@ name: Deploy # 工作流名称
 
 on:
   push:
-    tags:
-      - 'pre-release/*/*/*'
+    paths: 
+      - '.github/workflows/market-deploy.yml'
+      - 'projects/market/src/**' 
+      - 'projects/market/test/**'
+    branches:
+      - base_sepolia # 当 main 分支有代码推送时触发工作流
 
 jobs:
   market-test:
@@ -16,29 +20,26 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Extract Network and Project Name
-        id: extract
-        run: |
-          TAG_REF=${GITHUB_REF/refs\/tags\/release\//}
-          IFS='/' read -ra ADDR <<< "$TAG_REF"
-          echo "Network Name: ${ADDR[0]}"
-          echo "Project Name: ${ADDR[1]}"
-          echo "Version: ${ADDR[2]}"
-          echo "::set-output name=network_name::${ADDR[0]}"
-          echo "::set-output name=project_name::${ADDR[1]}"
-          echo "::set-output name=version::${ADDR[2]}"
-
-      - name: Use Variables
-        run: |
-          echo "Network Name: ${{ steps.extract.outputs.network_name }}"
-          echo "Project Name: ${{ steps.extract.outputs.project_name }}"
-          echo "Project Name: ${{ steps.extract.outputs.version }}"
 
       # 设置 Node.js 环境
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x # 使用 Node.js 版本 20.x
+          
+      - name: Get Yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: Cache Yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
       - run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.ID_RSA }}" > ~/.ssh/id_rsa
@@ -57,18 +58,18 @@ jobs:
         run: git submodule update --init --recursive
 
       - name: Install dependencies
-        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+        run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
 
       - name: typechain
-        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn prepare && cd ../.. 
+        run: cd projects/market && yarn prepare && cd ../.. # 编译代码
 
+      # # 编译代码
       - name: Compile
-        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn compile && cd ../.. 
+        run: cd projects/market && yarn compile && cd ../.. # 编译代码
       
       - name: test
-        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn test && cd ../.. 
+        run: cd projects/market && yarn test && cd ../.. # 编译代码
 
-      - name: deploy, commit, push tag
-        run: cd projects/${{ steps.extract.outputs.project_name }} && yarn deploy ${{ steps.extract.outputs.network_name }} && git add deployments/${{ steps.extract.outputs.network_name }} && git commit -m "Deploy contracts" && git push && git tag release/${{ steps.extract.outputs.network_name }}/${{ steps.extract.outputs.project_name }}/${{ steps.extract.outputs.version }} && git push origin --tags
+      - run: cd projects/market && yarn deploy base_sepolia && git add deployments/base_sepolia && git commit -m "Deploy contracts on base sepolia" && git push && git tag release/base_sepolia/$(date +'%Y%m%d%H%M%S') && git push origin --tags
 
 
