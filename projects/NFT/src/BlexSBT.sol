@@ -981,7 +981,6 @@ contract BlexSBT is ERC721URIStorage {
 
     mapping(address => string) public personToDegree;
     mapping(address => bool) public issuedDegrees;
-    mapping(address => bool) public personAlreadyClaimed;
 
     modifier onlyContractOwner() {
         require(msg.sender == contractOwner);
@@ -1002,7 +1001,6 @@ contract BlexSBT is ERC721URIStorage {
 
     function claimDegree(string memory __tokenURI) public returns (uint256) {
         require(issuedDegrees[msg.sender], "Degree is not issued");
-        require(!personAlreadyClaimed[msg.sender], "Already claimed");
 
         _tokenIds.increment();
 
@@ -1012,8 +1010,6 @@ contract BlexSBT is ERC721URIStorage {
 
         personToDegree[msg.sender] = __tokenURI;
         issuedDegrees[msg.sender] = false;
-        personAlreadyClaimed[msg.sender] = true;
-
         return newItemId;
     }
 

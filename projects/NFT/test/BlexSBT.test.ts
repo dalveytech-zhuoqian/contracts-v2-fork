@@ -58,7 +58,7 @@ describe("BlexSBT",function () {
       // same user claimDegree different tokenURI will be reverted
       const tokenURI3 = "https://ipfs.io/ipfs/QmZz2";
       const handle3 = users[0].BlexSBT.claimDegree(tokenURI3);
-      await expect(waitFor(handle3)).to.be.revertedWith("Already claimed");
+      await expect(handle3).to.be.revertedWith("Degree is not issued");
     }
   });
 });
