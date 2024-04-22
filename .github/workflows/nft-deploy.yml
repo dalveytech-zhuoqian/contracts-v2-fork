@@ -1,7 +1,7 @@
 name: Deploy # 工作流名称
 
 on:
-  workflow: add manual trigger
+  workflow_dispatch:
   push:
     paths: 
       - '.github/workflows/nft-deploy.yml'
