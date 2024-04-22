@@ -1,0 +1,52 @@
+name: nft-Deploy # 工作流名称
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  nft-test:
+    environment: base-sepolia
+    runs-on: ubuntu-latest
+    env:
+      ETHERSCAN_API_KEY_BASE: ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}
+      ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
+      PK_TEST: ${{ secrets.PK_TEST }}
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      # 设置 Node.js 环境
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x # 使用 Node.js 版本 20.x
+          
+      - name: Get Yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: Cache Yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      # 安装依赖
+      - name: Install submodule
+        run: git submodule update --init --recursive
+
+      - name: Install dependencies
+        run: cd projects/NFT && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+
+      - name: typechain
+        run: cd projects/NFT && yarn prepare && cd ../.. # 编译代码
+
+      # # 编译代码
+      - name: Compile
+        run: cd projects/NFT && yarn compile && cd ../.. # 编译代码
+      
+      - name: test
+        run: cd projects/NFT && yarn execute base_sepolia ./scripts/issue.ts
