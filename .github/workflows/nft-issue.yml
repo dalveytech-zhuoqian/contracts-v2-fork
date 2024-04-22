@@ -1,8 +1,6 @@
-name: nft-Deploy # 工作流名称
-
 on:
   workflow_dispatch:
-  
+
 jobs:
   nft-test:
     environment: base-sepolia
@@ -11,7 +9,7 @@ jobs:
       ETHERSCAN_API_KEY_BASE: ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}
       ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
       PK_TEST: ${{ secrets.PK_TEST }}
-    
+
     steps:
       - uses: actions/checkout@v4
 
@@ -19,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x # 使用 Node.js 版本 20.x
-          
+
       - name: Get Yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -47,6 +45,6 @@ jobs:
       # # 编译代码
       - name: Compile
         run: cd projects/NFT && yarn compile && cd ../.. # 编译代码
-      
+
       - name: test
         run: cd projects/NFT && yarn execute base_sepolia ./scripts/issue.ts
