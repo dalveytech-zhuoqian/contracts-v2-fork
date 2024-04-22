@@ -1,9 +1,14 @@
 // test BlexSBT contracts
-import { ethers,deployments,getUnnamedAccounts,getNamedAccounts } from "hardhat";
+import {
+  ethers,
+  deployments,
+  getUnnamedAccounts,
+  getNamedAccounts,
+} from "hardhat";
 import { BlexSBT } from "../typechain-types";
 import { waitFor } from "../utils/wait";
 import roleIds from "../utils/roleIds";
-import { setupUser,setupUsers } from "./utils";
+import { setupUser, setupUsers } from "./utils";
 import { expect } from "chai";
 
 const setup = deployments.createFixture(async () => {
@@ -11,19 +16,37 @@ const setup = deployments.createFixture(async () => {
   const { deployer } = await getNamedAccounts();
 
   const contracts = {
-    BlexSBT: await ethers.getContract<BlexSBT>("BlexSBT")
+    BlexSBT: await ethers.getContract<BlexSBT>("BlexSBT"),
   };
-  const users = await setupUsers(await getUnnamedAccounts(),contracts);
+  const users = await setupUsers(await getUnnamedAccounts(), contracts);
   return {
     ...contracts,
     users,
-    deployer: await setupUser(deployer,contracts)
+    deployer: await setupUser(deployer, contracts),
   };
 });
 
-describe("BlexSBT",function () {
-  it("issueDegrees sucessful",async function () {
-    const { deployer,users } = await setup();
+describe("BlexSBT", function () {
+  it("initialize revert", async function () {
+    const { deployer, users } = await setup();
+    const handle = deployer.BlexSBT.initialize("name", "symbol");
+    await expect(handle).to.be.reverted;
+  });
+
+  it("transferContractOwnership", async function () {
+    const { deployer, users } = await setup();
+    const handle = users[0].BlexSBT.transferContractOwnership(users[0].address);
+    await expect(handle).to.be.reverted;
+  });
+
+  it("issueDegrees reverted", async function () {
+    const { deployer, users } = await setup();
+    await expect(users[0].BlexSBT.issueDegrees([users[0].address])).to.be
+      .reverted;
+  });
+
+  it("issueDegrees sucessful", async function () {
+    const { deployer, users } = await setup();
 
     await waitFor(deployer.BlexSBT.issueDegrees([users[0].address]));
     // check issuedDegrees
@@ -31,8 +54,8 @@ describe("BlexSBT",function () {
     expect(issueState).to.be.true;
   });
 
-  it("issueDegrees and claimDegree",async function () {
-    const { deployer,users } = await setup();
+  it("issueDegrees and claimDegree", async function () {
+    const { deployer, users } = await setup();
     await waitFor(deployer.BlexSBT.issueDegrees([users[0].address]));
 
     // claimDegree
@@ -45,8 +68,8 @@ describe("BlexSBT",function () {
     expect(uri).to.be.equal(tokenURI);
   });
 
-  it("issueDegrees and claimDegree twice will be reverted",async function () {
-    const { deployer,users } = await setup();
+  it("issueDegrees and claimDegree twice will be reverted", async function () {
+    const { deployer, users } = await setup();
     await waitFor(deployer.BlexSBT.issueDegrees([users[0].address]));
 
     // claimDegree
