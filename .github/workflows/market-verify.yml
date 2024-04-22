@@ -1,6 +1,7 @@
 name: market-verify # 工作流名称
 
 on:
+  workflow: add manual trigger
   push:
     tags:
       - 'release/base_sepolia/**' # Match tags with format release/xxx
