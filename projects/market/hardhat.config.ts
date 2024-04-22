@@ -67,7 +67,7 @@ const config: HardhatUserConfig = {
     },
     base_sepolia: {
       url: node_url("base_sepolia"),
-      accounts: accounts(),
+      accounts: [process.env.PK_TEST as string],
       chainId: 84532,
       verify: {
         etherscan: {
