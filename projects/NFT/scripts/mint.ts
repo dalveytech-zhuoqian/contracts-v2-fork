@@ -1,12 +1,12 @@
-import { ethers, deployments, getNamedAccounts } from "hardhat";
-import { BLEX } from "../typechain-types";
+import { ethers,deployments,getNamedAccounts } from "hardhat";
+import { BlexSBT } from "../typechain-types";
 import { waitFor } from "../utils/wait";
 
 async function mint(addressList: string[]) {
   const { deployer } = await getNamedAccounts();
   console.log(deployer);
-  const targetContract = await ethers.getContract<BLEX>("BLEX");
-  await waitFor(targetContract.connect(await ethers.getSigner(deployer)).mint(addressList));
+  const targetContract = await ethers.getContract<BlexSBT>("BlexSBT");
+  await waitFor(targetContract.connect(await ethers.getSigner(deployer)).issueDegrees(addressList));
   console.log("mint success");
 }
 

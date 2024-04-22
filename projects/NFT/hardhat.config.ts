@@ -42,10 +42,7 @@ const config: HardhatUserConfig = {
     ]
   },
   namedAccounts: {
-    deployer: 10,
-    simpleERC20Beneficiary: 11,
-    diamondAdmin: 10,
-    accessManagerAdmin: 10
+    deployer: 0,
   },
   networks: addForkConfiguration({
     hardhat: {
@@ -67,7 +64,7 @@ const config: HardhatUserConfig = {
     },
     base_sepolia: {
       url: node_url("base_sepolia"),
-      accounts: accounts(),
+      accounts: [process.env.PK_TEST as string],
       verify: {
         etherscan: {
           apiUrl: "https://api-sepolia.basescan.org",
