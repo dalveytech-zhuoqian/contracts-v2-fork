@@ -5,7 +5,6 @@ on:
     paths: 
       - '.github/workflows/nft-deploy.yml'
       - 'projects/NFT/src/**' 
-      - 'projects/NFT/test/**'
     branches:
       - base_sepolia # 当 main 分支有代码推送时触发工作流
 
