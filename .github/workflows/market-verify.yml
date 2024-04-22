@@ -14,6 +14,7 @@ jobs:
       ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
       TENDERLY_PROJECT: ${{ secrets.TENDERLY_PROJECT }}
       TENDERLY_USERNAME: ${{ secrets.TENDERLY_USERNAME }}
+      PK_TEST: ${{ secrets.PK_TEST }}
 
     steps:
       - run: curl https://raw.githubusercontent.com/Tenderly/tenderly-cli/master/scripts/install-linux.sh | sh

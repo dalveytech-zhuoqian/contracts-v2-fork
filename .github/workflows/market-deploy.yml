@@ -16,7 +16,7 @@ jobs:
     env:
       ETHERSCAN_API_KEY_BASE: ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}
       ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
-      MNEMONIC: ${{ secrets.MNEMONIC }}
+      PK_TEST: ${{ secrets.PK_TEST }}
     
     steps:
       - uses: actions/checkout@v4
