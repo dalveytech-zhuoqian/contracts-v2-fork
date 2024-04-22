@@ -1,4 +1,4 @@
-name: market-verify # 工作流名称
+name: NFT-verify # 工作流名称
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
       - 'release/base_sepolia/**' # Match tags with format release/xxx
 
 jobs:
-  market-verify:
+  NFT-verify:
     environment: base-sepolia
     runs-on: ubuntu-latest
     env:
@@ -48,15 +48,15 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
-        run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+        run: cd projects/NFT && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
 
       # 编译代码
       - name: Compile
-        run: cd projects/market && yarn compile && cd ../.. # 编译代码
+        run: cd projects/NFT && yarn compile && cd ../.. # 编译代码
 
       # verify代码
       - name: Verify
-        run: cd projects/market && yarn verify base_sepolia --sleep && cd ../.. # 编译代码
+        run: cd projects/NFT && yarn verify base_sepolia --sleep && cd ../.. # 编译代码
 
       - name: upload Tenderly
-        run: cd projects/market && yarn tenderly:verify base_sepolia && cd ../.. # 编译代码
+        run: cd projects/NFT && yarn tenderly:verify base_sepolia && cd ../.. # 编译代码

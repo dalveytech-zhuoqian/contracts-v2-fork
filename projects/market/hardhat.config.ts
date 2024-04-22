@@ -42,10 +42,10 @@ const config: HardhatUserConfig = {
     ],
   },
   namedAccounts: {
-    deployer: 10,
+    deployer: 0,
     simpleERC20Beneficiary: 11,
-    diamondAdmin: 10,
-    accessManagerAdmin: 10,
+    diamondAdmin: 0,
+    accessManagerAdmin: 0,
   },
   networks: addForkConfiguration({
     hardhat: {
@@ -57,7 +57,7 @@ const config: HardhatUserConfig = {
     },
     fantom_test: {
       url: node_url("fantom_test"),
-      accounts: accounts(),
+      accounts: [process.env.PK_TEST as string],
       verify: {
         etherscan: {
           apiKey: process.env.ETHERSCAN_API_KEY_FANTOM,
@@ -67,7 +67,7 @@ const config: HardhatUserConfig = {
     },
     base_sepolia: {
       url: node_url("base_sepolia"),
-      accounts: accounts(),
+      accounts: [process.env.PK_TEST as string],
       chainId: 84532,
       verify: {
         etherscan: {

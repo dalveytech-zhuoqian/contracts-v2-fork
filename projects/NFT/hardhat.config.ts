@@ -17,6 +17,12 @@ const config: HardhatUserConfig = {
   typechain: {
     externalArtifacts: ["deployments/localhost/MarketDiamond.json"]
   },
+  namedAccounts: {
+    deployer: 0,
+    simpleERC20Beneficiary: 11,
+    diamondAdmin: 0,
+    accessManagerAdmin: 0,
+  },
   solidity: {
     compilers: [
       {
@@ -41,12 +47,6 @@ const config: HardhatUserConfig = {
       }
     ]
   },
-  namedAccounts: {
-    deployer: 10,
-    simpleERC20Beneficiary: 11,
-    diamondAdmin: 10,
-    accessManagerAdmin: 10
-  },
   networks: addForkConfiguration({
     hardhat: {
       initialBaseFeePerGas: 0 // to fix : https://github.com/sc-forks/solidity-coverage/issues/652, see https://github.com/sc-forks/solidity-coverage/issues/652#issuecomment-896330136
@@ -57,21 +57,21 @@ const config: HardhatUserConfig = {
     },
     fantom_test: {
       url: node_url("fantom_test"),
-      accounts: accounts(),
+      accounts: [process.env.PK_TEST as string],
       verify: {
         etherscan: {
+          apiUrl: "https://api-testnet.ftmscan.com",
           apiKey: process.env.ETHERSCAN_API_KEY_FANTOM,
-          apiUrl: "https://api-testnet.ftmscan.com"
         }
       }
     },
     base_sepolia: {
       url: node_url("base_sepolia"),
-      accounts: accounts(),
+      accounts: [process.env.PK_TEST as string],
       verify: {
         etherscan: {
           apiUrl: "https://api-sepolia.basescan.org",
-          apiKey: process.env.ETHERSCAN_API_KEY_BASE
+          apiKey: process.env.ETHERSCAN_API_KEY_BASE,
         }
       }
     },
