@@ -57,6 +57,7 @@ contract MarketFacet is IAccessManaged, IMarketFacet {
     ) external restricted {
         // //TODO 查一下当前 market balance
         MarketHandler.Storage().config[market] = data;
+        // test
     }
 
     function addMarket(

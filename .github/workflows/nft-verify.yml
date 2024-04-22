@@ -1,0 +1,62 @@
+name: NFT-verify # 工作流名称
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'release/base_sepolia/**' # Match tags with format release/xxx
+
+jobs:
+  NFT-verify:
+    environment: base-sepolia
+    runs-on: ubuntu-latest
+    env:
+      ETHERSCAN_API_KEY_BASE: ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}
+      ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
+      TENDERLY_PROJECT: ${{ secrets.TENDERLY_PROJECT }}
+      TENDERLY_USERNAME: ${{ secrets.TENDERLY_USERNAME }}
+      PK_TEST: ${{ secrets.PK_TEST }}
+
+    steps:
+      - run: curl https://raw.githubusercontent.com/Tenderly/tenderly-cli/master/scripts/install-linux.sh | sh
+
+      - run: tenderly login --authentication-method access-key --access-key "${{ secrets.TENDERLY_TOKEN }}"
+
+      - uses: actions/checkout@v4
+
+      # 设置 Node.js 环境
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x # 使用 Node.js 版本 20.x
+
+      # 安装依赖
+      - name: Install submodule
+        run: git submodule update --init --recursive
+
+      - name: Get Yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: Cache Yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: cd projects/NFT && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+
+      # 编译代码
+      - name: Compile
+        run: cd projects/NFT && yarn compile && cd ../.. # 编译代码
+
+      # verify代码
+      - name: Verify
+        run: cd projects/NFT && yarn verify base_sepolia --sleep && cd ../.. # 编译代码
+
+      - name: upload Tenderly
+        run: cd projects/NFT && yarn tenderly:verify base_sepolia && cd ../.. # 编译代码

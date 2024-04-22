@@ -1,0 +1,76 @@
+name: market-Deploy # 工作流名称
+
+on:
+  workflow_dispatch:
+  push:
+    paths: 
+      - '.github/workflows/market-deploy.yml'
+      - 'projects/market/src/**' 
+      - 'projects/market/test/**'
+    branches:
+      - base_sepolia # 当 main 分支有代码推送时触发工作流
+
+jobs:
+  market-test:
+    environment: base-sepolia
+    runs-on: ubuntu-latest
+    env:
+      ETHERSCAN_API_KEY_BASE: ${{ secrets.ENVKEY_ETHERSCAN_API_KEY_BASE }}
+      ETH_NODE_URI_BASE_SEPOLIA: ${{ secrets.ENVKEY_ETH_NODE_URI_BASE_SEPOLIA }}
+      PK_TEST: ${{ secrets.PK_TEST }}
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      # 设置 Node.js 环境
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x # 使用 Node.js 版本 20.x
+          
+      - name: Get Yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: Cache Yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ID_RSA }}" > ~/.ssh/id_rsa
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/id_rsa
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/id_rsa
+          
+      - run: git config --global user.email "zhuoqian.zhou@dalveytech.com"
+      - run: git config --global user.name "CD Bot"
+      - run: git remote set-url --push origin git@github.com:dalveytech-zhuoqian/contracts-v2-fork.git
+      # - run: touch 11.md && git add 11.md && git commit -m "test" && git push
+
+      # 安装依赖
+      - name: Install submodule
+        run: git submodule update --init --recursive
+
+      - name: Install dependencies
+        run: cd projects/market && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+
+      - name: typechain
+        run: cd projects/market && yarn prepare && cd ../.. # 编译代码
+
+      # # 编译代码
+      - name: Compile
+        run: cd projects/market && yarn compile && cd ../.. # 编译代码
+      
+      - name: test
+        run: cd projects/market && yarn test && cd ../.. # 编译代码
+
+      - run: cd projects/market && yarn deploy base_sepolia && git add deployments/base_sepolia && git commit -m "Deploy contracts on base sepolia" && git push && git tag release/base_sepolia/$(date +'%Y%m%d%H%M%S') && git push origin --tags
+
+

@@ -190,6 +190,9 @@ async function performAction(rawArgs) {
   } else if (firstArg === "tenderly:push") {
     const { fixedArgs } = parseArgs(args, 1, {});
     await execute(`hardhat --network ${fixedArgs[0]} tenderly:push`);
+  } else if (firstArg === "tenderly:verify") {
+    const { fixedArgs } = parseArgs(args, 1, {})
+    await execute(`hardhat --network ${fixedArgs[0]} tenderly:verify`)
   }
 }
 
