@@ -4,8 +4,8 @@ on:
   push:
     paths: 
       - '.github/workflows/nft-deploy.yml'
-      - 'projects/nft/src/**' 
-      - 'projects/nft/test/**'
+      - 'projects/NFT/src/**' 
+      - 'projects/NFT/test/**'
     branches:
       - base_sepolia # 当 main 分支有代码推送时触发工作流
 
@@ -58,18 +58,18 @@ jobs:
         run: git submodule update --init --recursive
 
       - name: Install dependencies
-        run: cd projects/nft && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
+        run: cd projects/NFT && yarn install --frozen-lockfile && cd ../.. # 安装依赖，确保锁定文件一致
 
       - name: typechain
-        run: cd projects/nft && yarn prepare && cd ../.. # 编译代码
+        run: cd projects/NFT && yarn prepare && cd ../.. # 编译代码
 
       # # 编译代码
       - name: Compile
-        run: cd projects/nft && yarn compile && cd ../.. # 编译代码
+        run: cd projects/NFT && yarn compile && cd ../.. # 编译代码
       
       - name: test
-        run: cd projects/nft && yarn test && cd ../.. # 编译代码
+        run: cd projects/NFT && yarn test && cd ../.. # 编译代码
 
-      - run: cd projects/nft && yarn deploy base_sepolia && git add deployments/base_sepolia && git commit -m "Deploy contracts on base sepolia" && git push && git tag release/base_sepolia/$(date +'%Y%m%d%H%M%S') && git push origin --tags
+      - run: cd projects/NFT && yarn deploy base_sepolia && git add deployments/base_sepolia && git commit -m "Deploy contracts on base sepolia" && git push && git tag release/base_sepolia/$(date +'%Y%m%d%H%M%S') && git push origin --tags
 
 
